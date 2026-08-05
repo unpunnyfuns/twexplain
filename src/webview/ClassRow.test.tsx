@@ -61,3 +61,40 @@ describe('ClassRow', () => {
     expect(markup).not.toContain('sets only Tailwind-internal variables')
   })
 })
+
+describe('ClassRow conditional declarations', () => {
+  it('shows the condition scoping a declaration rather than presenting it as unconditional', () => {
+    const markup = renderToStaticMarkup(
+      <ClassRow
+        explained={explained('hover-ish', null, [
+          { prop: 'display', value: 'flex' },
+          { prop: 'background-color', value: 'red', context: '@media (hover: hover)' },
+        ])}
+      />,
+    )
+
+    expect(markup).toContain('@media (hover: hover)')
+    expect(markup).toContain('background-color: red')
+  })
+
+  it('escapes a condition containing comparison operators rather than emitting raw markup', () => {
+    const markup = renderToStaticMarkup(
+      <ClassRow
+        explained={explained('container', null, [
+          { prop: 'max-width', value: '640px', context: '@media (width >= 40rem)' },
+        ])}
+      />,
+    )
+
+    expect(markup).toContain('@media (width &gt;= 40rem)')
+    expect(markup).not.toContain('(width >= 40rem)')
+  })
+
+  it('does not invent a condition for unconditional declarations', () => {
+    const markup = renderToStaticMarkup(
+      <ClassRow explained={explained('flex', null, [{ prop: 'display', value: 'flex' }])} />,
+    )
+
+    expect(markup).not.toContain('@media')
+  })
+})

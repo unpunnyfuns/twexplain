@@ -4,17 +4,36 @@
   "description": "Explains Tailwind class strings in a side panel",
   "version": "0.0.1",
   "private": true,
-  "engines": { "vscode": "^1.99.0" },
-  "categories": ["Programming Languages", "Other"],
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
   "activationEvents": [
+    "onView:twexplain.panel",
     "onLanguage:typescriptreact",
     "onLanguage:javascriptreact"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "views": {
-      "explorer": [
-        { "type": "webview", "id": "twexplain.panel", "name": "Tailwind Inspector" }
+      "twexplain": [
+        {
+          "type": "webview",
+          "id": "twexplain.panel",
+          "name": "Classes"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "twexplain",
+          "title": "Tailwind Inspector",
+          "icon": "media/icon.svg"
+        }
       ]
     }
   },

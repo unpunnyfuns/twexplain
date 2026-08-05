@@ -1,6 +1,6 @@
 import { type CssNode, parseCss } from '../css/parse'
 import type { Candidate, Declaration, ExplainGroup, ExplainedClass } from '../types'
-import { derive } from './derive'
+import { derive, isConditional } from './derive'
 import { flattenValue, remToPx } from './flatten'
 import { groupAll, groupFor } from './group'
 import { overrideFor } from './overrides'
@@ -19,10 +19,22 @@ export type DesignSystemPort = {
 
 const COLOR_PROPS = new Set(['background-color', 'color', 'border-color', 'fill', 'stroke'])
 
-function collectDeclarations(nodes: CssNode[], out: Declaration[]): void {
+function collectDeclarations(
+  nodes: CssNode[],
+  out: Declaration[],
+  conditions: string[],
+): void {
   for (const node of nodes) {
-    if (node.type === 'decl') out.push(node)
-    else collectDeclarations(node.children, out)
+    if (node.type === 'decl') {
+      out.push(
+        conditions.length > 0
+          ? { prop: node.prop, value: node.value, context: conditions.join(' and ') }
+          : { prop: node.prop, value: node.value },
+      )
+      continue
+    }
+    const nested = node.selector.startsWith('@') ? [...conditions, node.selector] : conditions
+    collectDeclarations(node.children, out, nested)
   }
 }
 
@@ -55,10 +67,11 @@ export function explainCandidates(
     }
 
     const raw: Declaration[] = []
-    collectDeclarations(strip(parseCss(css)), raw)
+    collectDeclarations(strip(parseCss(css)), raw, [])
     const declarations = raw.map((d) => ({
       prop: d.prop,
       value: remToPx(flattenValue(d.value, resolve)),
+      ...(d.context !== undefined ? { context: d.context } : {}),
     }))
 
     const parsed = ds.parseCandidate(candidate.text)[0]
@@ -68,7 +81,9 @@ export function explainCandidates(
           .reverse()
           .map((v) => ds.printVariant(v))
       : []
-    const prose = (parsed ? overrideFor(parsed, declarations) : null) ?? derive(declarations)
+    const unexplainedCondition = variants.length === 0 && isConditional(declarations)
+    const derived = unexplainedCondition ? null : derive(declarations)
+    const prose = (parsed ? overrideFor(parsed, declarations) : null) ?? derived
 
     return {
       candidate,

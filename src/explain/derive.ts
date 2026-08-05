@@ -65,6 +65,10 @@ export function isOpaque(declarations: Declaration[]): boolean {
   return declarations.some((d) => d.value.includes('--tw-'))
 }
 
+export function isConditional(declarations: Declaration[]): boolean {
+  return declarations.some((d) => d.context !== undefined)
+}
+
 function phraseFor(declaration: Declaration): string | null {
   const exact = EXACT[declaration.prop]?.[declaration.value]
   if (exact !== undefined) return exact

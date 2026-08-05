@@ -21,7 +21,13 @@ export function ClassRow({ explained }: { explained: ExplainedClass }): ReactEle
           <>
             <span className={styles.unexplained}>no plain-English entry yet</span>
             <pre className={styles.raw}>
-              {declarations.map((d) => `${d.prop}: ${d.value}`).join('\n')}
+              {declarations
+                .map((d) =>
+                  d.context === undefined
+                    ? `${d.prop}: ${d.value}`
+                    : `${d.context} {\n  ${d.prop}: ${d.value}\n}`,
+                )
+                .join('\n')}
             </pre>
           </>
         )}

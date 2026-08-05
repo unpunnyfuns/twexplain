@@ -139,7 +139,7 @@ describe('explainCandidates', () => {
 
     const groups = explainCandidates([candidate('bg-red-nested', 0)], ds)
     expect(groups[0]?.classes[0]?.declarations).toEqual([
-      { prop: 'background-color', value: 'red' },
+      { prop: 'background-color', value: 'red', context: '@media (hover: hover)' },
     ])
   })
 })
@@ -276,5 +276,73 @@ describe('explainCandidates variants', () => {
   it('still routes a variant-bearing class to the state group', () => {
     const groups = explainCandidates([candidate('[&>*]:flex', 0)], variantDs)
     expect(groups.map((g) => g.name)).toEqual(['state'])
+  })
+})
+
+const CONTAINER_CSS = `.container {
+  width: 100%;
+  @media (width >= 40rem) { max-width: 40rem; }
+  @media (width >= 48rem) { max-width: 48rem; }
+}`
+
+const VARIANT_WRAPPED_CSS = `@media (hover: hover) {
+  .hover\\:bg-blue-700:hover { background-color: red; }
+}`
+
+const nestedDs: DesignSystemPort = {
+  candidatesToCss: (cs) =>
+    cs.map((c) => {
+      if (c === 'container') return CONTAINER_CSS
+      if (c === 'hover:bg-blue-700') return VARIANT_WRAPPED_CSS
+      return null
+    }),
+  parseCandidate: (c) => [{ root: c, variants: [] }],
+  printVariant: (v) => v.root ?? '',
+  resolveThemeValue: () => undefined,
+}
+
+const declarationsOf = (text: string) => {
+  const groups = explainCandidates([candidate(text, 0)], nestedDs)
+  return groups.flatMap((g) => g.classes)[0]?.declarations
+}
+
+describe('conditional declaration context', () => {
+  it('records the media condition for declarations nested inside the class rule', () => {
+    expect(declarationsOf('container')).toEqual([
+      { prop: 'width', value: '100%' },
+      { prop: 'max-width', value: '640px', context: '@media (width >= 40rem)' },
+      { prop: 'max-width', value: '768px', context: '@media (width >= 48rem)' },
+    ])
+  })
+
+  it('keeps derived prose when the class has a variant that explains the condition', () => {
+    const ds: DesignSystemPort = {
+      ...nestedDs,
+      parseCandidate: () => [
+        { root: 'bg', variants: [{ kind: 'static', root: 'hover' }] },
+      ],
+    }
+
+    const explained = explainCandidates([candidate('hover:bg-blue-700', 0)], ds)
+      .flatMap((g) => g.classes)[0]
+
+    expect(explained?.declarations[0]?.context).toBe('@media (hover: hover)')
+    expect(explained?.prose).toBe('background red')
+    expect(explained?.variants).toEqual(['hover'])
+  })
+
+  it('refuses prose when any declaration is conditional', () => {
+    const ds: DesignSystemPort = {
+      ...nestedDs,
+      candidatesToCss: () => [
+        '.narrowing { width: 100%; @media (width >= 40rem) { width: 50%; } }',
+      ],
+    }
+
+    const groups = explainCandidates([candidate('narrowing', 0)], ds)
+    const explained = groups.flatMap((g) => g.classes)[0]
+
+    expect(explained?.declarations).toHaveLength(2)
+    expect(explained?.prose).toBeNull()
   })
 })

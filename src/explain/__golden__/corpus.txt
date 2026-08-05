@@ -1,3 +1,13 @@
+container
+  group: spacing
+  prose: [no prose — raw CSS shown]
+    width: 100%
+    max-width: 640px   [@media (width >= 40rem)]
+    max-width: 768px   [@media (width >= 48rem)]
+    max-width: 1024px   [@media (width >= 64rem)]
+    max-width: 1280px   [@media (width >= 80rem)]
+    max-width: 1536px   [@media (width >= 96rem)]
+
 flex
   group: layout
   prose: lays children out in a row
@@ -416,7 +426,7 @@ space-y-0
 hover:bg-blue-700
   group: state
   prose: background oklch(48.8% 0.243 264.376)
-    background-color: oklch(48.8% 0.243 264.376)
+    background-color: oklch(48.8% 0.243 264.376)   [@media (hover: hover)]
 
 focus:outline-none
   group: state
@@ -426,22 +436,22 @@ focus:outline-none
 md:w-1/2
   group: state
   prose: width 50%
-    width: 50%
+    width: 50%   [@media (width >= 48rem)]
 
 lg:flex-row
   group: state
   prose: [no prose — raw CSS shown]
-    flex-direction: row
+    flex-direction: row   [@media (width >= 64rem)]
 
 dark:bg-slate-900
   group: state
   prose: background oklch(20.8% 0.042 265.755)
-    background-color: oklch(20.8% 0.042 265.755)
+    background-color: oklch(20.8% 0.042 265.755)   [@media (prefers-color-scheme: dark)]
 
 group-hover:opacity-100
   group: state
   prose: 100% opaque
-    opacity: 100%
+    opacity: 100%   [@media (hover: hover)]
 
 nope-999
   [invalid]

@@ -1,4 +1,5 @@
 export const CORPUS: string[] = [
+  'container',
   'flex',
   'inline-flex',
   'grid',

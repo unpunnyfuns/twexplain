@@ -50,7 +50,11 @@ describe('explain pipeline golden corpus', () => {
           : '[no prose — raw CSS shown]'
       const prose = explained.prose ?? fallback
       const declarations = explained.declarations
-        .map((d) => `    ${d.prop}: ${d.value}`)
+        .map((d) =>
+          d.context === undefined
+            ? `    ${d.prop}: ${d.value}`
+            : `    ${d.prop}: ${d.value}   [${d.context}]`,
+        )
         .join('\n')
       return `${text}\n  group: ${explained.group}\n  prose: ${prose}\n${declarations}`
     }).join('\n\n')
