@@ -115,8 +115,16 @@ Ordered by consequence.
    `ParsedVariant` type whose `root` is correctly optional. Verified against real
    Tailwind, not only against a fake.
 
-5. **JSX regex lacks the `s` flag.** A hand-wrapped multi-line `className` — legal JSX — is
-   undetectable, and the panel then claims the cursor is not in a class string.
+5. ~~**JSX regex lacks the `s` flag.**~~ **FIXED.** A hand-wrapped multi-line `className` is
+   now detected, with offsets still recovering each candidate across the newline.
+
+   The `s` flag alone would have been a regression, not a fix: with `.` matching newlines, an
+   unterminated quote — the normal state while typing — lets the match run to the next `"`
+   anywhere in the file, so the panel would report tokens from unrelated code as Tailwind
+   classes. A value spanning more than `MAX_VALUE_NEWLINES` (8) is therefore rejected.
+   Verified load-bearing by mutation: removing the cap turns the unterminated-quote test red.
+
+   This is still regex detection; Milestone 3's AST work supersedes it.
 
 6. **`loadStylesheet` appends `.css` unconditionally.** `@import "tailwindcss/utilities.css"`
    resolves to `utilities.css.css` → ENOENT → whole-load failure.

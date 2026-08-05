@@ -91,3 +91,44 @@ describe('detectJsx', () => {
     })
   })
 })
+
+const MULTILINE = `<div
+  className="flex items-center
+    gap-2 px-4"
+>x</div>`
+
+describe('detectJsx across newlines', () => {
+  it('detects a class string that the author wrapped over several lines', () => {
+    const offset = MULTILINE.indexOf('items-center')
+    const found = detectJsx(MULTILINE, offset, 'file:///a.tsx')
+
+    expect(found?.candidates.map((c) => c.text)).toEqual([
+      'flex',
+      'items-center',
+      'gap-2',
+      'px-4',
+    ])
+  })
+
+  it('works with the cursor on a continuation line', () => {
+    const offset = MULTILINE.indexOf('px-4')
+    expect(detectJsx(MULTILINE, offset, 'file:///a.tsx')).not.toBeNull()
+  })
+
+  it('reports offsets that still recover each candidate across the newline', () => {
+    const found = detectJsx(MULTILINE, MULTILINE.indexOf('flex'), 'file:///a.tsx')
+    for (const c of found?.candidates ?? []) {
+      expect(MULTILINE.slice(c.range.start, c.range.end)).toBe(c.text)
+    }
+  })
+
+  it('does not swallow a distant quote when a class string is left unterminated', () => {
+    const unterminated = ['<div className="flex', ...Array(30).fill('  const x = 1'), 'const s = "later"'].join(
+      '\n',
+    )
+    const offset = unterminated.indexOf('flex')
+
+    const found = detectJsx(unterminated, offset, 'file:///a.tsx')
+    expect(found?.candidates.map((c) => c.text) ?? []).not.toContain('const')
+  })
+})
