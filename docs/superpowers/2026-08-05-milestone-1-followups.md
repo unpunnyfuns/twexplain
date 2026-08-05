@@ -1,79 +1,85 @@
 # twexplain — Milestone 1 follow-ups
 
-Findings carried out of Milestone 1's implementation and review, triaged at the final
-whole-branch review. Nothing here blocks the merged code; everything here is real.
+Findings carried out of Milestone 1's implementation and review, plus everything fixed since
+the merge. Nothing here blocks the shipped code.
 
-## Manual verification — DONE (2026-08-05)
+## Manual verification — done (2026-08-05)
 
-Verified in an extension dev host against `flashtail` (Tailwind 4.3.3), cursor inside a
-17-class string in `src/components/SlotEditor.tsx`:
+Verified in an extension dev host against `flashtail` (Tailwind 4.3.3):
 
 - Colour swatches **paint**. This settles the open CSP question: `ClassRow` sets `background`
-  via an inline `style` while the webview CSP has no `'unsafe-inline'`, and React's CSSOM
-  path is not policed by CSP. Confirmed working, not merely reasoned about.
+  via an inline `style` while the webview CSP has no `'unsafe-inline'`, and React's CSSOM path
+  is not policed by CSP. Confirmed working, not merely reasoned about.
 - `px-2` reports **8px**, not `calc(var(--spacing) * 2)` — theme resolution really is running
   against the workspace's own Tailwind.
-- `focus:border-sky-400` and `disabled:opacity-50` land under **state**, not with the
-  colours and borders.
-
-Reproduce with:
+- `focus:` and `disabled:` classes land under **state**, not with the colours and borders.
 
 ```bash
 code --extensionDevelopmentPath=/Users/palnes/src/twexplain --new-window <a-tailwind-v4-project>
 ```
 
-The panel is a webview view in the Explorer sidebar, titled "Tailwind Inspector".
+The panel has its own activity-bar icon, titled "Tailwind Inspector".
 
 Still untested automatically: nothing in the suite renders the panel end to end. The
-`ClassRow`/`App` component tests added during the final fix wave cover the rendering rules;
-the wiring from cursor move to painted panel rests on this manual check.
+`ClassRow`/`App` component tests cover the rendering rules; the wiring from cursor move to
+painted panel rests on this manual check.
 
-## Parked — real, deliberately not fixed
+## Fixed since merge
 
-| Item | Ruling |
-|---|---|
-| `@plugin` detector regex matches the literal text inside a CSS comment or string | Fails safe — produces an honest "unsupported" message, not a crash |
-| `animate-spin` lost its prose | Consequence of the override-honesty fix: `animation: spin 1s linear infinite` is not opaque, so the composite override is correctly withheld. Repair is an `animation` phrase plus an `EXACT` entry for `animation: none` — Milestone 4 |
-| `animate` and `divide` composite override entries are unreachable | Bare `animate`/`divide` compile to no CSS; `divide-y` parses with root `divide-y`. Dead entries to remove |
-| `shadow-inner` reads "drop shadow" | True but imprecise about inset-ness |
+**Entry discovery walked the whole workspace on every keystroke.** `discover.ts` now splits
+the workspace-scoped walk (`findEntryCandidates`, memoised) from the per-file choice
+(`pickNearestEntry`, pure). `clearDesignSystemCache` clears both, so the existing `**/*.css`
+watcher invalidates them together. Measured on a ~127-repo tree: 2714ms cold, 0.027ms warm.
 
-## Should fix soon
+**`variants` could hold nullish entries, and truncated others.** Bigger than first recorded:
+`root` is *absent* for arbitrary variants, and using it also truncated compound and functional
+ones — `group-hover:` reported `group`, `data-[state=open]:` reported `data`. Now derived from
+`ds.printVariant(v)`, which handles all five kinds, and reversed so stacked variants read in
+source order (`md:hover:flex` → `['md', 'hover']`). `DesignSystemPort` exports a
+`ParsedVariant` type with `root` correctly optional.
 
-Ordered by consequence.
+**Conditions scoping a declaration were discarded.** `Declaration` gained an optional
+`context`; `container` now reads `max-width: 640px [@media (width >= 40rem)]` per breakpoint
+instead of five bare values.
 
-1. ~~**`discoverCssEntry` walks the whole workspace on every keystroke.**~~ **FIXED.**
-   `discover.ts` now splits the workspace-scoped walk (`findEntryCandidates`, memoised) from
-   the per-file choice (`pickNearestEntry`, pure and cheap), and `clearDesignSystemCache`
-   clears both caches so the existing `**/*.css` watcher invalidates them together.
-   Measured on a ~127-repo tree: cold walk 2714ms, then 0.027ms per subsequent call.
+Two notes worth keeping:
 
-   Residual: the **first** panel open on a very large tree still costs one full walk (~2.7s).
-   It is off the UI thread and happens once per invalidation, so it delays the first result
-   rather than blocking the editor. Worth a progress indicator if it ever grates.
+- A first attempt keyed on whether the at-rule sat *inside* or *outside* the class rule. That
+  is **version-dependent** — 4.1.7 nests `@media` inside for variant utilities, 4.3.3 hoists
+  it outside. The stable question is whether the class's own **variants** explain the
+  condition. `isConditional` is exported from `derive.ts`; the veto lives in
+  `explainCandidates`, the only place holding both declarations and variants.
+- The prose veto is **load-bearing for Milestone 4**. `container` is honest today only because
+  `max-width` has no phrase. Add one and the unguarded pipeline emits a flat sentence claiming
+  five unconditional max-widths — verified: a two-declaration fake produced `width 100%; width
+  50%`.
 
-2. ~~**Nested-rule context is discarded.**~~ **FIXED.** `Declaration` gained an optional
-   `context`, `collectDeclarations` accumulates the at-rule conditions scoping each
-   declaration, and both the panel and the golden report show them. `container` now reads
-   `max-width: 640px [@media (width >= 40rem)]` per breakpoint instead of five bare values.
+**Conditional swatches made unqualified claims.** A painted swatch asserts "this is the
+colour", so `dark:bg-slate-900` showed a flat near-black chip with nothing saying it only
+applies in dark mode. Conditional swatches are now notched with a dashed outline, and every
+swatch carries a `title` with its authored value — which also closed the parked accessibility
+minor where colour was the sole carrier. The condition prefers `context` and **falls back to
+the variant list**; that fallback is what covers class-strategy dark, where no context exists.
 
-   Two design notes worth keeping:
+**Multi-line class strings were undetectable.** A hand-wrapped `className` is legal JSX, but
+the panel told the user to put the cursor in a class string while it already was. The `s` flag
+alone would have been a regression — with `.` matching newlines, an unterminated quote (the
+normal state while typing) runs to the next quote anywhere in the file, reporting unrelated
+tokens as classes. Values spanning more than 8 newlines are rejected; confirmed load-bearing
+by mutation.
 
-   - An earlier attempt distinguished at-rules nested *inside* the class rule from ones
-     wrapping it. That is **version-dependent** — Tailwind 4.1.7 nests `@media` inside the
-     class rule for variant utilities, 4.3.3 hoists it outside — so it was abandoned. The
-     stable question is whether the class's own **variants** explain the condition:
-     `container` has none, so its conditions are unexplained and derived prose is withheld;
-     `hover:bg-blue-700` has a `hover` chip, so it keeps its prose and merely gains context
-     in the raw CSS. `isConditional` is exported from `derive.ts`; the veto lives in
-     `explainCandidates` because only it has both the declarations and the variants.
-   - The prose veto is **load-bearing for Milestone 4**, not cosmetic. `container` is honest
-     today only because `max-width` has no phrase. The moment Milestone 4 adds one, the
-     unguarded pipeline would emit "width 100%; max-width 640px; max-width 768px; …" —
-     verified: a two-declaration fake produced the literal lie `width 100%; width 50%`.
+**Tailwind's per-layer import setup was unsupported.** `@import "tailwindcss/theme.css"
+layer(theme)` and friends are documented, but `ENTRY_PATTERN` required the bare
+`@import "tailwindcss"`, so the panel reported "No CSS file importing tailwindcss was found"
+in a project that plainly imports it. Even once found, `loadStylesheet` resolved
+`tailwindcss/theme.css` to `theme.css.css` → ENOENT → total failure. Both halves fixed; a
+negative test pins that `@import "normalize.css"` is still not an entry. Verified end to end
+against real Tailwind.
 
-   Still not covered: nested *selector* context is not recorded — only at-rule conditions
-   are. This matters most for **class-strategy dark mode**. Tailwind v4 has two strategies
-   and they compile differently:
+## Still open
+
+1. **Selector context is not recorded** — only at-rule conditions are. This matters most for
+   class-strategy dark mode, since Tailwind v4 has two strategies that compile differently:
 
    | strategy | output | recorded |
    |---|---|---|
@@ -81,92 +87,64 @@ Ordered by consequence.
    | class (`@custom-variant dark (&:where(.dark, .dark *))`) | `.dark\:bg-x:where(.dark, .dark *)` | **no** |
 
    So in any project with a dark-mode toggle, a `dark:` class looks unconditional to the
-   pipeline. The swatch handles this correctly via a variant fallback (below), but the raw
-   CSS view still shows a bare declaration. Recording selector context would close this and
-   the `divide-y` / `space-x` selector cases at once; it needs the escaped class name
-   stripped out of the selector.
+   pipeline. The swatch is correct anyway via the variant fallback, but the raw CSS view shows
+   a bare declaration. Fixing this also closes the `divide-y` / `space-x` selector cases. Needs
+   the escaped class name stripped out of the selector.
 
-3. **Conditional swatches — DONE.** A painted swatch is a confident claim that "this is the
-   colour", so `dark:bg-slate-900` showing a flat near-black chip in a light-themed panel was
-   the same dishonesty family as the override bug. Swatches are now notched with a dashed
-   outline when conditional, and every swatch carries a `title` with its authored value —
-   which also closes the parked accessibility minor (colour was previously the sole carrier).
+2. **The version-keyed cache cannot pick up an in-place Tailwind upgrade.** Node's ESM registry
+   caches by URL and the URL does not change, so a new cache key re-runs
+   `__unstable__loadDesignSystem` against the old code. The only honest fix is a reload prompt.
+   Do not trust the guarantee the cache key implies.
 
-   The condition text prefers the declaration's `context` and **falls back to the variant
-   list**. That fallback is deliberate: it is what covers class-strategy dark, where no
-   context exists. Tested with no context present.
+3. **`state.test.ts` covers 2 of 6 `computeState` branches.** The untested ones include
+   `load-error`, which is the branch users actually hit. Cheap with `vi.mock`.
 
-   Limitation: `title` is a native tooltip, so hover-only and slow. Showing the condition
-   without hovering means a layout change (a label beside the swatch), deliberately not
-   bolted on here.
+4. **`discoverCssEntry` gaps:** no test proving `IGNORED` directories are pruned (now
+   performance-critical), and symlinked subdirectories are never explored, which matters for
+   pnpm and monorepo layouts. The symlink skip is also the current loop protection — replace it
+   deliberately, with a visited-inode set.
 
-3. **The version-keyed cache cannot pick up an in-place Tailwind upgrade.** Node's ESM
-   registry caches by URL and the URL does not change, so a new cache key re-runs
-   `__unstable__loadDesignSystem` against the old code. The only honest fix is a reload
-   prompt. Do not trust the guarantee the cache key implies.
+5. **oxfmt drift.** `.oxfmtrc.json` cut `oxfmt --list-different src` from 39 files to 13. The
+   remaining reflow belongs in its own reviewable commit.
 
-4. ~~**`ExplainedClass.variants` can hold `null` at runtime.**~~ **FIXED.** The problem was
-   larger than first recorded: `root` is *absent* for arbitrary variants, and using it also
-   truncated compound and functional ones — `group-hover:` reported `group`, and
-   `data-[state=open]:` reported `data`. `explainCandidates` now derives each entry from
-   `ds.printVariant(v)`, which returns canonical text for all five variant kinds, and
-   reverses Tailwind's applied order so stacked variants read in source order
-   (`md:hover:flex` → `['md', 'hover']`). `DesignSystemPort` gained an exported
-   `ParsedVariant` type whose `root` is correctly optional. Verified against real
-   Tailwind, not only against a fake.
+6. **First panel open on a very large tree still costs one full walk (~2.7s).** Off the UI
+   thread and once per invalidation, so it delays the first result rather than freezing the
+   editor. Worth a progress indicator if it grates.
 
-5. ~~**JSX regex lacks the `s` flag.**~~ **FIXED.** A hand-wrapped multi-line `className` is
-   now detected, with offsets still recovering each candidate across the newline.
+## Parked
 
-   The `s` flag alone would have been a regression, not a fix: with `.` matching newlines, an
-   unterminated quote — the normal state while typing — lets the match run to the next `"`
-   anywhere in the file, so the panel would report tokens from unrelated code as Tailwind
-   classes. A value spanning more than `MAX_VALUE_NEWLINES` (8) is therefore rejected.
-   Verified load-bearing by mutation: removing the cap turns the unterminated-quote test red.
-
-   This is still regex detection; Milestone 3's AST work supersedes it.
-
-6. **`loadStylesheet` appends `.css` unconditionally.** `@import "tailwindcss/utilities.css"`
-   resolves to `utilities.css.css` → ENOENT → whole-load failure.
-
-7. **`ENTRY_PATTERN` misses Tailwind's individual-imports setup.** An entry of
-   `@import "tailwindcss/theme.css" layer(theme); …` yields `no-entry`, so the panel reports
-   no Tailwind in a workspace that plainly imports it.
-
-8. **`state.test.ts` covers 2 of 6 `computeState` branches.** The untested ones include
-   `load-error`, which is the branch users actually hit.
-
-9. **`discoverCssEntry` gaps:** no test proving `IGNORED` directories are pruned (now
-   performance-critical per item 1), and symlinked subdirectories are never explored, which
-   matters for pnpm and monorepo layouts. The symlink skip is also the current loop
-   protection — replace it deliberately, with a visited-inode set.
-
-10. **oxfmt drift.** `.oxfmtrc.json` cut `oxfmt --list-different src` from 39 files to 13.
-    The remaining reflow belongs in its own reviewable commit.
+| Item | Ruling |
+|---|---|
+| `@plugin` detector regex matches the literal text inside a CSS comment or string | Fails safe — an honest "unsupported" message, not a crash |
+| `animate-spin` lost its prose | Consequence of the override-honesty fix: `animation: spin 1s linear infinite` is not opaque, so the composite override is correctly withheld. Repair is an `animation` phrase plus an `EXACT` entry for `animation: none` — Milestone 4 |
+| `animate` and `divide` composite override entries are unreachable | Bare `animate`/`divide` compile to no CSS; `divide-y` parses with root `divide-y`. Dead entries to remove |
+| `shadow-inner` reads "drop shadow" | True, but imprecise about inset-ness |
+| Swatch condition is a native `title`, so hover-only and slow | Showing it without hovering means a layout change (a label beside the swatch) |
 
 ## Test coverage assessment
 
-The middle of the pipeline is well protected. Both ends are not.
+The middle of the pipeline is well protected. Both ends are thinner.
 
-- **Strong:** `flatten` (16 tests), `derive` (15), `detect/jsx` (13, with exact offset
-  boundaries pinned). The golden corpus earned its keep immediately — it caught two real
-  pipeline bugs that every fake-based unit test missed.
-- **Weakest:** the webview. All three honesty rules are enforced at render time, and until
-  the final fix wave nothing could test `.tsx` at all. `ClassRow`'s branches and `App`'s
-  states are the product.
-- **Structural note:** the plan fixed each task's test set in advance, so reviewers could
-  log coverage gaps but not close them. That worked inside module boundaries and failed at
-  the seams — nearly every defect found late lived at a seam.
+- **Strong:** `flatten`, `derive`, `detect/jsx` (offset boundaries pinned exactly), and the
+  golden corpus — which has now caught four real bugs that fake-based unit tests all missed:
+  spaced fraction chains, the empty `--tw-` fallback, `container`'s conditional max-widths, and
+  the override misfires.
+- **Weakest:** nothing renders the panel end to end. Component tests cover the rendering rules;
+  the cursor-to-painted-panel path rests on manual checking.
+- **Structural note:** the plan fixed each task's test set in advance, so reviewers could log
+  coverage gaps but not close them. That worked inside module boundaries and failed at the
+  seams — nearly every defect found late lived at a seam.
 
 ## Later milestones
 
 - **Milestone 2 — editing.** `edit/mutate.ts` on `parseCandidate`/`printCandidate`, steppers,
-  colour picker, variant chips, add/remove, and the six write-back rulings in the spec.
-  Fix item 4 above first.
-- **Milestone 3 — detectors.** HTML, Vue, Svelte, `@apply`, and `cn`/`clsx`/`cva` helper
-  calls, all behind the existing `ClassStringLocation` boundary. Fix item 5 first.
+  colour picker, variant chips, add/remove, and the six write-back rulings in the spec. The
+  variants fix above is a prerequisite: chips read that array directly.
+- **Milestone 3 — detectors.** HTML, Vue, Svelte, `@apply`, and `cn`/`clsx`/`cva` helper calls,
+  behind the existing `ClassStringLocation` boundary. AST detection supersedes the regex, and
+  with it the multi-line newline cap.
 - **Milestone 4 — curation.** Grow `PHRASES` toward ~80 properties and `OVERRIDES` from the
-  raw-CSS fallback backlog, add the sort command using `getClassOrder`. Every new override
+  raw-CSS fallback backlog; add the sort command using `getClassOrder`. Every new override
   entry must be verifiably true of its class's real declarations, and its negating, zero and
   colour-only forms must go into the corpus — that omission is what let `shadow-none` ship
   reading "drop shadow".

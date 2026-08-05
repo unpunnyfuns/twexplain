@@ -2,7 +2,7 @@ import { readFile, readdir } from 'node:fs/promises'
 import { dirname, join, sep } from 'node:path'
 
 const IGNORED = new Set(['node_modules', '.git', 'dist', 'out', '.vscode-test'])
-const ENTRY_PATTERN = /@import\s+["']tailwindcss["']/
+const ENTRY_PATTERN = /@import\s+["']tailwindcss(?:\/[\w.-]+)?["']/
 
 const entryCache = new Map<string, Promise<string[]>>()
 

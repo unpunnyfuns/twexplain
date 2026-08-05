@@ -113,3 +113,17 @@ describe('clearDesignSystemCache', () => {
     expect(await findEntryCandidates(root)).toHaveLength(2)
   })
 })
+
+describe('discoverCssEntry with individual imports', () => {
+  it("recognises Tailwind's documented per-layer import setup as an entry", async () => {
+    const root = fixture('individual')
+    const found = await discoverCssEntry(root, join(root, 'src', 'App.tsx'))
+    expect(found).toBe(join(root, 'src', 'app.css'))
+  })
+
+  it('does not treat an unrelated css import as a Tailwind entry', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'twexplain-unrelated-'))
+    await writeFile(join(root, 'a.css'), '@import "normalize.css";\n')
+    expect(await discoverCssEntry(root, join(root, 'App.tsx'))).toBeNull()
+  })
+})

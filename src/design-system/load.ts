@@ -77,7 +77,7 @@ async function buildDesignSystem(workspaceRoot: string, entry: string): Promise<
           id === 'tailwindcss'
             ? join(workspaceRoot, 'node_modules', 'tailwindcss', 'index.css')
             : id.startsWith('tailwindcss/')
-              ? join(workspaceRoot, 'node_modules', `${id}.css`)
+              ? join(workspaceRoot, 'node_modules', id.endsWith('.css') ? id : `${id}.css`)
               : isAbsolute(id)
                 ? id
                 : resolvePath(base, id)

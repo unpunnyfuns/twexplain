@@ -154,3 +154,33 @@ describe('printVariant against the real design system', () => {
     expect(parsed.variants.map((v) => loaded.ds.printVariant(v))).toEqual(['hover', 'md'])
   })
 })
+
+describe('individual per-layer imports', () => {
+  it('loads a design system from Tailwind\'s documented per-layer import setup', async () => {
+    const individualRoot = await mkdtemp(join(tmpdir(), 'twexplain-individual-'))
+    await mkdir(join(individualRoot, 'src'), { recursive: true })
+    await mkdir(join(individualRoot, 'node_modules'), { recursive: true })
+    await symlink(
+      join(process.cwd(), 'node_modules', 'tailwindcss'),
+      join(individualRoot, 'node_modules', 'tailwindcss'),
+      'dir',
+    )
+    await writeFile(
+      join(individualRoot, 'src', 'app.css'),
+      [
+        '@layer theme, base, components, utilities;',
+        '@import "tailwindcss/theme.css" layer(theme);',
+        '@import "tailwindcss/utilities.css" layer(utilities);',
+        '@theme { --color-brand-600: #4f46e5; }',
+      ].join('\n'),
+    )
+    clearDesignSystemCache()
+
+    const loaded = await loadDesignSystem(individualRoot, join(individualRoot, 'src', 'App.tsx'))
+    expect(loaded.ok).toBe(true)
+    if (!loaded.ok) return
+
+    expect(loaded.ds.candidatesToCss(['px-4'])[0]).toContain('padding-inline')
+    expect(loaded.ds.resolveThemeValue('--color-brand-600')).toBe('#4f46e5')
+  })
+})
