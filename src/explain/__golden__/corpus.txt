@@ -1,0 +1,336 @@
+flex
+  group: layout
+  prose: lays children out in a row
+    display: flex
+
+inline-flex
+  group: layout
+  prose: lays children out in a row, sitting inline
+    display: inline-flex
+
+grid
+  group: layout
+  prose: lays children out on a grid
+    display: grid
+
+hidden
+  group: layout
+  prose: hidden entirely
+    display: none
+
+absolute
+  group: layout
+  prose: positioned against its nearest positioned ancestor
+    position: absolute
+
+relative
+  group: layout
+  prose: positioned normally, but anchors absolute children
+    position: relative
+
+items-center
+  group: layout
+  prose: children centered on the cross axis (center)
+    align-items: center
+
+justify-between
+  group: layout
+  prose: children distributed along the main axis (space-between)
+    justify-content: space-between
+
+gap-2
+  group: spacing
+  prose: 8px between children
+    gap: 8px
+
+gap-px
+  group: spacing
+  prose: 1px between children
+    gap: 1px
+
+px-4
+  group: spacing
+  prose: padding of 16px on the left and right
+    padding-inline: 16px
+
+py-2
+  group: spacing
+  prose: padding of 8px on the top and bottom
+    padding-block: 8px
+
+p-0
+  group: spacing
+  prose: padding of 0px on all sides
+    padding: 0px
+
+p-[13px]
+  group: spacing
+  prose: padding of 13px on all sides
+    padding: 13px
+
+m-auto
+  group: spacing
+  prose: margin of auto on all sides
+    margin: auto
+
+-mt-2
+  group: spacing
+  prose: [no prose — raw CSS shown]
+    margin-top: -8px
+
+w-1/2
+  group: spacing
+  prose: width calc(1 / 2 * 100%)
+    width: calc(1 / 2 * 100%)
+
+w-full
+  group: spacing
+  prose: width 100%
+    width: 100%
+
+h-screen
+  group: spacing
+  prose: height 100vh
+    height: 100vh
+
+min-w-0
+  group: spacing
+  prose: [no prose — raw CSS shown]
+    min-width: 0px
+
+text-sm
+  group: typography
+  prose: text size 14px; line height 1.428571
+    font-size: 14px
+    line-height: 1.428571
+
+text-2xl
+  group: typography
+  prose: text size 24px; line height 1.333333
+    font-size: 24px
+    line-height: 1.333333
+
+font-bold
+  group: typography
+  prose: font weight 700
+    font-weight: 700
+
+leading-tight
+  group: typography
+  prose: line height 1.25
+    line-height: 1.25
+
+tracking-wide
+  group: typography
+  prose: [no prose — raw CSS shown]
+    letter-spacing: 0.025em
+
+text-center
+  group: typography
+  prose: [no prose — raw CSS shown]
+    text-align: center
+
+truncate
+  group: typography
+  prose: one line, cut off with an ellipsis
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+antialiased
+  group: other
+  prose: smoother font rendering
+    -webkit-font-smoothing: antialiased
+    -moz-osx-font-smoothing: grayscale
+
+sr-only
+  group: spacing
+  prose: visually hidden, but still announced by screen readers
+    position: absolute
+    width: 1px
+    height: 1px
+    padding: 0
+    margin: -1px
+    overflow: hidden
+    clip-path: inset(50%)
+    white-space: nowrap
+    border-width: 0
+
+not-sr-only
+  group: spacing
+  prose: undoes sr-only, making the element visible again
+    position: static
+    width: auto
+    height: auto
+    padding: 0
+    margin: 0
+    overflow: visible
+    clip-path: none
+    white-space: normal
+
+isolate
+  group: other
+  prose: creates a new stacking context
+    isolation: isolate
+
+bg-blue-600
+  group: color
+  prose: background oklch(54.6% 0.245 262.881)
+    background-color: oklch(54.6% 0.245 262.881)
+
+bg-blue-600/50
+  group: color
+  prose: background color-mix(in oklab, oklch(54.6% 0.245 262.881) 50%, transparent)
+    background-color: color-mix(in oklab, oklch(54.6% 0.245 262.881) 50%, transparent)
+
+text-white
+  group: color
+  prose: text #fff
+    color: #fff
+
+border-red-500
+  group: border
+  prose: [no prose — raw CSS shown]
+    border-color: oklch(63.7% 0.237 25.331)
+
+rounded
+  group: border
+  prose: corners rounded by 4px
+    border-radius: 4px
+
+rounded-md
+  group: border
+  prose: corners rounded by 6px
+    border-radius: 6px
+
+rounded-full
+  group: border
+  prose: corners rounded by calc(infinity * 1px)
+    border-radius: calc(infinity * 1px)
+
+border
+  group: border
+  prose: [no prose — raw CSS shown]
+    border-style: var(--tw-border-style)
+    border-width: 1px
+
+border-2
+  group: border
+  prose: [no prose — raw CSS shown]
+    border-style: var(--tw-border-style)
+    border-width: 2px
+
+border-t
+  group: border
+  prose: [no prose — raw CSS shown]
+    border-top-style: var(--tw-border-style)
+    border-top-width: 1px
+
+divide-y
+  group: border
+  prose: [no prose — raw CSS shown]
+    border-bottom-style: var(--tw-border-style)
+    border-top-style: var(--tw-border-style)
+    border-top-width: calc(1px * var(--tw-divide-y-reverse))
+    border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)))
+
+shadow
+  group: effects
+  prose: drop shadow
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
+shadow-lg
+  group: effects
+  prose: drop shadow
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
+inset-shadow-sm
+  group: effects
+  prose: inner drop shadow
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
+ring-2
+  group: effects
+  prose: outline ring drawn outside the border
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
+opacity-50
+  group: effects
+  prose: 50% opaque
+    opacity: 50%
+
+blur-sm
+  group: effects
+  prose: [no prose — raw CSS shown]
+    filter:         
+
+backdrop-blur
+  group: effects
+  prose: [no prose — raw CSS shown]
+    -webkit-backdrop-filter:         
+    backdrop-filter:         
+
+transition
+  group: effects
+  prose: [no prose — raw CSS shown]
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events
+    transition-timing-function: var(--tw-ease, cubic-bezier(0.4, 0, 0.2, 1))
+    transition-duration: 150ms
+
+animate-spin
+  group: effects
+  prose: runs a named animation
+    animation: spin 1s linear infinite
+
+transform
+  group: effects
+  prose: applies a geometric transform
+    transform:     
+
+space-x-4
+  group: spacing
+  prose: horizontal gap between children, except the last
+    margin-inline-start: calc(16px * var(--tw-space-x-reverse))
+    margin-inline-end: calc(16px * calc(1 - var(--tw-space-x-reverse)))
+
+space-y-2
+  group: spacing
+  prose: vertical gap between children, except the last
+    margin-block-start: calc(8px * var(--tw-space-y-reverse))
+    margin-block-end: calc(8px * calc(1 - var(--tw-space-y-reverse)))
+
+hover:bg-blue-700
+  group: state
+  prose: background oklch(48.8% 0.243 264.376)
+    background-color: oklch(48.8% 0.243 264.376)
+
+focus:outline-none
+  group: state
+  prose: [no prose — raw CSS shown]
+    outline-style: none
+
+md:w-1/2
+  group: state
+  prose: width calc(1 / 2 * 100%)
+    width: calc(1 / 2 * 100%)
+
+lg:flex-row
+  group: state
+  prose: [no prose — raw CSS shown]
+    flex-direction: row
+
+dark:bg-slate-900
+  group: state
+  prose: background oklch(20.8% 0.042 265.755)
+    background-color: oklch(20.8% 0.042 265.755)
+
+group-hover:opacity-100
+  group: state
+  prose: 100% opaque
+    opacity: 100%
+
+nope-999
+  [invalid]
+
+definitely-not-a-class
+  [invalid]
