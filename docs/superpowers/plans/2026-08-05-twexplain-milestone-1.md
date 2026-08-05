@@ -2549,11 +2549,19 @@ describe('explain pipeline golden corpus', () => {
 
 - [ ] **Step 3: Add an npm script**
 
-In `package.json` scripts:
+`--exclude=''` does **not** override the config's `exclude` — Vitest treats the flag as
+additive, so `vitest run --exclude='' <file>` silently falls back to the default suite and
+exits 0. That is a false pass, discovered during Task 11. Use a dedicated config instead.
+
+Task 11 already created `vitest.integration.config.ts`. Extend its `include` to cover this
+file as well, then add:
 
 ```json
-"test:golden": "vitest run --exclude='' src/explain/golden.integration.test.ts"
+"test:golden": "vitest run --config vitest.integration.config.ts src/explain/golden.integration.test.ts"
 ```
+
+Verify the script genuinely runs the golden test — check the reported test count and file
+name in the output, not just the exit code.
 
 - [ ] **Step 4: Generate and review the golden file**
 
