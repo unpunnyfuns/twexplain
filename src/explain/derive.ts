@@ -42,7 +42,7 @@ const PHRASES: Record<string, Phrase> = {
   opacity: (v) => {
     const unitlessMatch = /^(\.?\d+(?:\.\d+)?)$/.exec(v)
     if (unitlessMatch) {
-      const num = Number.parseFloat(unitlessMatch[1])
+      const num = Number.parseFloat(unitlessMatch[1] as string)
       if (num >= 0 && num <= 1) {
         return `${Math.round(num * 100)}% opaque`
       }
@@ -50,7 +50,7 @@ const PHRASES: Record<string, Phrase> = {
     }
     const percentMatch = /^(\.?\d+(?:\.\d+)?)%$/.exec(v)
     if (percentMatch) {
-      const num = Number.parseFloat(percentMatch[1])
+      const num = Number.parseFloat(percentMatch[1] as string)
       if (num >= 0 && num <= 100) {
         return `${percentMatch[1]}% opaque`
       }

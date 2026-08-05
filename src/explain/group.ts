@@ -26,8 +26,7 @@ export function groupFor(declarations: Declaration[], variants: string[]): Group
   const votes = new Map<GroupName, number>()
   const firstIndex = new Map<GroupName, number>()
 
-  for (let i = 0; i < declarations.length; i++) {
-    const declaration = declarations[i]
+  for (const [i, declaration] of declarations.entries()) {
     for (const [pattern, group] of PREFIX_GROUPS) {
       if (pattern.test(declaration.prop)) {
         if (!votes.has(group)) {
