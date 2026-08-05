@@ -32,7 +32,11 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
         <p className={styles.notice}>Could not load the design system: {state.message}</p>
       )}
       {state.status in NOTICES && <p className={styles.notice}>{NOTICES[state.status]}</p>}
+      {state.status === 'ready' && state.groups.length === 0 && (
+        <p className={styles.notice}>This class string is empty.</p>
+      )}
       {state.status === 'ready' &&
+        state.groups.length > 0 &&
         state.groups.map((group) => (
           <section className={styles.group} key={group.name}>
             <h2 className={styles.groupName}>{group.name}</h2>
