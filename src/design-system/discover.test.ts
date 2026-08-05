@@ -127,3 +127,25 @@ describe('discoverCssEntry with individual imports', () => {
     expect(await discoverCssEntry(root, join(root, 'App.tsx'))).toBeNull()
   })
 })
+
+describe('findEntryCandidates pruning', () => {
+  it('does not walk into node_modules, dist, out, .git or .vscode-test', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'twexplain-pruned-'))
+    for (const dir of ['node_modules', 'dist', 'out', '.git', '.vscode-test']) {
+      await mkdir(join(root, dir), { recursive: true })
+      await writeFile(join(root, dir, 'buried.css'), '@import "tailwindcss";\n')
+    }
+
+    expect(await findEntryCandidates(root)).toEqual([])
+  })
+
+  it('still finds an entry beside the pruned directories', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'twexplain-pruned-sibling-'))
+    await mkdir(join(root, 'node_modules'), { recursive: true })
+    await writeFile(join(root, 'node_modules', 'buried.css'), '@import "tailwindcss";\n')
+    await mkdir(join(root, 'src'), { recursive: true })
+    await writeFile(join(root, 'src', 'app.css'), '@import "tailwindcss";\n')
+
+    expect(await findEntryCandidates(root)).toEqual([join(root, 'src', 'app.css')])
+  })
+})

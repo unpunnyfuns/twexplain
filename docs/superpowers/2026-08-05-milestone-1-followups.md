@@ -68,6 +68,13 @@ normal state while typing) runs to the next quote anywhere in the file, reportin
 tokens as classes. Values spanning more than 8 newlines are rejected; confirmed load-bearing
 by mutation.
 
+**`computeState` error branches and directory pruning were untested.** `state.test.ts` covered
+2 of 7 branches, omitting `load-error` — the one users actually hit — and nothing proved the
+entry walk prunes `node_modules`/`dist`/`out`/`.git`/`.vscode-test`, which became
+performance-critical once discovery was memoised. Both now covered, and both verified
+discriminating by mutation: removing the pruning turns 2 tests red, collapsing the
+`unsupported-plugin` branch turns its test red.
+
 **Tailwind's per-layer import setup was unsupported.** `@import "tailwindcss/theme.css"
 layer(theme)` and friends are documented, but `ENTRY_PATTERN` required the bare
 `@import "tailwindcss"`, so the panel reported "No CSS file importing tailwindcss was found"
@@ -96,13 +103,9 @@ against real Tailwind.
    `__unstable__loadDesignSystem` against the old code. The only honest fix is a reload prompt.
    Do not trust the guarantee the cache key implies.
 
-3. **`state.test.ts` covers 2 of 6 `computeState` branches.** The untested ones include
-   `load-error`, which is the branch users actually hit. Cheap with `vi.mock`.
-
-4. **`discoverCssEntry` gaps:** no test proving `IGNORED` directories are pruned (now
-   performance-critical), and symlinked subdirectories are never explored, which matters for
-   pnpm and monorepo layouts. The symlink skip is also the current loop protection — replace it
-   deliberately, with a visited-inode set.
+3. **Symlinked subdirectories are never explored by the entry walk.** Matters for layouts that
+   symlink source directories. Note the symlink skip is also the current loop protection —
+   replace it deliberately, with a visited-inode set, or risk a hang.
 
 5. **oxfmt drift.** `.oxfmtrc.json` cut `oxfmt --list-different src` from 39 files to 13. The
    remaining reflow belongs in its own reviewable commit.
