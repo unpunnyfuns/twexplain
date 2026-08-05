@@ -30,7 +30,8 @@
     "test:ds": "vitest run --config vitest.integration.config.ts",
     "test:golden": "vitest run --config vitest.integration.config.ts src/explain/golden.integration.test.ts",
     "compile-integration": "node esbuild.integration.js",
-    "pretest:integration": "npm run compile-integration && npm run build",
+    "link-fixture-modules": "ln -sfn ../../../../node_modules src/integration/__fixtures__/workspace/node_modules",
+    "pretest:integration": "npm run link-fixture-modules && npm run compile-integration && npm run build",
     "test:integration": "vscode-test"
   },
   "devDependencies": {
