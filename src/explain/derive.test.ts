@@ -36,4 +36,16 @@ describe('derive', () => {
   it('returns null when no property is known', () => {
     expect(derive([{ prop: 'nonsense-prop', value: '1' }])).toBeNull()
   })
+
+  it('describes opacity for unitless decimal values', () => {
+    expect(derive([{ prop: 'opacity', value: '0.5' }])).toBe('50% opaque')
+  })
+
+  it('describes opacity for percentage values', () => {
+    expect(derive([{ prop: 'opacity', value: '73%' }])).toBe('73% opaque')
+  })
+
+  it('returns null for opacity with keyword values', () => {
+    expect(derive([{ prop: 'opacity', value: 'inherit' }])).toBeNull()
+  })
 })

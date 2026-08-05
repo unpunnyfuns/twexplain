@@ -1,6 +1,6 @@
 import type { Declaration } from '../types'
 
-type Phrase = string | ((value: string) => string)
+type Phrase = string | ((value: string) => string | null)
 
 const EXACT: Record<string, Record<string, string>> = {
   display: {
@@ -39,7 +39,17 @@ const PHRASES: Record<string, Phrase> = {
   'font-weight': (v) => `font weight ${v}`,
   width: (v) => `width ${v}`,
   height: (v) => `height ${v}`,
-  opacity: (v) => `${Math.round(Number.parseFloat(v) * 100)}% opaque`,
+  opacity: (v) => {
+    const unitlessMatch = /^(\d+(?:\.\d+)?)$/.exec(v)
+    if (unitlessMatch) {
+      return `${Math.round(Number.parseFloat(unitlessMatch[1]) * 100)}% opaque`
+    }
+    const percentMatch = /^(\d+(?:\.\d+)?)%$/.exec(v)
+    if (percentMatch) {
+      return `${percentMatch[1]}% opaque`
+    }
+    return null
+  },
   'white-space': (v) => `whitespace handling: ${v}`,
 }
 
@@ -52,7 +62,9 @@ function phraseFor(declaration: Declaration): string | null {
   if (exact !== undefined) return exact
   const phrase = PHRASES[declaration.prop]
   if (phrase === undefined) return null
-  return typeof phrase === 'string' ? phrase : phrase(declaration.value)
+  if (typeof phrase === 'string') return phrase
+  const result = phrase(declaration.value)
+  return result
 }
 
 export function derive(declarations: Declaration[]): string | null {
