@@ -27,6 +27,7 @@
     "format": "oxfmt src",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ds": "vitest run --config vitest.integration.config.ts",
     "test:integration": "vscode-test"
   },
   "devDependencies": {
@@ -39,6 +40,7 @@
     "esbuild": "^0.28.1",
     "oxfmt": "^0.62.0",
     "oxlint": "^1.77.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
