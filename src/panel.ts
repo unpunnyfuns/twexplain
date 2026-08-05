@@ -5,6 +5,8 @@ import type { HostMessage, WebviewMessage } from './types'
 
 const DEBOUNCE_MS = 150
 
+let generation = 0
+
 function nonce(): string {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   return Array.from({ length: 32 }, () =>
@@ -37,6 +39,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
   }
 
   const refresh = async (): Promise<void> => {
+    const runGeneration = ++generation
     if (current === null) return
     const editor = vscode.window.activeTextEditor
     if (editor === undefined) {
@@ -45,16 +48,15 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     }
     const document = editor.document
     const folder = vscode.workspace.getWorkspaceFolder(document.uri)
-    post({
-      type: 'state',
-      state: await computeState({
-        text: document.getText(),
-        offset: document.offsetAt(editor.selection.active),
-        uri: document.uri.toString(),
-        workspaceRoot: folder?.uri.fsPath ?? null,
-        fsPath: document.uri.fsPath,
-      }),
+    const state = await computeState({
+      text: document.getText(),
+      offset: document.offsetAt(editor.selection.active),
+      uri: document.uri.toString(),
+      workspaceRoot: folder?.uri.fsPath ?? null,
+      fsPath: document.uri.fsPath,
     })
+    if (runGeneration !== generation) return
+    post({ type: 'state', state })
   }
 
   const scheduleRefresh = (): void => {
@@ -70,6 +72,13 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         view.webview.html = html(view.webview, context.extensionUri)
         view.webview.onDidReceiveMessage((message: WebviewMessage) => {
           if (message.type === 'ready') void refresh()
+        })
+        view.onDidDispose(() => {
+          current = null
+          if (timer !== undefined) {
+            clearTimeout(timer)
+            timer = undefined
+          }
         })
       },
     }),
