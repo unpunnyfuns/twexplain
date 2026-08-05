@@ -12,12 +12,21 @@ const GROUP_ORDER: GroupName[] = [
 ]
 
 const PREFIX_GROUPS: [RegExp, GroupName][] = [
-  [/^(display|position|top|right|bottom|left|inset|z-index|float|clear|flex|grid|align|justify|place|order|overflow(?!-wrap)|visibility)/, 'layout'],
+  [
+    /^(display|position|top|right|bottom|left|inset|z-index|float|clear|flex|grid|align|justify|place|order|overflow(?!-wrap)|visibility)/,
+    'layout',
+  ],
   [/^(padding|margin|gap|row-gap|column-gap|width|height|min-|max-|space)/, 'spacing'],
-  [/^(font|line-height|letter-spacing|text|white-space|word|overflow-wrap|list-style|vertical-align)/, 'typography'],
+  [
+    /^(font|line-height|letter-spacing|text|white-space|word|overflow-wrap|list-style|vertical-align)/,
+    'typography',
+  ],
   [/^(color|background|fill|stroke|accent|caret)/, 'color'],
   [/^(border|outline|ring|divide)/, 'border'],
-  [/^(box-shadow|opacity|filter|backdrop|mix-blend|transform|transition|animation|clip|mask)/, 'effects'],
+  [
+    /^(box-shadow|opacity|filter|backdrop|mix-blend|transform|transition|animation|clip|mask)/,
+    'effects',
+  ],
 ]
 
 export function groupFor(declarations: Declaration[], variants: string[]): GroupName {

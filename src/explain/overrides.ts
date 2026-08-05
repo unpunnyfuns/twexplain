@@ -50,10 +50,7 @@ function negatesEffect(value: string): boolean {
   return match !== null && Number.parseFloat(match[1] as string) === 0
 }
 
-export function overrideFor(
-  parsed: ParsedCandidate,
-  declarations: Declaration[],
-): string | null {
+export function overrideFor(parsed: ParsedCandidate, declarations: Declaration[]): string | null {
   const emergent = EMERGENT[parsed.root]
   if (emergent !== undefined) return emergent
 

@@ -37,25 +37,35 @@ describe('overrideFor', () => {
 
   it('withholds a composite override when the value negates the effect', () => {
     expect(overrideFor({ root: 'shadow', value: { value: 'none' } }, OPAQUE_SHADOW)).toBeNull()
-    expect(overrideFor({ root: 'inset-shadow', value: { value: 'none' } }, OPAQUE_SHADOW)).toBeNull()
+    expect(
+      overrideFor({ root: 'inset-shadow', value: { value: 'none' } }, OPAQUE_SHADOW),
+    ).toBeNull()
     expect(overrideFor({ root: 'ring', value: { value: '0' } }, OPAQUE_SHADOW)).toBeNull()
     expect(overrideFor({ root: 'ring', value: { value: '0px' } }, OPAQUE_SHADOW)).toBeNull()
   })
 
   it('withholds a composite override when the declarations are not opaque', () => {
-    expect(overrideFor({ root: 'animate', value: { value: 'none' } }, [
-      { prop: 'animation', value: 'none' },
-    ])).toBeNull()
-    expect(overrideFor({ root: 'filter', value: { value: 'none' } }, [
-      { prop: 'filter', value: 'none' },
-    ])).toBeNull()
-    expect(overrideFor({ root: 'divide', value: { value: 'red-500' } }, [
-      { prop: 'border-color', value: 'oklch(63.7% 0.237 25.331)' },
-    ])).toBeNull()
-    expect(overrideFor({ root: 'space-x', value: { value: '0' } }, [
-      { prop: 'margin-inline-start', value: '0' },
-      { prop: 'margin-inline-end', value: '0' },
-    ])).toBeNull()
+    expect(
+      overrideFor({ root: 'animate', value: { value: 'none' } }, [
+        { prop: 'animation', value: 'none' },
+      ]),
+    ).toBeNull()
+    expect(
+      overrideFor({ root: 'filter', value: { value: 'none' } }, [
+        { prop: 'filter', value: 'none' },
+      ]),
+    ).toBeNull()
+    expect(
+      overrideFor({ root: 'divide', value: { value: 'red-500' } }, [
+        { prop: 'border-color', value: 'oklch(63.7% 0.237 25.331)' },
+      ]),
+    ).toBeNull()
+    expect(
+      overrideFor({ root: 'space-x', value: { value: '0' } }, [
+        { prop: 'margin-inline-start', value: '0' },
+        { prop: 'margin-inline-end', value: '0' },
+      ]),
+    ).toBeNull()
   })
 
   it('withholds a composite override when the class contributes no declarations at all', () => {

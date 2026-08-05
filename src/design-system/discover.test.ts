@@ -3,7 +3,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { clearDesignSystemCache } from './load'
-import { clearEntryCache, discoverCssEntry, findEntryCandidates, pickNearestEntry } from './discover'
+import {
+  clearEntryCache,
+  discoverCssEntry,
+  findEntryCandidates,
+  pickNearestEntry,
+} from './discover'
 
 const fixture = (name: string): string => join(__dirname, '__fixtures__', name)
 

@@ -107,10 +107,10 @@ against real Tailwind.
    symlink source directories. Note the symlink skip is also the current loop protection —
    replace it deliberately, with a visited-inode set, or risk a hang.
 
-5. **oxfmt drift.** `.oxfmtrc.json` cut `oxfmt --list-different src` from 39 files to 13. The
+4. **oxfmt drift.** `.oxfmtrc.json` cut `oxfmt --list-different src` from 39 files to 13. The
    remaining reflow belongs in its own reviewable commit.
 
-6. **First panel open on a very large tree still costs one full walk (~2.7s).** Off the UI
+5. **First panel open on a very large tree still costs one full walk (~2.7s).** Off the UI
    thread and once per invalidation, so it delays the first result rather than freezing the
    editor. Worth a progress indicator if it grates.
 

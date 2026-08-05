@@ -30,9 +30,7 @@ describe('flattenValue', () => {
   })
 
   it('leaves non-arithmetic values alone', () => {
-    expect(flattenValue('oklch(48.8% 0.243 264.376)', resolve)).toBe(
-      'oklch(48.8% 0.243 264.376)',
-    )
+    expect(flattenValue('oklch(48.8% 0.243 264.376)', resolve)).toBe('oklch(48.8% 0.243 264.376)')
   })
 
   it('evaluates a spaced fraction chain left-to-right', () => {

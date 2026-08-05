@@ -18,8 +18,7 @@ const explained = (
   swatch: null,
 })
 
-const render = (row: ExplainedClass): string =>
-  renderToStaticMarkup(<ClassRow explained={row} />)
+const render = (row: ExplainedClass): string => renderToStaticMarkup(<ClassRow explained={row} />)
 
 describe('ClassRow', () => {
   it('says the class sets only internal variables rather than showing an empty block', () => {
@@ -41,9 +40,7 @@ describe('ClassRow', () => {
   })
 
   it('still shows the note and the raw CSS when there are declarations', () => {
-    const markup = render(
-      explained('divide-y', null, [{ prop: 'border-top-width', value: '1px' }]),
-    )
+    const markup = render(explained('divide-y', null, [{ prop: 'border-top-width', value: '1px' }]))
     expect(markup).toContain('no plain-English entry yet')
     expect(markup).toContain('border-top-width: 1px')
     expect(markup).not.toContain('sets only Tailwind-internal variables')
@@ -114,7 +111,11 @@ describe('ClassRow swatch qualification', () => {
   it('titles an unconditional swatch with its authored value', () => {
     const markup = renderToStaticMarkup(
       <ClassRow
-        explained={withSwatch('bg-red-500', [{ prop: 'background-color', value: 'oklch(63% 0.2 25)' }], 'oklch(63% 0.2 25)')}
+        explained={withSwatch(
+          'bg-red-500',
+          [{ prop: 'background-color', value: 'oklch(63% 0.2 25)' }],
+          'oklch(63% 0.2 25)',
+        )}
       />,
     )
 
@@ -163,7 +164,12 @@ describe('ClassRow swatch qualification', () => {
   it('marks a conditional swatch with a distinct class and leaves plain ones alone', () => {
     const conditional = renderToStaticMarkup(
       <ClassRow
-        explained={withSwatch('dark:bg-slate-900', [{ prop: 'background-color', value: 'red' }], 'red', ['dark'])}
+        explained={withSwatch(
+          'dark:bg-slate-900',
+          [{ prop: 'background-color', value: 'red' }],
+          'red',
+          ['dark'],
+        )}
       />,
     )
     const plain = renderToStaticMarkup(

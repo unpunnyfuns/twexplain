@@ -23,10 +23,12 @@ describe('derive', () => {
   })
 
   it('joins multiple declarations', () => {
-    expect(derive([
-      { prop: 'font-size', value: '14px' },
-      { prop: 'line-height', value: '1.428571' },
-    ])).toBe('text size 14px; line height 1.428571')
+    expect(
+      derive([
+        { prop: 'font-size', value: '14px' },
+        { prop: 'line-height', value: '1.428571' },
+      ]),
+    ).toBe('text size 14px; line height 1.428571')
   })
 
   it('returns null for opaque declarations', () => {
@@ -50,10 +52,12 @@ describe('derive', () => {
   })
 
   it('returns null when any declaration is undescribable', () => {
-    expect(derive([
-      { prop: 'display', value: 'flex' },
-      { prop: 'clip', value: 'rect(0, 0, 0, 0)' },
-    ])).toBeNull()
+    expect(
+      derive([
+        { prop: 'display', value: 'flex' },
+        { prop: 'clip', value: 'rect(0, 0, 0, 0)' },
+      ]),
+    ).toBeNull()
   })
 
   it('returns null for empty input', () => {

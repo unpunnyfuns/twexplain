@@ -96,6 +96,7 @@ export function flattenValue(value: string, resolve: ResolveTheme): string {
 export function remToPx(value: string): string {
   return value.replace(
     /(-?[\d.]+)rem\b/g,
-    (_, n: string) => `${Number.parseFloat((Number.parseFloat(n) * ROOT_FONT_SIZE_PX).toFixed(4))}px`,
+    (_, n: string) =>
+      `${Number.parseFloat((Number.parseFloat(n) * ROOT_FONT_SIZE_PX).toFixed(4))}px`,
   )
 }

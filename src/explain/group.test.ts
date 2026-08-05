@@ -44,12 +44,24 @@ describe('groupFor', () => {
   })
 
   it('breaks ties by earliest voting declaration', () => {
-    expect(groupFor([{ prop: 'display', value: 'flex' }, { prop: 'color', value: 'red' }], [])).toBe(
-      'layout',
-    )
-    expect(groupFor([{ prop: 'color', value: 'red' }, { prop: 'display', value: 'flex' }], [])).toBe(
-      'color',
-    )
+    expect(
+      groupFor(
+        [
+          { prop: 'display', value: 'flex' },
+          { prop: 'color', value: 'red' },
+        ],
+        [],
+      ),
+    ).toBe('layout')
+    expect(
+      groupFor(
+        [
+          { prop: 'color', value: 'red' },
+          { prop: 'display', value: 'flex' },
+        ],
+        [],
+      ),
+    ).toBe('color')
   })
 
   it('routes overflow-wrap to typography', () => {

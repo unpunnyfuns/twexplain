@@ -52,17 +52,13 @@ describe('explainCandidates', () => {
   it('resolves values through the theme, including custom colours', () => {
     const groups = explainCandidates([candidate('bg-brand-600', 0)], fakeDs)
     const explained = groups[0]?.classes[0]
-    expect(explained?.declarations).toEqual([
-      { prop: 'background-color', value: '#4f46e5' },
-    ])
+    expect(explained?.declarations).toEqual([{ prop: 'background-color', value: '#4f46e5' }])
     expect(explained?.swatch).toBe('#4f46e5')
   })
 
   it('converts spacing arithmetic to px', () => {
     const groups = explainCandidates([candidate('px-4', 0)], fakeDs)
-    expect(groups[0]?.classes[0]?.declarations).toEqual([
-      { prop: 'padding-inline', value: '16px' },
-    ])
+    expect(groups[0]?.classes[0]?.declarations).toEqual([{ prop: 'padding-inline', value: '16px' }])
   })
 
   it('prefers a curated override over derived prose', () => {
@@ -85,7 +81,10 @@ describe('explainCandidates', () => {
   })
 
   it('never invents prose for opaque classes without an override', () => {
-    const ds: DesignSystemPort = { ...fakeDs, parseCandidate: () => [{ root: 'unknown', variants: [] }] }
+    const ds: DesignSystemPort = {
+      ...fakeDs,
+      parseCandidate: () => [{ root: 'unknown', variants: [] }],
+    }
     const groups = explainCandidates([candidate('shadow-lg', 0)], ds)
     expect(groups[0]?.classes[0]?.prose).toBeNull()
   })
@@ -95,9 +94,7 @@ describe('explainCandidates', () => {
       [candidate('px-4', 0), candidate('nope-999', 1), candidate('flex', 2)],
       fakeDs,
     )
-    const byIndex = new Map(
-      groups.flatMap((g) => g.classes).map((c) => [c.candidate.index, c]),
-    )
+    const byIndex = new Map(groups.flatMap((g) => g.classes).map((c) => [c.candidate.index, c]))
 
     expect(byIndex.get(0)?.valid).toBe(true)
     expect(byIndex.get(0)?.declarations).toEqual([{ prop: 'padding-inline', value: '16px' }])
@@ -318,13 +315,12 @@ describe('conditional declaration context', () => {
   it('keeps derived prose when the class has a variant that explains the condition', () => {
     const ds: DesignSystemPort = {
       ...nestedDs,
-      parseCandidate: () => [
-        { root: 'bg', variants: [{ kind: 'static', root: 'hover' }] },
-      ],
+      parseCandidate: () => [{ root: 'bg', variants: [{ kind: 'static', root: 'hover' }] }],
     }
 
-    const explained = explainCandidates([candidate('hover:bg-blue-700', 0)], ds)
-      .flatMap((g) => g.classes)[0]
+    const explained = explainCandidates([candidate('hover:bg-blue-700', 0)], ds).flatMap(
+      (g) => g.classes,
+    )[0]
 
     expect(explained?.declarations[0]?.context).toBe('@media (hover: hover)')
     expect(explained?.prose).toBe('background red')

@@ -24,11 +24,7 @@ function splitCandidates(value: string, valueStart: number): Candidate[] {
   return candidates
 }
 
-export function detectJsx(
-  text: string,
-  offset: number,
-  uri: string,
-): ClassStringLocation | null {
+export function detectJsx(text: string, offset: number, uri: string): ClassStringLocation | null {
   ATTRIBUTE_PATTERN.lastIndex = 0
   let match: RegExpExecArray | null
   while ((match = ATTRIBUTE_PATTERN.exec(text)) !== null) {

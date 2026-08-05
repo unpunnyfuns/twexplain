@@ -19,11 +19,7 @@ export type DesignSystemPort = {
 
 const COLOR_PROPS = new Set(['background-color', 'color', 'border-color', 'fill', 'stroke'])
 
-function collectDeclarations(
-  nodes: CssNode[],
-  out: Declaration[],
-  conditions: string[],
-): void {
+function collectDeclarations(nodes: CssNode[], out: Declaration[], conditions: string[]): void {
   for (const node of nodes) {
     if (node.type === 'decl') {
       out.push(
@@ -45,10 +41,7 @@ function swatchFrom(declarations: Declaration[]): string | null {
   return found.value
 }
 
-export function explainCandidates(
-  candidates: Candidate[],
-  ds: DesignSystemPort,
-): ExplainGroup[] {
+export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort): ExplainGroup[] {
   const compiled = ds.candidatesToCss(candidates.map((c) => c.text))
   const resolve = (key: string): string | null => ds.resolveThemeValue(key) ?? null
 

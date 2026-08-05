@@ -11,11 +11,7 @@ describe('detectJsx', () => {
   it('finds the class string containing the cursor', () => {
     const found = detectJsx(source, 20, 'file:///a.tsx')
     expect(found?.kind).toBe('jsx')
-    expect(found?.candidates.map((c) => c.text)).toEqual([
-      'flex',
-      'items-center',
-      'gap-2',
-    ])
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'items-center', 'gap-2'])
   })
 
   it('reports absolute document offsets for each candidate', () => {
@@ -53,11 +49,7 @@ describe('detectJsx', () => {
     const valueStart = source.indexOf('flex')
     const found = detectJsx(source, valueStart, 'file:///a.tsx')
     expect(found).not.toBeNull()
-    expect(found?.candidates.map((c) => c.text)).toEqual([
-      'flex',
-      'items-center',
-      'gap-2',
-    ])
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'items-center', 'gap-2'])
   })
 
   it('cursor exactly at valueEnd (closing quote boundary)', () => {
@@ -102,12 +94,7 @@ describe('detectJsx across newlines', () => {
     const offset = MULTILINE.indexOf('items-center')
     const found = detectJsx(MULTILINE, offset, 'file:///a.tsx')
 
-    expect(found?.candidates.map((c) => c.text)).toEqual([
-      'flex',
-      'items-center',
-      'gap-2',
-      'px-4',
-    ])
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'items-center', 'gap-2', 'px-4'])
   })
 
   it('works with the cursor on a continuation line', () => {
@@ -123,9 +110,11 @@ describe('detectJsx across newlines', () => {
   })
 
   it('does not swallow a distant quote when a class string is left unterminated', () => {
-    const unterminated = ['<div className="flex', ...Array(30).fill('  const x = 1'), 'const s = "later"'].join(
-      '\n',
-    )
+    const unterminated = [
+      '<div className="flex',
+      ...Array(30).fill('  const x = 1'),
+      'const s = "later"',
+    ].join('\n')
     const offset = unterminated.indexOf('flex')
 
     const found = detectJsx(unterminated, offset, 'file:///a.tsx')
