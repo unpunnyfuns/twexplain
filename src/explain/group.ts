@@ -12,9 +12,9 @@ const GROUP_ORDER: GroupName[] = [
 ]
 
 const PREFIX_GROUPS: [RegExp, GroupName][] = [
-  [/^(display|position|top|right|bottom|left|inset|z-index|float|clear|flex|grid|align|justify|place|order|overflow|visibility)/, 'layout'],
+  [/^(display|position|top|right|bottom|left|inset|z-index|float|clear|flex|grid|align|justify|place|order|overflow(?!-wrap)|visibility)/, 'layout'],
   [/^(padding|margin|gap|row-gap|column-gap|width|height|min-|max-|space)/, 'spacing'],
-  [/^(font|line-height|letter-spacing|text|white-space|word|list-style|vertical-align)/, 'typography'],
+  [/^(font|line-height|letter-spacing|text|white-space|word|overflow-wrap|list-style|vertical-align)/, 'typography'],
   [/^(color|background|fill|stroke|accent|caret)/, 'color'],
   [/^(border|outline|ring|divide)/, 'border'],
   [/^(box-shadow|opacity|filter|backdrop|mix-blend|transform|transition|animation|clip|mask)/, 'effects'],
@@ -22,12 +22,44 @@ const PREFIX_GROUPS: [RegExp, GroupName][] = [
 
 export function groupFor(declarations: Declaration[], variants: string[]): GroupName {
   if (variants.length > 0) return 'state'
-  for (const declaration of declarations) {
+
+  const votes = new Map<GroupName, number>()
+  const firstIndex = new Map<GroupName, number>()
+
+  for (let i = 0; i < declarations.length; i++) {
+    const declaration = declarations[i]
     for (const [pattern, group] of PREFIX_GROUPS) {
-      if (pattern.test(declaration.prop)) return group
+      if (pattern.test(declaration.prop)) {
+        if (!votes.has(group)) {
+          firstIndex.set(group, i)
+        }
+        votes.set(group, (votes.get(group) ?? 0) + 1)
+        break
+      }
     }
   }
-  return 'other'
+
+  if (votes.size === 0) return 'other'
+
+  let maxVotes = 0
+  for (const count of votes.values()) {
+    if (count > maxVotes) maxVotes = count
+  }
+
+  let winningGroup: GroupName | null = null
+  let earliestIndex = Infinity
+
+  for (const [group, count] of votes) {
+    if (count === maxVotes) {
+      const index = firstIndex.get(group) ?? Infinity
+      if (index < earliestIndex) {
+        earliestIndex = index
+        winningGroup = group
+      }
+    }
+  }
+
+  return winningGroup ?? 'other'
 }
 
 export function groupAll(classes: ExplainedClass[]): ExplainGroup[] {

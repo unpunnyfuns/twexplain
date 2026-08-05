@@ -29,6 +29,44 @@ describe('groupFor', () => {
   it('falls back to other for unknown properties', () => {
     expect(groupFor([{ prop: 'nonsense', value: '1' }], [])).toBe('other')
   })
+
+  it('uses majority vote across multiple declarations', () => {
+    expect(
+      groupFor(
+        [
+          { prop: 'overflow', value: 'hidden' },
+          { prop: 'text-overflow', value: 'ellipsis' },
+          { prop: 'white-space', value: 'nowrap' },
+        ],
+        [],
+      ),
+    ).toBe('typography')
+  })
+
+  it('breaks ties by earliest voting declaration', () => {
+    expect(groupFor([{ prop: 'display', value: 'flex' }, { prop: 'color', value: 'red' }], [])).toBe(
+      'layout',
+    )
+    expect(groupFor([{ prop: 'color', value: 'red' }, { prop: 'display', value: 'flex' }], [])).toBe(
+      'color',
+    )
+  })
+
+  it('routes overflow-wrap to typography', () => {
+    expect(groupFor([{ prop: 'overflow-wrap', value: 'break-word' }], [])).toBe('typography')
+  })
+
+  it('routes multi-declaration with variant to state despite vote', () => {
+    expect(
+      groupFor(
+        [
+          { prop: 'overflow', value: 'hidden' },
+          { prop: 'text-overflow', value: 'ellipsis' },
+        ],
+        ['hover'],
+      ),
+    ).toBe('state')
+  })
 })
 
 describe('groupAll', () => {
