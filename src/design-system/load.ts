@@ -42,11 +42,12 @@ export async function loadDesignSystem(
   const entry = await discoverCssEntry(workspaceRoot, activeFile)
   if (entry === null) return { ok: false, reason: 'no-entry' }
 
-  const cached = cache.get(entry)
+  const key = `${entry}\0${version}`
+  const cached = cache.get(key)
   if (cached !== undefined) return cached
 
   const result = await buildDesignSystem(workspaceRoot, entry)
-  cache.set(entry, result)
+  cache.set(key, result)
   return result
 }
 

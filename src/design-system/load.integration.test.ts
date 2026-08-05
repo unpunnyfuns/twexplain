@@ -32,3 +32,42 @@ describe('loadDesignSystem', () => {
     expect(result.ds.candidatesToCss(['nope-999'])[0]).toBeNull()
   })
 })
+
+describe('loadDesignSystem cache key', () => {
+  it('does not reuse a cached design system when the reported Tailwind version changes', async () => {
+    const versionedRoot = await mkdtemp(join(tmpdir(), 'twexplain-version-'))
+    await mkdir(join(versionedRoot, 'src'), { recursive: true })
+    await mkdir(join(versionedRoot, 'node_modules', 'tailwindcss'), { recursive: true })
+
+    const realTailwind = join(process.cwd(), 'node_modules', 'tailwindcss')
+    for (const name of ['dist', 'index.css', 'preflight.css', 'theme.css', 'utilities.css']) {
+      await symlink(
+        join(realTailwind, name),
+        join(versionedRoot, 'node_modules', 'tailwindcss', name),
+      )
+    }
+
+    const manifest = join(versionedRoot, 'node_modules', 'tailwindcss', 'package.json')
+    const writeVersion = (version: string) => writeFile(manifest, JSON.stringify({ version }))
+
+    await writeFile(join(versionedRoot, 'src', 'app.css'), '@import "tailwindcss";\n')
+
+    const activeFile = join(versionedRoot, 'src', 'App.tsx')
+    clearDesignSystemCache()
+
+    await writeVersion('4.1.0')
+    const first = await loadDesignSystem(versionedRoot, activeFile)
+    expect(first.ok).toBe(true)
+
+    const repeat = await loadDesignSystem(versionedRoot, activeFile)
+    expect(repeat.ok).toBe(true)
+    if (first.ok && repeat.ok) expect(repeat.ds).toBe(first.ds)
+
+    await writeVersion('4.2.0')
+    const second = await loadDesignSystem(versionedRoot, activeFile)
+    expect(second.ok).toBe(true)
+
+    if (!first.ok || !second.ok) return
+    expect(second.ds).not.toBe(first.ds)
+  })
+})
