@@ -15,12 +15,7 @@ function evaluateFraction(token: string): string {
   return String(numerator / denominator)
 }
 
-function evaluateExpression(expression: string): string | null {
-  const tokens = expression.trim().split(/\s+/).map(evaluateFraction)
-  if (tokens.length === 1) return tokens[0] as string
-  if (tokens.length !== 3) return null
-
-  const [left, operator, right] = tokens as [string, string, string]
+function combineDimensions(left: string, operator: string, right: string): string | null {
   const leftMatch = DIMENSION.exec(left)
   const rightMatch = DIMENSION.exec(right)
   if (!leftMatch || !rightMatch) return null
@@ -43,6 +38,28 @@ function evaluateExpression(expression: string): string | null {
   return `${Number.parseFloat(result.toFixed(6))}${leftUnit || rightUnit}`
 }
 
+function evaluateExpression(expression: string): string | null {
+  const tokens = expression.trim().split(/\s+/).map(evaluateFraction)
+  if (tokens.length === 1) return tokens[0] as string
+  if (tokens.length < 3 || tokens.length % 2 === 0) return null
+
+  const operators: string[] = []
+  for (let i = 1; i < tokens.length; i += 2) operators.push(tokens[i] as string)
+
+  const isMultiplicativeChain = operators.every((op) => op === '*' || op === '/')
+  if (tokens.length > 3 && !isMultiplicativeChain) return null
+
+  let accumulator = tokens[0] as string
+  for (let i = 1; i < tokens.length; i += 2) {
+    const operator = tokens[i] as string
+    const operand = tokens[i + 1] as string
+    const next = combineDimensions(accumulator, operator, operand)
+    if (next === null) return null
+    accumulator = next
+  }
+  return accumulator
+}
+
 function evaluateCalc(value: string): string {
   let current = value
   for (let guard = 0; guard < 20; guard++) {
@@ -62,7 +79,11 @@ export function flattenValue(value: string, resolve: ResolveTheme): string {
     const substituted = current.replace(VAR_PATTERN, (whole, name: string, fallback?: string) => {
       const resolved = resolve(name)
       if (resolved !== null) return resolved
-      if (fallback !== undefined) return fallback.trim()
+      if (fallback !== undefined) {
+        const trimmed = fallback.trim()
+        if (name.startsWith('--tw-') && trimmed === '') return whole
+        return trimmed
+      }
       return whole
     })
     const next = evaluateCalc(substituted)

@@ -80,8 +80,8 @@ m-auto
 
 w-1/2
   group: spacing
-  prose: width calc(1 / 2 * 100%)
-    width: calc(1 / 2 * 100%)
+  prose: width 50%
+    width: 50%
 
 w-full
   group: spacing
@@ -262,13 +262,13 @@ opacity-50
 blur-sm
   group: effects
   prose: [no prose — raw CSS shown]
-    filter:         
+    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)
 
 backdrop-blur
   group: effects
   prose: [no prose — raw CSS shown]
-    -webkit-backdrop-filter:         
-    backdrop-filter:         
+    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)
+    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)
 
 transition
   group: effects
@@ -285,7 +285,7 @@ animate-spin
 transform
   group: effects
   prose: applies a geometric transform
-    transform:     
+    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)
 
 space-x-4
   group: spacing
@@ -311,8 +311,8 @@ focus:outline-none
 
 md:w-1/2
   group: state
-  prose: width calc(1 / 2 * 100%)
-    width: calc(1 / 2 * 100%)
+  prose: width 50%
+    width: 50%
 
 lg:flex-row
   group: state
