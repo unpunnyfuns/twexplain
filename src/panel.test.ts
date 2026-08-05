@@ -136,3 +136,89 @@ describe('registerPanel generation guard', () => {
     expect(webview.postMessage).toHaveBeenCalledWith({ type: 'state', state: newerState })
   })
 })
+
+describe('registerPanel loading state', () => {
+  it('says it is working when a refresh is slow, rather than leaving stale copy up', async () => {
+    vi.useFakeTimers()
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+    const computeState = vi.mocked(stateModule.computeState)
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview, fireReady } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    let resolveSlow: (state: PanelState) => void = () => {}
+    computeState.mockImplementationOnce(() => new Promise((r) => (resolveSlow = r)))
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    fireReady()
+    await Promise.resolve()
+
+    expect(webview.postMessage).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(webview.postMessage).toHaveBeenCalledWith({
+      type: 'state',
+      state: { status: 'loading' },
+    })
+
+    const ready: PanelState = { status: 'ready', groups: [] }
+    resolveSlow(ready)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(webview.postMessage).toHaveBeenLastCalledWith({ type: 'state', state: ready })
+    vi.useRealTimers()
+  })
+
+  it('does not flash a loading state when the refresh is fast', async () => {
+    vi.useFakeTimers()
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+    const computeState = vi.mocked(stateModule.computeState)
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview, fireReady } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    const ready: PanelState = { status: 'ready', groups: [] }
+    computeState.mockResolvedValueOnce(ready)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    fireReady()
+    await Promise.resolve()
+    await Promise.resolve()
+    await vi.advanceTimersByTimeAsync(1000)
+
+    const posted = webview.postMessage.mock.calls.map((c) => (c[0] as { state: PanelState }).state)
+    expect(posted).not.toContainEqual({ status: 'loading' })
+    expect(posted).toContainEqual(ready)
+    vi.useRealTimers()
+  })
+
+  it('does not post a loading state after the view has been disposed', async () => {
+    vi.useFakeTimers()
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+    const computeState = vi.mocked(stateModule.computeState)
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview, fireReady, fireDispose } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    computeState.mockImplementationOnce(() => new Promise(() => {}))
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    fireReady()
+    await Promise.resolve()
+
+    fireDispose()
+    await vi.advanceTimersByTimeAsync(1000)
+
+    expect(webview.postMessage).not.toHaveBeenCalled()
+    vi.useRealTimers()
+  })
+})

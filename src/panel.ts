@@ -4,6 +4,7 @@ import { computeState } from './state'
 import type { HostMessage, WebviewMessage } from './types'
 
 const DEBOUNCE_MS = 150
+const LOADING_NOTICE_MS = 250
 
 let generation = 0
 
@@ -48,15 +49,25 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     }
     const document = editor.document
     const folder = vscode.workspace.getWorkspaceFolder(document.uri)
-    const state = await computeState({
-      text: document.getText(),
-      offset: document.offsetAt(editor.selection.active),
-      uri: document.uri.toString(),
-      workspaceRoot: folder?.uri.fsPath ?? null,
-      fsPath: document.uri.fsPath,
-    })
-    if (runGeneration !== generation) return
-    post({ type: 'state', state })
+
+    const slowNotice = setTimeout(() => {
+      if (runGeneration !== generation) return
+      post({ type: 'state', state: { status: 'loading' } })
+    }, LOADING_NOTICE_MS)
+
+    try {
+      const state = await computeState({
+        text: document.getText(),
+        offset: document.offsetAt(editor.selection.active),
+        uri: document.uri.toString(),
+        workspaceRoot: folder?.uri.fsPath ?? null,
+        fsPath: document.uri.fsPath,
+      })
+      if (runGeneration !== generation) return
+      post({ type: 'state', state })
+    } finally {
+      clearTimeout(slowNotice)
+    }
   }
 
   const scheduleRefresh = (): void => {

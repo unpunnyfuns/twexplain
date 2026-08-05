@@ -44,6 +44,7 @@ export type PanelState =
   | { status: 'unsupported-plugin' }
   | { status: 'stale-runtime' }
   | { status: 'load-error'; message: string }
+  | { status: 'loading' }
   | { status: 'no-selection' }
   | { status: 'ready'; groups: ExplainGroup[] }
 

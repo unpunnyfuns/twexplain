@@ -4,6 +4,7 @@ import styles from './App.module.css'
 import { ClassRow } from './ClassRow'
 
 export const NOTICES: Record<string, string> = {
+  loading: 'Reading your project\u2019s Tailwind setup\u2026',
   'no-selection': 'Put your cursor inside a className string to see it explained.',
   'no-workspace-tailwind': 'No Tailwind installed in this workspace.',
   'no-css-entry': 'No CSS file importing "tailwindcss" was found.',

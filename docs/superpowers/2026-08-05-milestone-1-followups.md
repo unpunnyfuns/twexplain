@@ -106,6 +106,15 @@ The span is capped at 2000 characters so an unclosed brace cannot run away.
 Not covered: template literals. `` className={`flex ${x}`} `` is skipped deliberately rather
 than emitting `${x}` as a class. That needs Milestone 3's AST work.
 
+**A slow first load showed stale copy instead of admitting it was working.** The residual
+~2.7s first walk on a huge tree was not merely slow — during it the panel kept showing the
+previous state, which on first open is "Put your cursor inside a className string" while the
+cursor is already in one. Same false-statement family as the rest.
+
+`refresh` now posts a `loading` state if the computation has not returned within 250ms, and
+cancels that notice when it resolves — so nothing flashes in the common fast case. Both halves
+verified by mutation: dropping the `clearTimeout` makes the fast-path test flash `loading`.
+
 ## Still open
 
 1. **Selector context is not recorded** — only at-rule conditions are. This matters most for
@@ -126,8 +135,8 @@ than emitting `${x}` as a class. That needs Milestone 3's AST work.
    replace it deliberately, with a visited-inode set, or risk a hang.
 
 3. **First panel open on a very large tree still costs one full walk (~2.7s).** Off the UI
-   thread and once per invalidation, so it delays the first result rather than freezing the
-   editor. Worth a progress indicator if it grates.
+   thread and once per invalidation; the panel now says it is working while it happens. Making
+   it genuinely faster would mean an incremental or cached-to-disk index.
 
 ## Parked
 
