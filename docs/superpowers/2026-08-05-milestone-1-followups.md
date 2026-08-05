@@ -49,9 +49,15 @@ Ordered by consequence.
    `__unstable__loadDesignSystem` against the old code. The only honest fix is a reload
    prompt. Do not trust the guarantee the cache key implies.
 
-4. **`ExplainedClass.variants` can hold `null` at runtime.** `[&>*]:flex` yields
-   `variants: [{ root: null }]`. `DesignSystemPort` declares `root: string`, which is a lie.
-   A live trap for Milestone 2's variant chips.
+4. ~~**`ExplainedClass.variants` can hold `null` at runtime.**~~ **FIXED.** The problem was
+   larger than first recorded: `root` is *absent* for arbitrary variants, and using it also
+   truncated compound and functional ones — `group-hover:` reported `group`, and
+   `data-[state=open]:` reported `data`. `explainCandidates` now derives each entry from
+   `ds.printVariant(v)`, which returns canonical text for all five variant kinds, and
+   reverses Tailwind's applied order so stacked variants read in source order
+   (`md:hover:flex` → `['md', 'hover']`). `DesignSystemPort` gained an exported
+   `ParsedVariant` type whose `root` is correctly optional. Verified against real
+   Tailwind, not only against a fake.
 
 5. **JSX regex lacks the `s` flag.** A hand-wrapped multi-line `className` — legal JSX — is
    undetectable, and the panel then claims the cursor is not in a class string.

@@ -118,3 +118,39 @@ describe('loadDesignSystem cache key', () => {
     expect(second.ds).not.toBe(first.ds)
   })
 })
+
+describe('printVariant against the real design system', () => {
+  it('returns non-empty text for every variant kind, including arbitrary ones', async () => {
+    clearDesignSystemCache()
+    const loaded = await loadDesignSystem(root, join(root, 'src', 'App.tsx'))
+    expect(loaded.ok).toBe(true)
+    if (!loaded.ok) return
+
+    const cases: [string, string][] = [
+      ['hover:flex', 'hover'],
+      ['[&>*]:flex', '[&>*]'],
+      ['group-hover:flex', 'group-hover'],
+      ['data-[state=open]:flex', 'data-[state=open]'],
+    ]
+
+    for (const [candidate, expected] of cases) {
+      const parsed = loaded.ds.parseCandidate(candidate)[0]
+      expect(parsed, candidate).toBeDefined()
+      if (parsed === undefined) continue
+      const printed = parsed.variants.map((v) => loaded.ds.printVariant(v))
+      expect(printed, candidate).toEqual([expected])
+    }
+  })
+
+  it('reports stacked variants in reverse source order, which explainCandidates then flips', async () => {
+    clearDesignSystemCache()
+    const loaded = await loadDesignSystem(root, join(root, 'src', 'App.tsx'))
+    expect(loaded.ok).toBe(true)
+    if (!loaded.ok) return
+
+    const parsed = loaded.ds.parseCandidate('md:hover:flex')[0]
+    expect(parsed).toBeDefined()
+    if (parsed === undefined) return
+    expect(parsed.variants.map((v) => loaded.ds.printVariant(v))).toEqual(['hover', 'md'])
+  })
+})

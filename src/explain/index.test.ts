@@ -21,7 +21,31 @@ const fakeDs: DesignSystemPort = {
       return null
     }),
   parseCandidate: (c) => [{ root: c.replace(/-\d+$|-lg$|-600$/, ''), variants: [] }],
+  printVariant: (v) => v.root ?? '',
   resolveThemeValue: (k) => theme[k],
+}
+
+const VARIANT_SHAPES: Record<string, { kind: string; root?: string; printed: string }[]> = {
+  'hover:flex': [{ kind: 'static', root: 'hover', printed: 'hover' }],
+  'md:hover:flex': [
+    { kind: 'static', root: 'hover', printed: 'hover' },
+    { kind: 'static', root: 'md', printed: 'md' },
+  ],
+  '[&>*]:flex': [{ kind: 'arbitrary', printed: '[&>*]' }],
+  'group-hover:flex': [{ kind: 'compound', root: 'group', printed: 'group-hover' }],
+  'data-[state=open]:flex': [{ kind: 'functional', root: 'data', printed: 'data-[state=open]' }],
+}
+
+const variantDs: DesignSystemPort = {
+  candidatesToCss: (cs) => cs.map(() => '.x { display: flex; }'),
+  parseCandidate: (c) => [{ root: 'flex', variants: VARIANT_SHAPES[c] ?? [] }],
+  printVariant: (v) => (v as { printed?: string }).printed ?? '',
+  resolveThemeValue: (k) => theme[k],
+}
+
+const variantsOf = (text: string): string[] | undefined => {
+  const groups = explainCandidates([candidate(text, 0)], variantDs)
+  return groups.flatMap((g) => g.classes)[0]?.variants
 }
 
 describe('explainCandidates', () => {
@@ -172,6 +196,7 @@ const realDs: DesignSystemPort = {
     const parsed = REAL_PARSE[c]
     return parsed === undefined ? [] : [{ ...parsed, variants: [] }]
   },
+  printVariant: (v) => v.root ?? '',
   resolveThemeValue: () => undefined,
 }
 
@@ -213,5 +238,43 @@ describe('overrides applied through the pipeline', () => {
     expect(groups.flatMap((g) => g.classes)[0]?.declarations).toEqual([
       { prop: 'animation', value: 'none' },
     ])
+  })
+})
+
+describe('explainCandidates variants', () => {
+  it('reports an arbitrary variant as its printed text, never undefined', () => {
+    expect(variantsOf('[&>*]:flex')).toEqual(['[&>*]'])
+  })
+
+  it('keeps the whole compound variant rather than only its root', () => {
+    expect(variantsOf('group-hover:flex')).toEqual(['group-hover'])
+  })
+
+  it('keeps a functional variant with its arbitrary value', () => {
+    expect(variantsOf('data-[state=open]:flex')).toEqual(['data-[state=open]'])
+  })
+
+  it('lists stacked variants in source order', () => {
+    expect(variantsOf('md:hover:flex')).toEqual(['md', 'hover'])
+  })
+
+  it('reports no variants for a bare utility', () => {
+    expect(variantsOf('flex')).toEqual([])
+  })
+
+  it('never yields a nullish entry for any variant kind', () => {
+    for (const text of Object.keys(VARIANT_SHAPES)) {
+      const variants = variantsOf(text)
+      expect(variants).toBeDefined()
+      for (const variant of variants ?? []) {
+        expect(typeof variant).toBe('string')
+        expect(variant.length).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('still routes a variant-bearing class to the state group', () => {
+    const groups = explainCandidates([candidate('[&>*]:flex', 0)], variantDs)
+    expect(groups.map((g) => g.name)).toEqual(['state'])
   })
 })

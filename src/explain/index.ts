@@ -6,11 +6,14 @@ import { groupAll, groupFor } from './group'
 import { overrideFor } from './overrides'
 import { strip } from './strip'
 
+export type ParsedVariant = { kind: string; root?: string }
+
 export type DesignSystemPort = {
   candidatesToCss(candidates: string[]): (string | null)[]
   parseCandidate(
     candidate: string,
-  ): { root: string; variants: { root: string }[]; value?: { value: string } | null }[]
+  ): { root: string; variants: ParsedVariant[]; value?: { value: string } | null }[]
+  printVariant(variant: ParsedVariant): string
   resolveThemeValue(key: string): string | undefined
 }
 
@@ -59,7 +62,12 @@ export function explainCandidates(
     }))
 
     const parsed = ds.parseCandidate(candidate.text)[0]
-    const variants = parsed?.variants.map((v) => v.root) ?? []
+    const variants = parsed
+      ? parsed.variants
+          .slice()
+          .reverse()
+          .map((v) => ds.printVariant(v))
+      : []
     const prose = (parsed ? overrideFor(parsed, declarations) : null) ?? derive(declarations)
 
     return {
