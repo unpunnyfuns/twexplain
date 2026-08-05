@@ -9,7 +9,13 @@ export type LoadResult =
   | { ok: true; ds: DesignSystemPort; entry: string }
   | {
       ok: false
-      reason: 'no-tailwind' | 'wrong-version' | 'no-entry' | 'unsupported-plugin' | 'error'
+      reason:
+        | 'no-tailwind'
+        | 'wrong-version'
+        | 'no-entry'
+        | 'unsupported-plugin'
+        | 'stale-runtime'
+        | 'error'
       detail?: string
     }
 
@@ -20,6 +26,7 @@ export function hasPluginDirective(css: string): boolean {
 }
 
 const cache = new Map<string, LoadResult>()
+const importedVersions = new Map<string, string>()
 
 export function clearDesignSystemCache(): void {
   cache.clear()
@@ -50,6 +57,15 @@ export async function loadDesignSystem(
     return { ok: false, reason: 'wrong-version', detail: version }
   }
 
+  const imported = importedVersions.get(workspaceRoot)
+  if (imported !== undefined && imported !== version) {
+    return {
+      ok: false,
+      reason: 'stale-runtime',
+      detail: `loaded ${imported}, now ${version}`,
+    }
+  }
+
   const entry = await discoverCssEntry(workspaceRoot, activeFile)
   if (entry === null) return { ok: false, reason: 'no-entry' }
 
@@ -58,6 +74,7 @@ export async function loadDesignSystem(
   if (cached !== undefined) return cached
 
   const result = await buildDesignSystem(workspaceRoot, entry)
+  if (result.ok) importedVersions.set(workspaceRoot, version)
   cache.set(key, result)
   return result
 }

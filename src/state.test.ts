@@ -89,3 +89,10 @@ describe('computeState', () => {
     expect(state.groups.flatMap((g) => g.classes).map((c) => c.candidate.text)).toEqual(['flex'])
   })
 })
+
+describe('computeState stale runtime', () => {
+  it('tells the user to reload rather than reporting a generic load error', async () => {
+    givenLoad({ ok: false, reason: 'stale-runtime', detail: 'loaded 4.1.0, now 4.2.0' })
+    expect((await computeState(base)).status).toBe('stale-runtime')
+  })
+})

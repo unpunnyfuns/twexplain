@@ -42,6 +42,7 @@ export type PanelState =
   | { status: 'wrong-version'; found: string }
   | { status: 'no-css-entry' }
   | { status: 'unsupported-plugin' }
+  | { status: 'stale-runtime' }
   | { status: 'load-error'; message: string }
   | { status: 'no-selection' }
   | { status: 'ready'; groups: ExplainGroup[] }

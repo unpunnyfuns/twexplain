@@ -9,6 +9,8 @@ export const NOTICES: Record<string, string> = {
   'no-css-entry': 'No CSS file importing "tailwindcss" was found.',
   'unsupported-plugin':
     'This project uses a Tailwind @plugin, which twexplain does not support yet.',
+  'stale-runtime':
+    'Tailwind changed version since this window loaded it. Reload the window to explain classes against the new version.',
 }
 
 export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): ReactElement {

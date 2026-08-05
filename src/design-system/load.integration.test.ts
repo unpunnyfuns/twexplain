@@ -80,8 +80,8 @@ describe('loadDesignSystem with an unsupported @plugin', () => {
   })
 })
 
-describe('loadDesignSystem cache key', () => {
-  it('does not reuse a cached design system when the reported Tailwind version changes', async () => {
+describe('loadDesignSystem across a Tailwind version change', () => {
+  it('reports a stale runtime rather than silently rebuilding against the old module', async () => {
     const versionedRoot = await mkdtemp(join(tmpdir(), 'twexplain-version-'))
     await mkdir(join(versionedRoot, 'src'), { recursive: true })
     await mkdir(join(versionedRoot, 'node_modules', 'tailwindcss'), { recursive: true })
@@ -112,10 +112,36 @@ describe('loadDesignSystem cache key', () => {
 
     await writeVersion('4.2.0')
     const second = await loadDesignSystem(versionedRoot, activeFile)
-    expect(second.ok).toBe(true)
 
-    if (!first.ok || !second.ok) return
-    expect(second.ds).not.toBe(first.ds)
+    expect(second.ok).toBe(false)
+    if (second.ok) return
+    expect(second.reason).toBe('stale-runtime')
+    expect(second.detail).toContain('4.2.0')
+  })
+
+  it('keeps reporting stale until the cache is cleared and the version settles', async () => {
+    const settleRoot = await mkdtemp(join(tmpdir(), 'twexplain-settle-'))
+    await mkdir(join(settleRoot, 'src'), { recursive: true })
+    await mkdir(join(settleRoot, 'node_modules', 'tailwindcss'), { recursive: true })
+
+    const realTailwind = join(process.cwd(), 'node_modules', 'tailwindcss')
+    for (const name of ['dist', 'index.css', 'preflight.css', 'theme.css', 'utilities.css']) {
+      await symlink(join(realTailwind, name), join(settleRoot, 'node_modules', 'tailwindcss', name))
+    }
+
+    const manifest = join(settleRoot, 'node_modules', 'tailwindcss', 'package.json')
+    await writeFile(join(settleRoot, 'src', 'app.css'), '@import "tailwindcss";\n')
+    const activeFile = join(settleRoot, 'src', 'App.tsx')
+
+    clearDesignSystemCache()
+    await writeFile(manifest, JSON.stringify({ version: '4.1.0' }))
+    expect((await loadDesignSystem(settleRoot, activeFile)).ok).toBe(true)
+
+    await writeFile(manifest, JSON.stringify({ version: '4.9.9' }))
+    expect((await loadDesignSystem(settleRoot, activeFile)).ok).toBe(false)
+
+    await writeFile(manifest, JSON.stringify({ version: '4.1.0' }))
+    expect((await loadDesignSystem(settleRoot, activeFile)).ok).toBe(true)
   })
 })
 
