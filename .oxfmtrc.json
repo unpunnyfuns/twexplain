@@ -1,0 +1,6 @@
+{
+  "singleQuote": true,
+  "semi": false,
+  "printWidth": 100,
+  "ignorePatterns": ["src/design-system/__fixtures__/**", "src/integration/__fixtures__/**"]
+}
