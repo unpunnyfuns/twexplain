@@ -14,7 +14,7 @@ export function parseCss(css: string): CssNode[] {
     let depth = 0
     while (i < css.length) {
       const c = css[i] as string
-      if (depth === 0 && (c === '{' || c === ';')) break
+      if (depth === 0 && (c === '{' || c === ';' || c === '}')) break
       if (c === '(') depth++
       else if (c === ')') depth--
       i++

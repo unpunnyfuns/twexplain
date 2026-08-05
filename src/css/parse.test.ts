@@ -49,4 +49,25 @@ describe('parseCss', () => {
     const css = '@property --tw-shadow {\n  syntax: "*";\n  inherits: false;\n}'
     expect(parseCss(css)[0]).toMatchObject({ type: 'rule', selector: '@property --tw-shadow' })
   })
+
+  it('handles semicolons inside parentheses (data URIs)', () => {
+    const css = '.a { background: url(data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=); color: red; }'
+    expect(parseCss(css)[0]).toMatchObject({
+      children: [
+        { prop: 'background', value: 'url(data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=)' },
+        { prop: 'color', value: 'red' },
+      ],
+    })
+  })
+
+  it('handles missing trailing semicolon on last declaration', () => {
+    const css = '.a { color: red }'
+    expect(parseCss(css)).toEqual([
+      {
+        type: 'rule',
+        selector: '.a',
+        children: [{ type: 'decl', prop: 'color', value: 'red' }],
+      },
+    ])
+  })
 })
