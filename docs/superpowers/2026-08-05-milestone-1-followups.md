@@ -184,3 +184,29 @@ The middle of the pipeline is well protected. Both ends are thinner.
   entry must be verifiably true of its class's real declarations, and its negating, zero and
   colour-only forms must go into the corpus — that omission is what let `shadow-none` ship
   reading "drop shadow".
+
+## Milestone 2 — started
+
+`src/edit/mutate.ts` exists: `setValue`, `stepValue`, `setModifier`, `addVariant`,
+`removeVariant`, behind a narrow `EditPort` (`parseCandidate`, `printCandidate`,
+`parseVariant`). Deliberately separate from `DesignSystemPort` — explain reads, edit mutates.
+
+**The trap it exists to avoid, found by probing before writing any code:**
+`parseCandidate` returns a **shared, cached object**. Parsing `bg-blue-600` twice yields the
+same reference, and mutating it in place poisons Tailwind's own cache — verified, after an
+in-place edit `candidatesToCss(['bg-blue-600'])` compiled to `var(--color-red-500)`.
+
+So the corruption would not have been confined to editing: it would have made the read-only
+explain path describe `bg-blue-600` as red. Every mutation therefore `structuredClone`s first.
+Confirmed load-bearing by mutation — removing the clone fails 5 unit tests and both integration
+tests, with the integration failure showing one edit leaking into the next
+(`bg-blue-700/50` where `bg-blue-600/50` was expected).
+
+Note the unit-test fake deliberately returns a **shared** object too, so the isolation property
+is guarded at both levels rather than only against real Tailwind.
+
+Still to build for Milestone 2: range-based write-back (`WorkspaceEdit` per candidate range),
+add/remove class, the panel controls (steppers, colour picker, variant chips), and the six
+write-back rulings from the spec — positional identity, session-scoped disable list, the
+revision-token echo guard, single-space collapse, arbitrary-value text inputs, one undo step
+per action.
