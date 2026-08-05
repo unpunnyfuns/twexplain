@@ -48,4 +48,46 @@ describe('detectJsx', () => {
     const two = '<a className="p-1"/><b className="m-2"/>'
     expect(detectJsx(two, 35, 'file:///a.tsx')?.candidates[0]?.text).toBe('m-2')
   })
+
+  it('cursor exactly at valueStart (opening quote boundary)', () => {
+    const valueStart = source.indexOf('flex')
+    const found = detectJsx(source, valueStart, 'file:///a.tsx')
+    expect(found).not.toBeNull()
+    expect(found?.candidates.map((c) => c.text)).toEqual([
+      'flex',
+      'items-center',
+      'gap-2',
+    ])
+  })
+
+  it('cursor exactly at valueEnd (closing quote boundary)', () => {
+    const valueEnd = source.indexOf('gap-2') + 'gap-2'.length
+    const found = detectJsx(source, valueEnd, 'file:///a.tsx')
+    expect(found).not.toBeNull()
+  })
+
+  it('cursor at valueEnd + 1 returns null (after closing quote)', () => {
+    const valueEnd = source.indexOf('gap-2') + 'gap-2'.length
+    expect(detectJsx(source, valueEnd + 1, 'file:///a.tsx')).toBeNull()
+  })
+
+  it('cursor one before valueStart returns null (on opening quote)', () => {
+    const valueStart = source.indexOf('flex')
+    expect(detectJsx(source, valueStart - 1, 'file:///a.tsx')).toBeNull()
+  })
+
+  it('empty class string returns non-null with empty candidates array', () => {
+    const empty = '<div className="">x</div>'
+    const found = detectJsx(empty, empty.indexOf('""') + 1, 'file:///a.tsx')
+    expect(found).not.toBeNull()
+    expect(found?.candidates).toEqual([])
+  })
+
+  it('offset recovery for all candidates', () => {
+    const found = detectJsx(source, 20, 'file:///a.tsx')
+    expect(found).not.toBeNull()
+    found?.candidates.forEach((c) => {
+      expect(source.slice(c.range.start, c.range.end)).toBe(c.text)
+    })
+  })
 })
