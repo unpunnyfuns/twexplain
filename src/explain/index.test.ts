@@ -119,3 +119,99 @@ describe('explainCandidates', () => {
     ])
   })
 })
+
+const BOX_SHADOW =
+  'box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);'
+
+const REAL_CSS: Record<string, string> = {
+  shadow: `.shadow { --tw-shadow: 0 1px 3px 0 #0000001a; ${BOX_SHADOW} }`,
+  'shadow-lg': `.shadow-lg { --tw-shadow: 0 10px 15px -3px #0000001a; ${BOX_SHADOW} }`,
+  'shadow-none': `.shadow-none { --tw-shadow: 0 0 #0000; ${BOX_SHADOW} }`,
+  'shadow-blue-500': '.shadow-blue-500 { --tw-shadow-color: oklch(62.3% 0.214 259.815); }',
+  'inset-shadow-sm': `.inset-shadow-sm { --tw-inset-shadow: inset 0 2px 4px #0000000d; ${BOX_SHADOW} }`,
+  'inset-shadow-none': `.inset-shadow-none { --tw-inset-shadow: inset 0 0 #0000; ${BOX_SHADOW} }`,
+  'ring-2': `.ring-2 { --tw-ring-shadow: 0 0 0 2px currentcolor; ${BOX_SHADOW} }`,
+  'ring-0': `.ring-0 { --tw-ring-shadow: 0 0 0 0px currentcolor; ${BOX_SHADOW} }`,
+  'ring-white': '.ring-white { --tw-ring-color: #fff; }',
+  'animate-none': '.animate-none { animation: none; }',
+  'filter-none': '.filter-none { filter: none; }',
+  'backdrop-filter-none': '.backdrop-filter-none { backdrop-filter: none; }',
+  'divide-red-500':
+    ':where(.divide-red-500 > :not(:last-child)) { border-color: oklch(63.7% 0.237 25.331); }',
+  'space-x-4':
+    ':where(.space-x-4 > :not(:last-child)) { --tw-space-x-reverse: 0; margin-inline-start: calc(16px * var(--tw-space-x-reverse)); margin-inline-end: calc(16px * calc(1 - var(--tw-space-x-reverse))); }',
+  'space-x-0':
+    ':where(.space-x-0 > :not(:last-child)) { --tw-space-x-reverse: 0; margin-inline-start: 0; margin-inline-end: 0; }',
+  'sr-only': '.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; }',
+  truncate: '.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }',
+}
+
+const REAL_PARSE: Record<string, { root: string; value?: { value: string } | null }> = {
+  shadow: { root: 'shadow', value: null },
+  'shadow-lg': { root: 'shadow', value: { value: 'lg' } },
+  'shadow-none': { root: 'shadow', value: { value: 'none' } },
+  'shadow-blue-500': { root: 'shadow', value: { value: 'blue-500' } },
+  'inset-shadow-sm': { root: 'inset-shadow', value: { value: 'sm' } },
+  'inset-shadow-none': { root: 'inset-shadow', value: { value: 'none' } },
+  'ring-2': { root: 'ring', value: { value: '2' } },
+  'ring-0': { root: 'ring', value: { value: '0' } },
+  'ring-white': { root: 'ring', value: { value: 'white' } },
+  'animate-none': { root: 'animate', value: { value: 'none' } },
+  'filter-none': { root: 'filter', value: { value: 'none' } },
+  'backdrop-filter-none': { root: 'backdrop-filter', value: { value: 'none' } },
+  'divide-red-500': { root: 'divide', value: { value: 'red-500' } },
+  'space-x-4': { root: 'space-x', value: { value: '4' } },
+  'space-x-0': { root: 'space-x', value: { value: '0' } },
+  'sr-only': { root: 'sr-only' },
+  truncate: { root: 'truncate' },
+}
+
+const realDs: DesignSystemPort = {
+  candidatesToCss: (cs) => cs.map((c) => REAL_CSS[c] ?? null),
+  parseCandidate: (c) => {
+    const parsed = REAL_PARSE[c]
+    return parsed === undefined ? [] : [{ ...parsed, variants: [] }]
+  },
+  resolveThemeValue: () => undefined,
+}
+
+const proseOf = (text: string): string | null | undefined => {
+  const groups = explainCandidates([candidate(text, 0)], realDs)
+  return groups.flatMap((g) => g.classes)[0]?.prose
+}
+
+describe('overrides applied through the pipeline', () => {
+  it.each([
+    'shadow-none',
+    'shadow-blue-500',
+    'inset-shadow-none',
+    'ring-0',
+    'ring-white',
+    'animate-none',
+    'filter-none',
+    'backdrop-filter-none',
+    'divide-red-500',
+    'space-x-0',
+  ])('does not lend the positive root prose to %s', (text) => {
+    expect(proseOf(text)).toBeNull()
+  })
+
+  it.each([
+    ['sr-only', 'visually hidden, but still announced by screen readers'],
+    ['truncate', 'one line, cut off with an ellipsis'],
+    ['shadow', 'drop shadow'],
+    ['shadow-lg', 'drop shadow'],
+    ['inset-shadow-sm', 'inner drop shadow'],
+    ['ring-2', 'outline ring drawn outside the border'],
+    ['space-x-4', 'horizontal gap between children, except the last'],
+  ])('still explains %s', (text, expected) => {
+    expect(proseOf(text)).toBe(expected)
+  })
+
+  it('leaves the honest raw CSS in place for a negating form', () => {
+    const groups = explainCandidates([candidate('animate-none', 0)], realDs)
+    expect(groups.flatMap((g) => g.classes)[0]?.declarations).toEqual([
+      { prop: 'animation', value: 'none' },
+    ])
+  })
+})

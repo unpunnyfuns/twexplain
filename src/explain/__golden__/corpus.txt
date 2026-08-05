@@ -244,15 +244,50 @@ shadow-lg
   prose: drop shadow
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
 
+shadow-none
+  group: effects
+  prose: [no prose — raw CSS shown]
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
+shadow-blue-500
+  group: other
+  prose: [no prose — raw CSS shown]
+
+
+shadow-inner
+  group: effects
+  prose: drop shadow
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
 inset-shadow-sm
   group: effects
   prose: inner drop shadow
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
 
+inset-shadow-none
+  group: effects
+  prose: [no prose — raw CSS shown]
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
+inset-shadow-blue-500
+  group: other
+  prose: [no prose — raw CSS shown]
+
+
 ring-2
   group: effects
   prose: outline ring drawn outside the border
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
+ring-0
+  group: effects
+  prose: [no prose — raw CSS shown]
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+
+ring-white
+  group: other
+  prose: [no prose — raw CSS shown]
+
 
 opacity-50
   group: effects
@@ -270,6 +305,28 @@ backdrop-blur
     -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)
     backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)
 
+backdrop-filter
+  group: effects
+  prose: applies a filter to what is behind the element
+    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)
+    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)
+
+backdrop-filter-none
+  group: effects
+  prose: [no prose — raw CSS shown]
+    -webkit-backdrop-filter: none
+    backdrop-filter: none
+
+filter
+  group: effects
+  prose: applies a visual filter
+    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)
+
+filter-none
+  group: effects
+  prose: [no prose — raw CSS shown]
+    filter: none
+
 transition
   group: effects
   prose: [no prose — raw CSS shown]
@@ -279,13 +336,28 @@ transition
 
 animate-spin
   group: effects
-  prose: runs a named animation
+  prose: [no prose — raw CSS shown]
     animation: spin 1s linear infinite
+
+animate-none
+  group: effects
+  prose: [no prose — raw CSS shown]
+    animation: none
 
 transform
   group: effects
   prose: applies a geometric transform
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)
+
+transform-none
+  group: effects
+  prose: [no prose — raw CSS shown]
+    transform: none
+
+divide-red-500
+  group: border
+  prose: [no prose — raw CSS shown]
+    border-color: oklch(63.7% 0.237 25.331)
 
 space-x-4
   group: spacing
@@ -298,6 +370,18 @@ space-y-2
   prose: vertical gap between children, except the last
     margin-block-start: calc(8px * var(--tw-space-y-reverse))
     margin-block-end: calc(8px * calc(1 - var(--tw-space-y-reverse)))
+
+space-x-0
+  group: spacing
+  prose: [no prose — raw CSS shown]
+    margin-inline-start: 0
+    margin-inline-end: 0
+
+space-y-0
+  group: spacing
+  prose: [no prose — raw CSS shown]
+    margin-block-start: 0
+    margin-block-end: 0
 
 hover:bg-blue-700
   group: state

@@ -8,7 +8,9 @@ import { strip } from './strip'
 
 export type DesignSystemPort = {
   candidatesToCss(candidates: string[]): (string | null)[]
-  parseCandidate(candidate: string): { root: string; variants: { root: string }[] }[]
+  parseCandidate(
+    candidate: string,
+  ): { root: string; variants: { root: string }[]; value?: { value: string } | null }[]
   resolveThemeValue(key: string): string | undefined
 }
 
@@ -58,7 +60,7 @@ export function explainCandidates(
 
     const parsed = ds.parseCandidate(candidate.text)[0]
     const variants = parsed?.variants.map((v) => v.root) ?? []
-    const prose = (parsed ? overrideFor(parsed.root) : null) ?? derive(declarations)
+    const prose = (parsed ? overrideFor(parsed, declarations) : null) ?? derive(declarations)
 
     return {
       candidate,
