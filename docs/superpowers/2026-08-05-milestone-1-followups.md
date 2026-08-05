@@ -28,11 +28,15 @@ it should work — but it is unverified.
 
 Ordered by consequence.
 
-1. **`discoverCssEntry` walks the whole workspace on every keystroke.** Version and entry
-   discovery run before the cache by design, and the panel recomputes on every debounced
-   selection change. Measured 1ms on this repo, **3314ms on a large tree** — seconds of lag
-   per keystroke in the monorepo case the spec explicitly targets. The existing `**/*.css`
-   watcher is a ready invalidation hook for memoising the entry path.
+1. ~~**`discoverCssEntry` walks the whole workspace on every keystroke.**~~ **FIXED.**
+   `discover.ts` now splits the workspace-scoped walk (`findEntryCandidates`, memoised) from
+   the per-file choice (`pickNearestEntry`, pure and cheap), and `clearDesignSystemCache`
+   clears both caches so the existing `**/*.css` watcher invalidates them together.
+   Measured on a ~127-repo tree: cold walk 2714ms, then 0.027ms per subsequent call.
+
+   Residual: the **first** panel open on a very large tree still costs one full walk (~2.7s).
+   It is off the UI thread and happens once per invalidation, so it delays the first result
+   rather than blocking the editor. Worth a progress indicator if it ever grates.
 
 2. **Nested-rule context is discarded.** `collectDeclarations` flattens through rules and
    at-rules, dropping selectors and conditions, and `isOpaque` does not cover it. Concrete:

@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { dirname, isAbsolute, join, resolve as resolvePath } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { DesignSystemPort } from '../explain/index'
-import { discoverCssEntry } from './discover'
+import { clearEntryCache, discoverCssEntry } from './discover'
 import { isSupportedVersion, readTailwindVersion } from './version'
 
 export type LoadResult =
@@ -23,6 +23,7 @@ const cache = new Map<string, LoadResult>()
 
 export function clearDesignSystemCache(): void {
   cache.clear()
+  clearEntryCache()
 }
 
 async function importTailwind(workspaceRoot: string): Promise<{

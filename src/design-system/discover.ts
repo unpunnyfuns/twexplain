@@ -4,6 +4,12 @@ import { dirname, join, sep } from 'node:path'
 const IGNORED = new Set(['node_modules', '.git', 'dist', 'out', '.vscode-test'])
 const ENTRY_PATTERN = /@import\s+["']tailwindcss["']/
 
+const entryCache = new Map<string, Promise<string[]>>()
+
+export function clearEntryCache(): void {
+  entryCache.clear()
+}
+
 async function findCssFiles(directory: string, found: string[]): Promise<void> {
   let entries
   try {
@@ -22,18 +28,7 @@ async function findCssFiles(directory: string, found: string[]): Promise<void> {
   }
 }
 
-function sharedPrefixLength(a: string, b: string): number {
-  const left = a.split(sep)
-  const right = b.split(sep)
-  let i = 0
-  while (i < left.length && i < right.length && left[i] === right[i]) i++
-  return i
-}
-
-export async function discoverCssEntry(
-  workspaceRoot: string,
-  activeFile: string,
-): Promise<string | null> {
+async function walkForEntries(workspaceRoot: string): Promise<string[]> {
   const cssFiles: string[] = []
   await findCssFiles(workspaceRoot, cssFiles)
 
@@ -45,14 +40,41 @@ export async function discoverCssEntry(
       continue
     }
   }
+  return entries
+}
 
-  if (entries.length === 0) return null
+export function findEntryCandidates(workspaceRoot: string): Promise<string[]> {
+  const cached = entryCache.get(workspaceRoot)
+  if (cached !== undefined) return cached
+
+  const pending = walkForEntries(workspaceRoot)
+  entryCache.set(workspaceRoot, pending)
+  return pending
+}
+
+function sharedPrefixLength(a: string, b: string): number {
+  const left = a.split(sep)
+  const right = b.split(sep)
+  let i = 0
+  while (i < left.length && i < right.length && left[i] === right[i]) i++
+  return i
+}
+
+export function pickNearestEntry(candidates: string[], activeFile: string): string | null {
+  if (candidates.length === 0) return null
 
   const activeDirectory = dirname(activeFile)
-  return entries.reduce((best, current) =>
+  return candidates.reduce((best, current) =>
     sharedPrefixLength(dirname(current), activeDirectory) >
     sharedPrefixLength(dirname(best), activeDirectory)
       ? current
       : best,
   )
+}
+
+export async function discoverCssEntry(
+  workspaceRoot: string,
+  activeFile: string,
+): Promise<string | null> {
+  return pickNearestEntry(await findEntryCandidates(workspaceRoot), activeFile)
 }
