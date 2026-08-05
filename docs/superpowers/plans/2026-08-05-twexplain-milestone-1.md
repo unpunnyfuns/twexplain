@@ -13,6 +13,13 @@
 - Tailwind **v4 only**. A non-v4 major short-circuits to a notice; never attempt resolution.
 - Tailwind is loaded from the **workspace's** `node_modules`, never bundled into the extension.
 - The extension **never invents a description**. Unexplainable classes render raw CSS with a muted "no plain-English entry yet" note.
+- **All-or-nothing prose** (owner ruling, 2026-08-05, during Task 6 review): if any single
+  declaration cannot be described, `derive` returns `null` for the whole class rather than
+  emitting prose covering only the describable ones. Partial prose reads as complete and so
+  misleads. The accepted cost is that more classes fall back to raw CSS until the phrase
+  tables grow in Milestone 4 — do not compensate by padding the tables early, since the
+  fallbacks are the signal that drives curation. This supersedes the `.filter()` in Task 6's
+  original `derive` code block.
 - `detect/*` is the only code aware of framework syntax. Downstream consumes `ClassStringLocation` only.
 - All explain-layer modules are **pure functions** with no `vscode` import, so they test under plain Vitest.
 - `rem` → `px` conversion assumes a 16px root font size. This assumption lives in exactly one place (`flatten.ts`).
