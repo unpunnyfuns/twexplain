@@ -40,13 +40,21 @@ const PHRASES: Record<string, Phrase> = {
   width: (v) => `width ${v}`,
   height: (v) => `height ${v}`,
   opacity: (v) => {
-    const unitlessMatch = /^(\d+(?:\.\d+)?)$/.exec(v)
+    const unitlessMatch = /^(\.?\d+(?:\.\d+)?)$/.exec(v)
     if (unitlessMatch) {
-      return `${Math.round(Number.parseFloat(unitlessMatch[1]) * 100)}% opaque`
+      const num = Number.parseFloat(unitlessMatch[1])
+      if (num >= 0 && num <= 1) {
+        return `${Math.round(num * 100)}% opaque`
+      }
+      return null
     }
-    const percentMatch = /^(\d+(?:\.\d+)?)%$/.exec(v)
+    const percentMatch = /^(\.?\d+(?:\.\d+)?)%$/.exec(v)
     if (percentMatch) {
-      return `${percentMatch[1]}% opaque`
+      const num = Number.parseFloat(percentMatch[1])
+      if (num >= 0 && num <= 100) {
+        return `${percentMatch[1]}% opaque`
+      }
+      return null
     }
     return null
   },
@@ -69,6 +77,7 @@ function phraseFor(declaration: Declaration): string | null {
 
 export function derive(declarations: Declaration[]): string | null {
   if (isOpaque(declarations)) return null
+  if (declarations.length === 0) return null
   const parts = declarations.map(phraseFor)
   if (parts.some((p) => p === null)) return null
   return parts.join('; ')

@@ -55,4 +55,20 @@ describe('derive', () => {
       { prop: 'clip', value: 'rect(0, 0, 0, 0)' },
     ])).toBeNull()
   })
+
+  it('returns null for empty input', () => {
+    expect(derive([])).toBeNull()
+  })
+
+  it('returns null for unitless opacity out of range', () => {
+    expect(derive([{ prop: 'opacity', value: '50' }])).toBeNull()
+  })
+
+  it('returns null for percentage opacity out of range', () => {
+    expect(derive([{ prop: 'opacity', value: '150%' }])).toBeNull()
+  })
+
+  it('describes opacity for leading-dot decimal values', () => {
+    expect(derive([{ prop: 'opacity', value: '.5' }])).toBe('50% opaque')
+  })
 })
