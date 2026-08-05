@@ -65,4 +65,57 @@ describe('explainCandidates', () => {
     const groups = explainCandidates([candidate('shadow-lg', 0)], ds)
     expect(groups[0]?.classes[0]?.prose).toBeNull()
   })
+
+  it('keeps candidates and compiled CSS paired by index when an invalid class sits between valid ones', () => {
+    const groups = explainCandidates(
+      [candidate('px-4', 0), candidate('nope-999', 1), candidate('flex', 2)],
+      fakeDs,
+    )
+    const byIndex = new Map(
+      groups.flatMap((g) => g.classes).map((c) => [c.candidate.index, c]),
+    )
+
+    expect(byIndex.get(0)?.valid).toBe(true)
+    expect(byIndex.get(0)?.declarations).toEqual([{ prop: 'padding-inline', value: '16px' }])
+
+    expect(byIndex.get(1)?.valid).toBe(false)
+    expect(byIndex.get(1)?.prose).toBeNull()
+
+    expect(byIndex.get(2)?.valid).toBe(true)
+    expect(byIndex.get(2)?.prose).toBe('lays children out in a row')
+  })
+
+  it('suppresses the swatch when a colour value still contains an unresolved custom property', () => {
+    const ds: DesignSystemPort = {
+      ...fakeDs,
+      candidatesToCss: (cs) =>
+        cs.map((c) => {
+          if (c === 'grad-from') return '.grad-from { background-color: var(--tw-gradient-from); }'
+          return fakeDs.candidatesToCss([c])[0] ?? null
+        }),
+    }
+
+    const suppressed = explainCandidates([candidate('grad-from', 0)], ds)
+    expect(suppressed[0]?.classes[0]?.swatch).toBeNull()
+
+    const resolved = explainCandidates([candidate('bg-brand-600', 0)], ds)
+    expect(resolved[0]?.classes[0]?.swatch).toBe('#4f46e5')
+  })
+
+  it('collects declarations from nested rule structures, such as variant-wrapped output', () => {
+    const ds: DesignSystemPort = {
+      ...fakeDs,
+      candidatesToCss: (cs) =>
+        cs.map((c) => {
+          if (c === 'bg-red-nested')
+            return '.bg-red-nested { &:hover { @media (hover: hover) { background-color: red; } } }'
+          return fakeDs.candidatesToCss([c])[0] ?? null
+        }),
+    }
+
+    const groups = explainCandidates([candidate('bg-red-nested', 0)], ds)
+    expect(groups[0]?.classes[0]?.declarations).toEqual([
+      { prop: 'background-color', value: 'red' },
+    ])
+  })
 })
