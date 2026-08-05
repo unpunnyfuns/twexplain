@@ -33,6 +33,53 @@ describe('loadDesignSystem', () => {
   })
 })
 
+describe('loadDesignSystem with an unsupported @plugin', () => {
+  const workspace = async (css: string, extra?: [string, string]): Promise<string> => {
+    const pluginRoot = await mkdtemp(join(tmpdir(), 'twexplain-plugin-'))
+    await mkdir(join(pluginRoot, 'src'), { recursive: true })
+    await mkdir(join(pluginRoot, 'node_modules'), { recursive: true })
+    await symlink(
+      join(process.cwd(), 'node_modules', 'tailwindcss'),
+      join(pluginRoot, 'node_modules', 'tailwindcss'),
+      'dir',
+    )
+    await writeFile(join(pluginRoot, 'src', 'app.css'), css)
+    if (extra !== undefined) await writeFile(join(pluginRoot, 'src', extra[0]), extra[1])
+    clearDesignSystemCache()
+    return pluginRoot
+  }
+
+  it('names the plugin as unsupported instead of leaking an internal error', async () => {
+    const pluginRoot = await workspace(
+      '@import "tailwindcss";\n@plugin "@tailwindcss/typography";\n',
+    )
+    const result = await loadDesignSystem(pluginRoot, join(pluginRoot, 'src', 'App.tsx'))
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.reason).toBe('unsupported-plugin')
+  })
+
+  it('detects a @plugin reached through an imported stylesheet', async () => {
+    const pluginRoot = await workspace('@import "tailwindcss";\n@import "./plugins.css";\n', [
+      'plugins.css',
+      '@plugin "@tailwindcss/typography";\n',
+    ])
+    const result = await loadDesignSystem(pluginRoot, join(pluginRoot, 'src', 'App.tsx'))
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.reason).toBe('unsupported-plugin')
+  })
+
+  it('still loads directives that do work, such as @config and @custom-variant', async () => {
+    const pluginRoot = await workspace(
+      '@import "tailwindcss";\n@config "./tw.config.js";\n@custom-variant hocus (&:hover, &:focus);\n',
+      ['tw.config.js', 'module.exports = {}\n'],
+    )
+    const result = await loadDesignSystem(pluginRoot, join(pluginRoot, 'src', 'App.tsx'))
+    expect(result.ok).toBe(true)
+  })
+})
+
 describe('loadDesignSystem cache key', () => {
   it('does not reuse a cached design system when the reported Tailwind version changes', async () => {
     const versionedRoot = await mkdtemp(join(tmpdir(), 'twexplain-version-'))

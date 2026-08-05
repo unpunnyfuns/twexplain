@@ -41,6 +41,7 @@ export type PanelState =
   | { status: 'no-workspace-tailwind' }
   | { status: 'wrong-version'; found: string }
   | { status: 'no-css-entry' }
+  | { status: 'unsupported-plugin' }
   | { status: 'load-error'; message: string }
   | { status: 'no-selection' }
   | { status: 'ready'; groups: ExplainGroup[] }

@@ -7,7 +7,17 @@ import { isSupportedVersion, readTailwindVersion } from './version'
 
 export type LoadResult =
   | { ok: true; ds: DesignSystemPort; entry: string }
-  | { ok: false; reason: 'no-tailwind' | 'wrong-version' | 'no-entry' | 'error'; detail?: string }
+  | {
+      ok: false
+      reason: 'no-tailwind' | 'wrong-version' | 'no-entry' | 'unsupported-plugin' | 'error'
+      detail?: string
+    }
+
+const PLUGIN_DIRECTIVE = /@plugin\s+['"]/
+
+export function hasPluginDirective(css: string): boolean {
+  return PLUGIN_DIRECTIVE.test(css)
+}
 
 const cache = new Map<string, LoadResult>()
 
@@ -52,9 +62,12 @@ export async function loadDesignSystem(
 }
 
 async function buildDesignSystem(workspaceRoot: string, entry: string): Promise<LoadResult> {
+  let sawPlugin = false
+
   try {
     const { __unstable__loadDesignSystem } = await importTailwind(workspaceRoot)
     const css = await readFile(entry, 'utf8')
+    if (hasPluginDirective(css)) return { ok: false, reason: 'unsupported-plugin' }
 
     const ds = await __unstable__loadDesignSystem(css, {
       base: dirname(entry),
@@ -67,13 +80,16 @@ async function buildDesignSystem(workspaceRoot: string, entry: string): Promise<
               : isAbsolute(id)
                 ? id
                 : resolvePath(base, id)
-        return { base: dirname(path), content: await readFile(path, 'utf8') }
+        const content = await readFile(path, 'utf8')
+        if (hasPluginDirective(content)) sawPlugin = true
+        return { base: dirname(path), content }
       },
       loadModule: async () => ({ module: {}, base: dirname(entry) }),
     })
 
     return { ok: true, ds, entry }
   } catch (error) {
+    if (sawPlugin) return { ok: false, reason: 'unsupported-plugin' }
     return {
       ok: false,
       reason: 'error',

@@ -3,10 +3,12 @@ import type { HostMessage, PanelState } from '../types'
 import styles from './App.module.css'
 import { ClassRow } from './ClassRow'
 
-const NOTICES: Record<string, string> = {
+export const NOTICES: Record<string, string> = {
   'no-selection': 'Put your cursor inside a className string to see it explained.',
   'no-workspace-tailwind': 'No Tailwind installed in this workspace.',
   'no-css-entry': 'No CSS file importing "tailwindcss" was found.',
+  'unsupported-plugin':
+    'This project uses a Tailwind @plugin, which twexplain does not support yet.',
 }
 
 export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): ReactElement {

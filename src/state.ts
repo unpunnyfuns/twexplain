@@ -23,6 +23,7 @@ export async function computeState(input: StateInput): Promise<PanelState> {
       return { status: 'wrong-version', found: loaded.detail ?? 'unknown' }
     }
     if (loaded.reason === 'no-entry') return { status: 'no-css-entry' }
+    if (loaded.reason === 'unsupported-plugin') return { status: 'unsupported-plugin' }
     return { status: 'load-error', message: loaded.detail ?? 'unknown error' }
   }
 
