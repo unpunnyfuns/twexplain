@@ -98,3 +98,81 @@ describe('ClassRow conditional declarations', () => {
     expect(markup).not.toContain('@media')
   })
 })
+
+const withSwatch = (
+  text: string,
+  declarations: Declaration[],
+  swatch: string,
+  variants: string[] = [],
+): ExplainedClass => ({
+  ...explained(text, 'background red', declarations),
+  swatch,
+  variants,
+})
+
+describe('ClassRow swatch qualification', () => {
+  it('titles an unconditional swatch with its authored value', () => {
+    const markup = renderToStaticMarkup(
+      <ClassRow
+        explained={withSwatch('bg-red-500', [{ prop: 'background-color', value: 'oklch(63% 0.2 25)' }], 'oklch(63% 0.2 25)')}
+      />,
+    )
+
+    expect(markup).toContain('title="oklch(63% 0.2 25)"')
+    expect(markup).not.toContain('only when')
+  })
+
+  it('says when a swatch only applies under a recorded condition', () => {
+    const markup = renderToStaticMarkup(
+      <ClassRow
+        explained={withSwatch(
+          'dark:bg-slate-900',
+          [
+            {
+              prop: 'background-color',
+              value: 'oklch(20% 0.04 265)',
+              context: '@media (prefers-color-scheme: dark)',
+            },
+          ],
+          'oklch(20% 0.04 265)',
+          ['dark'],
+        )}
+      />,
+    )
+
+    expect(markup).toContain('only when')
+    expect(markup).toContain('prefers-color-scheme: dark')
+  })
+
+  it('falls back to the variant when the condition lives in the selector, not an at-rule', () => {
+    const markup = renderToStaticMarkup(
+      <ClassRow
+        explained={withSwatch(
+          'dark:bg-slate-900',
+          [{ prop: 'background-color', value: 'oklch(20% 0.04 265)' }],
+          'oklch(20% 0.04 265)',
+          ['dark'],
+        )}
+      />,
+    )
+
+    expect(markup).toContain('only when')
+    expect(markup).toContain('dark')
+  })
+
+  it('marks a conditional swatch with a distinct class and leaves plain ones alone', () => {
+    const conditional = renderToStaticMarkup(
+      <ClassRow
+        explained={withSwatch('dark:bg-slate-900', [{ prop: 'background-color', value: 'red' }], 'red', ['dark'])}
+      />,
+    )
+    const plain = renderToStaticMarkup(
+      <ClassRow
+        explained={withSwatch('bg-red-500', [{ prop: 'background-color', value: 'red' }], 'red')}
+      />,
+    )
+
+    expect(conditional).toMatch(/class="[^"]*conditional/i)
+    expect(plain).not.toMatch(/class="[^"]*conditional/i)
+  })
+})

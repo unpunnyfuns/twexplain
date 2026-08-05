@@ -2,8 +2,18 @@ import type { ReactElement } from 'react'
 import type { ExplainedClass } from '../types'
 import styles from './ClassRow.module.css'
 
+function swatchCondition(explained: ExplainedClass): string | null {
+  const { declarations, swatch, variants } = explained
+  const source = declarations.find((d) => d.value === swatch)
+  if (source?.context !== undefined) return source.context
+  if (variants.length > 0) return variants.join(', ')
+  return null
+}
+
 export function ClassRow({ explained }: { explained: ExplainedClass }): ReactElement {
   const { candidate, valid, prose, declarations, swatch } = explained
+  const condition = swatch === null ? null : swatchCondition(explained)
+  const swatchTitle = condition === null ? swatch : `${swatch} — only when ${condition}`
 
   return (
     <div className={styles.row}>
@@ -11,7 +21,15 @@ export function ClassRow({ explained }: { explained: ExplainedClass }): ReactEle
         {candidate.text}
       </span>
       <span>
-        {swatch !== null && <span className={styles.swatch} style={{ background: swatch }} />}
+        {swatch !== null && (
+          <span
+            className={
+              condition === null ? styles.swatch : `${styles.swatch} ${styles.swatchConditional}`
+            }
+            style={{ background: swatch }}
+            title={swatchTitle ?? undefined}
+          />
+        )}
         {!valid && <span className={styles.unexplained}>not a known Tailwind class</span>}
         {valid && prose !== null && <span className={styles.prose}>{prose}</span>}
         {valid && prose === null && declarations.length === 0 && (

@@ -71,9 +71,34 @@ Ordered by consequence.
      unguarded pipeline would emit "width 100%; max-width 640px; max-width 768px; …" —
      verified: a two-declaration fake produced the literal lie `width 100%; width 50%`.
 
-   Still not covered: nested *selector* context (`:where(.divide-y > :not(:last-child))`)
-   is not recorded — only at-rule conditions are. Those utilities are curated, so nothing
-   misreports today, but the gap is real.
+   Still not covered: nested *selector* context is not recorded — only at-rule conditions
+   are. This matters most for **class-strategy dark mode**. Tailwind v4 has two strategies
+   and they compile differently:
+
+   | strategy | output | recorded |
+   |---|---|---|
+   | media (default) | `@media (prefers-color-scheme: dark) { … }` | yes |
+   | class (`@custom-variant dark (&:where(.dark, .dark *))`) | `.dark\:bg-x:where(.dark, .dark *)` | **no** |
+
+   So in any project with a dark-mode toggle, a `dark:` class looks unconditional to the
+   pipeline. The swatch handles this correctly via a variant fallback (below), but the raw
+   CSS view still shows a bare declaration. Recording selector context would close this and
+   the `divide-y` / `space-x` selector cases at once; it needs the escaped class name
+   stripped out of the selector.
+
+3. **Conditional swatches — DONE.** A painted swatch is a confident claim that "this is the
+   colour", so `dark:bg-slate-900` showing a flat near-black chip in a light-themed panel was
+   the same dishonesty family as the override bug. Swatches are now notched with a dashed
+   outline when conditional, and every swatch carries a `title` with its authored value —
+   which also closes the parked accessibility minor (colour was previously the sole carrier).
+
+   The condition text prefers the declaration's `context` and **falls back to the variant
+   list**. That fallback is deliberate: it is what covers class-strategy dark, where no
+   context exists. Tested with no context present.
+
+   Limitation: `title` is a native tooltip, so hover-only and slow. Showing the condition
+   without hovering means a layout change (a label beside the swatch), deliberately not
+   bolted on here.
 
 3. **The version-keyed cache cannot pick up an in-place Tailwind upgrade.** Node's ESM
    registry caches by URL and the URL does not change, so a new cache key re-runs

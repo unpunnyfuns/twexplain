@@ -33,6 +33,12 @@
   margin: 2px 0 0;
 }
 
+.swatchConditional {
+  clip-path: polygon(0 0, 100% 0, 100% 55%, 55% 100%, 0 100%);
+  outline: 1px dashed var(--tw-muted);
+  outline-offset: 1px;
+}
+
 .swatch {
   display: inline-block;
   width: 10px;
