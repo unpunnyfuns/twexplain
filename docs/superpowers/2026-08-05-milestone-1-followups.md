@@ -115,6 +115,18 @@ cursor is already in one. Same false-statement family as the rest.
 cancels that notice when it resolves — so nothing flashes in the common fast case. Both halves
 verified by mutation: dropping the `clearTimeout` makes the fast-path test flash `loading`.
 
+**Symlinked source directories were never explored.** `Dirent.isDirectory()` is false for a
+symlink, so a workspace reaching its CSS through one was told "No CSS file importing tailwindcss
+was found". The walk now follows directory symlinks, with `dev:ino` tracking so a cycle cannot
+hang it — verified by mutation against a self-referential symlink and against two symlinks to
+one real directory.
+
+Inode tracking runs **only after a symlink has been followed**, plus once to seed the root. A
+real directory tree cannot contain a cycle, so statting every ordinary directory was pure cost:
+doing it unconditionally pushed the cold walk from 2714ms to 3960ms. Restricted, it is 1720ms.
+Seeding the root matters — without it, `root/loop -> root` re-walks the whole tree once before
+the guard catches the repeat.
+
 ## Still open
 
 1. **Selector context is not recorded** — only at-rule conditions are. This matters most for
@@ -130,11 +142,7 @@ verified by mutation: dropping the `clearTimeout` makes the fast-path test flash
    a bare declaration. Fixing this also closes the `divide-y` / `space-x` selector cases. Needs
    the escaped class name stripped out of the selector.
 
-2. **Symlinked subdirectories are never explored by the entry walk.** Matters for layouts that
-   symlink source directories. Note the symlink skip is also the current loop protection —
-   replace it deliberately, with a visited-inode set, or risk a hang.
-
-3. **First panel open on a very large tree still costs one full walk (~2.7s).** Off the UI
+2. **First panel open on a very large tree still costs one full walk (~2.7s).** Off the UI
    thread and once per invalidation; the panel now says it is working while it happens. Making
    it genuinely faster would mean an incremental or cached-to-disk index.
 

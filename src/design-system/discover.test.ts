@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -152,5 +152,38 @@ describe('findEntryCandidates pruning', () => {
     await writeFile(join(root, 'src', 'app.css'), '@import "tailwindcss";\n')
 
     expect(await findEntryCandidates(root)).toEqual([join(root, 'src', 'app.css')])
+  })
+})
+
+describe('findEntryCandidates across symlinks', () => {
+  it('explores a symlinked source directory', async () => {
+    const real = await mkdtemp(join(tmpdir(), 'twexplain-real-'))
+    await mkdir(join(real, 'styles'), { recursive: true })
+    await writeFile(join(real, 'styles', 'app.css'), '@import "tailwindcss";\n')
+
+    const root = await mkdtemp(join(tmpdir(), 'twexplain-linked-'))
+    await symlink(join(real, 'styles'), join(root, 'linked'), 'dir')
+
+    expect(await findEntryCandidates(root)).toEqual([join(root, 'linked', 'app.css')])
+  })
+
+  it('terminates on a self-referential symlink instead of recursing forever', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'twexplain-cycle-'))
+    await mkdir(join(root, 'src'), { recursive: true })
+    await writeFile(join(root, 'src', 'app.css'), '@import "tailwindcss";\n')
+    await symlink(root, join(root, 'loop'), 'dir')
+
+    expect(await findEntryCandidates(root)).toEqual([join(root, 'src', 'app.css')])
+  })
+
+  it('does not report the same real file twice through two symlinks', async () => {
+    const real = await mkdtemp(join(tmpdir(), 'twexplain-shared-'))
+    await writeFile(join(real, 'app.css'), '@import "tailwindcss";\n')
+
+    const root = await mkdtemp(join(tmpdir(), 'twexplain-double-'))
+    await symlink(real, join(root, 'a'), 'dir')
+    await symlink(real, join(root, 'b'), 'dir')
+
+    expect(await findEntryCandidates(root)).toHaveLength(1)
   })
 })

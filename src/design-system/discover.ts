@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'node:fs/promises'
+import { readFile, readdir, stat } from 'node:fs/promises'
 import { dirname, join, sep } from 'node:path'
 
 const IGNORED = new Set(['node_modules', '.git', 'dist', 'out', '.vscode-test'])
@@ -10,27 +10,69 @@ export function clearEntryCache(): void {
   entryCache.clear()
 }
 
-async function findCssFiles(directory: string, found: string[]): Promise<void> {
+async function identify(path: string): Promise<string | null> {
+  try {
+    const info = await stat(path)
+    return `${info.dev}:${info.ino}`
+  } catch {
+    return null
+  }
+}
+
+async function isDirectory(path: string): Promise<boolean> {
+  try {
+    return (await stat(path)).isDirectory()
+  } catch {
+    return false
+  }
+}
+
+async function findCssFiles(
+  directory: string,
+  found: string[],
+  visited: Set<string>,
+  viaSymlink: boolean,
+): Promise<void> {
+  if (viaSymlink) {
+    const id = await identify(directory)
+    if (id !== null) {
+      if (visited.has(id)) return
+      visited.add(id)
+    }
+  }
+
   let entries
   try {
     entries = await readdir(directory, { withFileTypes: true })
   } catch {
     return
   }
+
   for (const entry of entries) {
     const path = join(directory, entry.name)
+    if (IGNORED.has(entry.name)) continue
+
     if (entry.isDirectory()) {
-      if (IGNORED.has(entry.name)) continue
-      await findCssFiles(path, found)
-    } else if (entry.name.endsWith('.css')) {
-      found.push(path)
+      await findCssFiles(path, found, visited, viaSymlink)
+      continue
     }
+
+    if (entry.isSymbolicLink()) {
+      if (await isDirectory(path)) await findCssFiles(path, found, visited, true)
+      else if (entry.name.endsWith('.css')) found.push(path)
+      continue
+    }
+
+    if (entry.name.endsWith('.css')) found.push(path)
   }
 }
 
 async function walkForEntries(workspaceRoot: string): Promise<string[]> {
   const cssFiles: string[] = []
-  await findCssFiles(workspaceRoot, cssFiles)
+  const visited = new Set<string>()
+  const rootId = await identify(workspaceRoot)
+  if (rootId !== null) visited.add(rootId)
+  await findCssFiles(workspaceRoot, cssFiles, visited, false)
 
   const entries: string[] = []
   for (const path of cssFiles) {
