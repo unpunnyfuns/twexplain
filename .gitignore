@@ -2,3 +2,4 @@ node_modules
 dist
 out
 .vscode-test
+!src/design-system/__fixtures__/**/node_modules
