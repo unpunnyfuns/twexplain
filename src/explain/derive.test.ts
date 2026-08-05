@@ -48,4 +48,11 @@ describe('derive', () => {
   it('returns null for opacity with keyword values', () => {
     expect(derive([{ prop: 'opacity', value: 'inherit' }])).toBeNull()
   })
+
+  it('returns null when any declaration is undescribable', () => {
+    expect(derive([
+      { prop: 'display', value: 'flex' },
+      { prop: 'clip', value: 'rect(0, 0, 0, 0)' },
+    ])).toBeNull()
+  })
 })

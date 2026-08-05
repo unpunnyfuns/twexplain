@@ -69,7 +69,7 @@ function phraseFor(declaration: Declaration): string | null {
 
 export function derive(declarations: Declaration[]): string | null {
   if (isOpaque(declarations)) return null
-  const parts = declarations.map(phraseFor).filter((p): p is string => p !== null)
-  if (parts.length === 0) return null
+  const parts = declarations.map(phraseFor)
+  if (parts.some((p) => p === null)) return null
   return parts.join('; ')
 }
