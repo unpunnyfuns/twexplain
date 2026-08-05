@@ -1,0 +1,44 @@
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 0;
+}
+
+.name {
+  font-family: var(--tw-mono);
+  color: var(--tw-accent);
+  white-space: nowrap;
+}
+
+.invalid {
+  color: var(--vscode-errorForeground);
+  text-decoration: line-through;
+}
+
+.prose {
+  color: var(--tw-fg);
+}
+
+.unexplained {
+  color: var(--tw-muted);
+  font-style: italic;
+}
+
+.raw {
+  font-family: var(--tw-mono);
+  color: var(--tw-muted);
+  white-space: pre-wrap;
+  margin: 2px 0 0;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--tw-border);
+  margin-right: 4px;
+  vertical-align: middle;
+}

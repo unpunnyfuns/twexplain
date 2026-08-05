@@ -1,0 +1,32 @@
+.panel {
+  --tw-fg: var(--vscode-foreground);
+  --tw-muted: var(--vscode-descriptionForeground);
+  --tw-accent: var(--vscode-textLink-foreground);
+  --tw-border: var(--vscode-panel-border);
+  --tw-mono: var(--vscode-editor-font-family);
+
+  color: var(--tw-fg);
+  font-family: var(--vscode-font-family);
+  font-size: 12px;
+  padding: 8px;
+}
+
+.notice {
+  color: var(--tw-muted);
+  padding: 12px 4px;
+  line-height: 1.5;
+}
+
+.group {
+  margin-bottom: 12px;
+}
+
+.groupName {
+  color: var(--tw-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+  border-bottom: 1px solid var(--tw-border);
+  padding-bottom: 2px;
+  margin-bottom: 4px;
+}
