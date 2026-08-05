@@ -14,7 +14,10 @@ export function ClassRow({ explained }: { explained: ExplainedClass }): ReactEle
         {swatch !== null && <span className={styles.swatch} style={{ background: swatch }} />}
         {!valid && <span className={styles.unexplained}>not a known Tailwind class</span>}
         {valid && prose !== null && <span className={styles.prose}>{prose}</span>}
-        {valid && prose === null && (
+        {valid && prose === null && declarations.length === 0 && (
+          <span className={styles.unexplained}>sets only Tailwind-internal variables</span>
+        )}
+        {valid && prose === null && declarations.length > 0 && (
           <>
             <span className={styles.unexplained}>no plain-English entry yet</span>
             <pre className={styles.raw}>

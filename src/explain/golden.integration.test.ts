@@ -44,7 +44,11 @@ describe('explain pipeline golden corpus', () => {
       const explained = byIndex.get(index)
       if (explained === undefined) return `${text}\n  MISSING`
       if (!explained.valid) return `${text}\n  [invalid]`
-      const prose = explained.prose ?? '[no prose — raw CSS shown]'
+      const fallback =
+        explained.declarations.length === 0
+          ? '[no prose — internal variables only]'
+          : '[no prose — raw CSS shown]'
+      const prose = explained.prose ?? fallback
       const declarations = explained.declarations
         .map((d) => `    ${d.prop}: ${d.value}`)
         .join('\n')

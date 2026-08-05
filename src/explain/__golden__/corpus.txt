@@ -251,7 +251,7 @@ shadow-none
 
 shadow-blue-500
   group: other
-  prose: [no prose — raw CSS shown]
+  prose: [no prose — internal variables only]
 
 
 shadow-inner
@@ -271,7 +271,7 @@ inset-shadow-none
 
 inset-shadow-blue-500
   group: other
-  prose: [no prose — raw CSS shown]
+  prose: [no prose — internal variables only]
 
 
 ring-2
@@ -286,7 +286,7 @@ ring-0
 
 ring-white
   group: other
-  prose: [no prose — raw CSS shown]
+  prose: [no prose — internal variables only]
 
 
 opacity-50
@@ -358,6 +358,36 @@ divide-red-500
   group: border
   prose: [no prose — raw CSS shown]
     border-color: oklch(63.7% 0.237 25.331)
+
+from-blue-500
+  group: other
+  prose: [no prose — internal variables only]
+
+
+via-purple-500
+  group: other
+  prose: [no prose — internal variables only]
+
+
+to-pink-500
+  group: other
+  prose: [no prose — internal variables only]
+
+
+ring-inset
+  group: other
+  prose: [no prose — internal variables only]
+
+
+ring-offset-2
+  group: other
+  prose: [no prose — internal variables only]
+
+
+space-x-reverse
+  group: other
+  prose: [no prose — internal variables only]
+
 
 space-x-4
   group: spacing
