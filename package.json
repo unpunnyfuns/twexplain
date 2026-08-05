@@ -1,0 +1,49 @@
+{
+  "name": "twexplain",
+  "displayName": "twexplain",
+  "description": "Explains Tailwind class strings in a side panel",
+  "version": "0.0.1",
+  "private": true,
+  "engines": { "vscode": "^1.99.0" },
+  "categories": ["Programming Languages", "Other"],
+  "activationEvents": [
+    "onLanguage:typescriptreact",
+    "onLanguage:javascriptreact"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        { "type": "webview", "id": "twexplain.panel", "name": "Tailwind Inspector" }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "node esbuild.js --production",
+    "check-types": "tsc --noEmit",
+    "lint": "oxlint src",
+    "format": "oxfmt src",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@types/vscode": "^1.125.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
+    "esbuild": "^0.28.1",
+    "oxfmt": "^0.62.0",
+    "oxlint": "^1.77.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  }
+}
