@@ -121,3 +121,58 @@ describe('detectJsx across newlines', () => {
     expect(found?.candidates.map((c) => c.text) ?? []).not.toContain('const')
   })
 })
+
+describe('detectJsx inside expression containers', () => {
+  const TERNARY = '<div className={isLight ? "bg-white text-black" : "bg-black"}>x</div>'
+
+  it('detects the branch the cursor is in', () => {
+    const found = detectJsx(TERNARY, TERNARY.indexOf('text-black'), 'file:///a.tsx')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['bg-white', 'text-black'])
+  })
+
+  it('detects the other branch independently', () => {
+    const found = detectJsx(TERNARY, TERNARY.indexOf('bg-black'), 'file:///a.tsx')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['bg-black'])
+  })
+
+  it('returns null when the cursor is on the condition rather than a string', () => {
+    expect(detectJsx(TERNARY, TERNARY.indexOf('isLight'), 'file:///a.tsx')).toBeNull()
+  })
+
+  it('reports offsets that recover each candidate', () => {
+    const found = detectJsx(TERNARY, TERNARY.indexOf('bg-white'), 'file:///a.tsx')
+    for (const c of found?.candidates ?? []) {
+      expect(TERNARY.slice(c.range.start, c.range.end)).toBe(c.text)
+    }
+  })
+
+  it('finds a string inside a helper call', () => {
+    const helper = '<div className={cn("px-4 py-2", active && "bg-blue-600")}>x</div>'
+    const found = detectJsx(helper, helper.indexOf('py-2'), 'file:///a.tsx')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['px-4', 'py-2'])
+  })
+
+  it('finds a string that sits after a nested closing brace', () => {
+    const obj = '<div className={clsx({ dark: isDark }, "flex gap-2")}>x</div>'
+    const found = detectJsx(obj, obj.indexOf('gap-2'), 'file:///a.tsx')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'gap-2'])
+  })
+
+  it('is not fooled by a closing brace inside a string literal', () => {
+    const braced = `<div className={cn("content-['}']", "flex gap-2")}>x</div>`
+    const found = detectJsx(braced, braced.indexOf('gap-2'), 'file:///a.tsx')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'gap-2'])
+  })
+
+  it('still prefers the plain attribute form when both could match', () => {
+    const plain = '<div className="flex gap-2">x</div>'
+    const found = detectJsx(plain, plain.indexOf('gap-2'), 'file:///a.tsx')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'gap-2'])
+  })
+
+  it('does not run away when the expression brace is never closed', () => {
+    const unclosed = `<div className={cond ? "flex"\n${'  const x = 1\n'.repeat(40)}`
+    const found = detectJsx(unclosed, unclosed.indexOf('flex'), 'file:///a.tsx')
+    expect(found?.candidates.map((c) => c.text) ?? []).not.toContain('const')
+  })
+})

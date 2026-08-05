@@ -75,6 +75,13 @@ performance-critical once discovery was memoised. Both now covered, and both ver
 discriminating by mutation: removing the pruning turns 2 tests red, collapsing the
 `unsupported-plugin` branch turns its test red.
 
+**An in-place Tailwind upgrade silently served the old runtime.** Node's ESM registry caches by
+URL, and upgrading does not change `dist/lib.mjs`'s URL — so the version-keyed cache missed,
+rebuilt, and got the *old* module back, explaining classes against the previous Tailwind.
+`loadDesignSystem` now records the version it actually imported per workspace and returns
+`stale-runtime`, which the panel surfaces as a reload prompt. Reverting the version recovers
+without a reload. The integration test that asserted the misleading old behaviour was replaced.
+
 **Tailwind's per-layer import setup was unsupported.** `@import "tailwindcss/theme.css"
 layer(theme)` and friends are documented, but `ENTRY_PATTERN` required the bare
 `@import "tailwindcss"`, so the panel reported "No CSS file importing tailwindcss was found"
@@ -82,6 +89,22 @@ in a project that plainly imports it. Even once found, `loadStylesheet` resolved
 `tailwindcss/theme.css` to `theme.css.css` → ENOENT → total failure. Both halves fixed; a
 negative test pins that `@import "normalize.css"` is still not an entry. Verified end to end
 against real Tailwind.
+
+**`className={...}` expression containers were undetectable.** Reported from real use: a
+ternary such as `className={isLight ? "bg-white" : "bg-black"}` was invisible, because the
+attribute pattern requires a quote directly after `=`. Detection now falls back to scanning
+the expression's brace-matched span for the string literal containing the cursor, so each
+ternary branch is explained independently and the cursor on the *condition* correctly yields
+nothing.
+
+This reaches further than the reported bug: strings inside `cn(...)` / `clsx(...)` calls are
+now found too, which was scheduled for Milestone 3. Two scanner guards, both verified
+load-bearing by mutation — brace depth (so a string after a nested `}` is still found) and
+quote skipping (so a `}` inside a literal like `content-['}']` cannot end the span early).
+The span is capped at 2000 characters so an unclosed brace cannot run away.
+
+Not covered: template literals. `` className={`flex ${x}`} `` is skipped deliberately rather
+than emitting `${x}` as a class. That needs Milestone 3's AST work.
 
 ## Still open
 
@@ -98,19 +121,11 @@ against real Tailwind.
    a bare declaration. Fixing this also closes the `divide-y` / `space-x` selector cases. Needs
    the escaped class name stripped out of the selector.
 
-2. **The version-keyed cache cannot pick up an in-place Tailwind upgrade.** Node's ESM registry
-   caches by URL and the URL does not change, so a new cache key re-runs
-   `__unstable__loadDesignSystem` against the old code. The only honest fix is a reload prompt.
-   Do not trust the guarantee the cache key implies.
-
-3. **Symlinked subdirectories are never explored by the entry walk.** Matters for layouts that
+2. **Symlinked subdirectories are never explored by the entry walk.** Matters for layouts that
    symlink source directories. Note the symlink skip is also the current loop protection —
    replace it deliberately, with a visited-inode set, or risk a hang.
 
-4. **oxfmt drift.** `.oxfmtrc.json` cut `oxfmt --list-different src` from 39 files to 13. The
-   remaining reflow belongs in its own reviewable commit.
-
-5. **First panel open on a very large tree still costs one full walk (~2.7s).** Off the UI
+3. **First panel open on a very large tree still costs one full walk (~2.7s).** Off the UI
    thread and once per invalidation, so it delays the first result rather than freezing the
    editor. Worth a progress indicator if it grates.
 
@@ -122,6 +137,7 @@ against real Tailwind.
 | `animate-spin` lost its prose | Consequence of the override-honesty fix: `animation: spin 1s linear infinite` is not opaque, so the composite override is correctly withheld. Repair is an `animation` phrase plus an `EXACT` entry for `animation: none` — Milestone 4 |
 | `animate` and `divide` composite override entries are unreachable | Bare `animate`/`divide` compile to no CSS; `divide-y` parses with root `divide-y`. Dead entries to remove |
 | `shadow-inner` reads "drop shadow" | True, but imprecise about inset-ness |
+| Template literals in `className={...}` are skipped | Emitting `${x}` as a class would be worse; needs Milestone 3's AST work |
 | Swatch condition is a native `title`, so hover-only and slow | Showing it without hovering means a layout change (a label beside the swatch) |
 
 ## Test coverage assessment
