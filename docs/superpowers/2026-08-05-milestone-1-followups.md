@@ -205,8 +205,22 @@ tests, with the integration failure showing one edit leaking into the next
 Note the unit-test fake deliberately returns a **shared** object too, so the isolation property
 is guarded at both levels rather than only against real Tailwind.
 
-Still to build for Milestone 2: range-based write-back (`WorkspaceEdit` per candidate range),
-add/remove class, the panel controls (steppers, colour picker, variant chips), and the six
-write-back rulings from the spec — positional identity, session-scoped disable list, the
-revision-token echo guard, single-space collapse, arbitrary-value text inputs, one undo step
-per action.
+`src/edit/writeback.ts` turns an operation on a candidate into a plain `{start, end, newText}`
+text edit — no `vscode` import, so it tests as a pure function. `replaceCandidate`,
+`removeCandidate`, `addCandidate`.
+
+A property test drives every candidate across six source shapes (both quote styles, `cn(...)`,
+a ternary, multi-line, two attributes in one line) and asserts the document is byte-identical
+outside the targeted range. That is the spec's "surgical ranges" requirement made checkable
+rather than asserted.
+
+Multi-line removal corrected a wrong assumption of mine. Removing `gap-2` from a wrapped class
+string deleted the preceding `\n    ` along with it, joining two lines — reformatting, which the
+spec's ruling forbids. Removal now inspects the actual separator text: it collapses the one
+before the candidate only when that separator contains no newline, otherwise the one after,
+otherwise neither. Verified load-bearing by mutation.
+
+Still to build for Milestone 2: wiring the edits to `WorkspaceEdit` in the host, the panel
+controls (steppers, colour picker, variant chips, add-class combobox), and the remaining
+write-back rulings — session-scoped disable list, the revision-token echo guard,
+arbitrary-value text inputs, one undo step per action.
