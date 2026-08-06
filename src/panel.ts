@@ -1,5 +1,7 @@
 import * as vscode from 'vscode'
 import { clearDesignSystemCache } from './design-system/load'
+import type { EditIntent } from './intent'
+import { resolveIntent } from './intent'
 import { computeState } from './state'
 import type { HostMessage, WebviewMessage } from './types'
 
@@ -70,6 +72,31 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     }
   }
 
+  const applyIntent = async (intent: EditIntent): Promise<void> => {
+    const editor = vscode.window.activeTextEditor
+    if (editor === undefined) return
+    const document = editor.document
+    const folder = vscode.workspace.getWorkspaceFolder(document.uri)
+
+    const edit = await resolveIntent({
+      text: document.getText(),
+      offset: document.offsetAt(editor.selection.active),
+      uri: document.uri.toString(),
+      workspaceRoot: folder?.uri.fsPath ?? null,
+      fsPath: document.uri.fsPath,
+      intent,
+    })
+    if (edit === null) return
+
+    const workspaceEdit = new vscode.WorkspaceEdit()
+    workspaceEdit.replace(
+      document.uri,
+      new vscode.Range(document.positionAt(edit.start), document.positionAt(edit.end)),
+      edit.newText,
+    )
+    await vscode.workspace.applyEdit(workspaceEdit)
+  }
+
   const scheduleRefresh = (): void => {
     if (timer !== undefined) clearTimeout(timer)
     timer = setTimeout(() => void refresh(), DEBOUNCE_MS)
@@ -83,6 +110,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         view.webview.html = html(view.webview, context.extensionUri)
         view.webview.onDidReceiveMessage((message: WebviewMessage) => {
           if (message.type === 'ready') void refresh()
+          else if (message.type === 'edit') void applyIntent(message.intent as EditIntent)
         })
         view.onDidDispose(() => {
           current = null

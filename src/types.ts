@@ -50,4 +50,4 @@ export type PanelState =
 
 export type HostMessage = { type: 'state'; state: PanelState }
 
-export type WebviewMessage = { type: 'ready' }
+export type WebviewMessage = { type: 'ready' } | { type: 'edit'; intent: unknown }

@@ -220,7 +220,25 @@ spec's ruling forbids. Removal now inspects the actual separator text: it collap
 before the candidate only when that separator contains no newline, otherwise the one after,
 otherwise neither. Verified load-bearing by mutation.
 
-Still to build for Milestone 2: wiring the edits to `WorkspaceEdit` in the host, the panel
-controls (steppers, colour picker, variant chips, add-class combobox), and the remaining
-write-back rulings — session-scoped disable list, the revision-token echo guard,
-arbitrary-value text inputs, one undo step per action.
+`src/intent.ts` joins the two halves: an `EditIntent` (step, setValue, setModifier,
+addVariant, removeVariant, remove, add) plus the document text and cursor becomes a single
+`TextEdit`. It is `vscode`-free, so the whole edit path is testable without an editor. `remove`
+and `add` deliberately do not require a design system — they are pure range work, so they keep
+working in a workspace where Tailwind fails to load.
+
+`panel.ts` turns that into one `vscode.WorkspaceEdit` per action, which is what keeps undo at
+one step per click.
+
+Typing note: `LoadResult.ds` is now `DesignSystemPort & EditPort` rather than casting at the
+call site. The real Tailwind object has all of it — verified by probe and by the mutation
+integration test — and an unsafe cast at the boundary to a third-party library is exactly where
+a silent break would hide.
+
+Known gap in the host wiring: `void applyIntent(...)` swallows a rejection, as `void refresh()`
+already did. If `resolveIntent` throws rather than returning null, the click does nothing with
+no feedback. Worth a visible error state.
+
+Still to build for Milestone 2: the panel controls (steppers, colour picker, variant chips,
+add-class combobox with host-side search over `getClassList()`), and the remaining write-back
+rulings — session-scoped disable list, the revision-token echo guard, arbitrary-value text
+inputs.

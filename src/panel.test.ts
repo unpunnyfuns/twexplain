@@ -24,12 +24,26 @@ vi.mock('vscode', () => ({
       dispose: vi.fn(),
     })),
     getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+    applyEdit: vi.fn(async () => true),
+  },
+  WorkspaceEdit: class {
+    replacements: unknown[] = []
+    replace(uri: unknown, range: unknown, newText: string) {
+      this.replacements.push({ uri, range, newText })
+    }
+  },
+  Range: class {
+    constructor(
+      public start: unknown,
+      public end: unknown,
+    ) {}
   },
   Uri: { joinPath: vi.fn(() => ({})) },
   Disposable: { from: vi.fn(() => ({ dispose: vi.fn() })) },
 }))
 
 vi.mock('./state', () => ({ computeState: vi.fn() }))
+vi.mock('./intent', () => ({ resolveIntent: vi.fn() }))
 
 function makeFakeView() {
   let disposeCb: (() => void) | undefined
@@ -56,6 +70,7 @@ function makeFakeView() {
     view,
     webview,
     fireReady: () => readyCb?.({ type: 'ready' }),
+    fireEdit: (intent: unknown) => readyCb?.({ type: 'edit', intent } as never),
     fireDispose: () => disposeCb?.(),
   }
 }
@@ -65,6 +80,7 @@ function makeFakeEditor(offset: number) {
     document: {
       getText: () => 'text',
       offsetAt: () => offset,
+      positionAt: (n: number) => n,
       uri: { toString: () => 'file:///a.tsx', fsPath: '/a.tsx' },
     },
     selection: { active: offset },
@@ -73,6 +89,7 @@ function makeFakeEditor(offset: number) {
 
 beforeEach(() => {
   vi.resetModules()
+  vi.clearAllMocks()
   captured.provider = undefined
 })
 
@@ -220,5 +237,52 @@ describe('registerPanel loading state', () => {
 
     expect(webview.postMessage).not.toHaveBeenCalled()
     vi.useRealTimers()
+  })
+})
+
+describe('registerPanel edit intents', () => {
+  it('applies a resolved edit as a single workspace edit', async () => {
+    const vscode = await import('vscode')
+    const intentModule = await import('./intent')
+    const { registerPanel } = await import('./panel')
+    const resolveIntent = vi.mocked(intentModule.resolveIntent)
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireEdit } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    resolveIntent.mockResolvedValue({ start: 16, end: 21, newText: 'gap-3' })
+
+    fireEdit({ type: 'step', index: 1, delta: 1 })
+    await Promise.resolve()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(vi.mocked(vscode.workspace.applyEdit)).toHaveBeenCalledTimes(1)
+    const edit = vi.mocked(vscode.workspace.applyEdit).mock.calls[0]?.[0] as unknown as {
+      replacements: unknown[]
+    }
+    expect(edit.replacements).toHaveLength(1)
+  })
+
+  it('applies nothing when the intent does not resolve to an edit', async () => {
+    const vscode = await import('vscode')
+    const intentModule = await import('./intent')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireEdit } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(intentModule.resolveIntent).mockResolvedValue(null)
+
+    fireEdit({ type: 'step', index: 0, delta: 1 })
+    await Promise.resolve()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(vi.mocked(vscode.workspace.applyEdit)).not.toHaveBeenCalled()
   })
 })

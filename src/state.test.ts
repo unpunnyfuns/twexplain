@@ -80,6 +80,8 @@ describe('computeState', () => {
         parseCandidate: () => [{ root: 'flex', variants: [] }],
         printVariant: () => '',
         resolveThemeValue: () => undefined,
+        printCandidate: () => 'flex',
+        parseVariant: () => ({ kind: 'static', root: 'hover' }),
       },
     })
 
