@@ -30,7 +30,7 @@ function mutateText(
     case 'setModifier':
       return setModifier(text, intent.modifier, port)
     case 'addVariant':
-      return addVariant(text, intent.variant, port)
+      return addVariant(text, intent.variant, port, intent.position ?? 'outer')
     case 'removeVariant':
       return removeVariant(text, intent.variant, port)
     default:

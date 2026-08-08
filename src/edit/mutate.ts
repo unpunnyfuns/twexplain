@@ -70,12 +70,19 @@ export function setModifier(
   })
 }
 
-export function addVariant(candidate: string, variant: string, port: EditPort): string | null {
+export function addVariant(
+  candidate: string,
+  variant: string,
+  port: EditPort,
+  position: 'outer' | 'inner' = 'outer',
+): string | null {
   return apply(candidate, port, (draft) => {
     const printed = port.parseVariant(variant)
     if (printed === undefined || printed === null) return false
     if (draft.variants.some((existing) => existing.root === variant)) return false
-    draft.variants.push(printed as MutableCandidate['variants'][number])
+    const entry = printed as MutableCandidate['variants'][number]
+    if (position === 'inner') draft.variants.unshift(entry)
+    else draft.variants.push(entry)
     return true
   })
 }

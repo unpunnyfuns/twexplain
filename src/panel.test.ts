@@ -387,3 +387,78 @@ describe('registerPanel failure reporting', () => {
     expect(vi.mocked(vscode.window.showErrorMessage)).not.toHaveBeenCalled()
   })
 })
+
+describe('registerPanel design-system payload', () => {
+  const readyWith = (palette: { name: string; value: string }[]): PanelState => ({
+    status: 'ready',
+    groups: [],
+    palette,
+    variants: ['hover'],
+  })
+
+  it('sends the palette on the first ready state', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview, fireReady } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue(readyWith([{ name: 'a', value: 'red' }]))
+
+    fireReady()
+    for (let i = 0; i < 6; i++) await Promise.resolve()
+
+    const posted = webview.postMessage.mock.calls.map((c) => c[0] as { state?: PanelState })
+    const ready = posted.find((m) => m.state?.status === 'ready')
+    expect(ready?.state?.status === 'ready' && ready.state.palette).toHaveLength(1)
+  })
+
+  it('omits an unchanged palette on later refreshes to keep the message small', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview, fireReady } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue(readyWith([{ name: 'a', value: 'red' }]))
+
+    fireReady()
+    for (let i = 0; i < 6; i++) await Promise.resolve()
+    webview.postMessage.mockClear()
+
+    fireReady()
+    for (let i = 0; i < 6; i++) await Promise.resolve()
+
+    const second = webview.postMessage.mock.calls[0]?.[0] as { state: PanelState }
+    expect(second.state.status === 'ready' && second.state.palette).toEqual([])
+  })
+
+  it('resends the palette when it actually changes', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview, fireReady } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue(readyWith([{ name: 'a', value: 'red' }]))
+    fireReady()
+    for (let i = 0; i < 6; i++) await Promise.resolve()
+
+    webview.postMessage.mockClear()
+    vi.mocked(stateModule.computeState).mockResolvedValue(readyWith([{ name: 'b', value: 'blue' }]))
+    fireReady()
+    for (let i = 0; i < 6; i++) await Promise.resolve()
+
+    const second = webview.postMessage.mock.calls[0]?.[0] as { state: PanelState }
+    expect(second.state.status === 'ready' && second.state.palette).toHaveLength(1)
+  })
+})

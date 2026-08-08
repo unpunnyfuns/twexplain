@@ -338,7 +338,17 @@ still one click away, with the rest appended and de-duplicated.
 - Detection is still regex, not an AST. The 8-newline, 2000-character and 4000-character caps
   remain. Replacing it is now a bigger change than when the plan proposed it — five languages
   depend on it — and wants the golden corpus and the surgical-edit property test as the net.
-- Variant stacking order is not controllable; `addVariant` appends, giving `md:hover:`.
 - Selector context is still unrecorded (class-strategy dark, `divide-y`, `space-x`). Cosmetic:
-  no false statement results.
-- The palette and variant list ride on every ready state (~12KB) rather than being pushed once.
+  no false statement results, since the swatch falls back to the variant list and the chip names
+  the variant.
+
+Two entries left this list:
+
+- **Variant stacking order** is now controllable. `addVariant` takes a position, `'outer'`
+  (append, the default) or `'inner'` (unshift), threaded through the intent. The panel still only
+  asks for `'outer'`, but the mechanism no longer forces it.
+- **The payload no longer repeats.** The host fingerprints the palette and variant list and sends
+  them only when they change, with an empty array meaning "keep what you have"; the webview
+  caches the last non-empty values. Invalidating the design-system cache resets the fingerprint,
+  so a theme edit resends. That removes ~12KB from every keystroke without needing stateful
+  cache-keying in `panel.ts` — one string comparison does it.

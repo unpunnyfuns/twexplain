@@ -1,5 +1,5 @@
 import { type ReactElement, useEffect, useRef, useState } from 'react'
-import type { EditIntent, HostMessage, PanelState } from '../types'
+import type { EditIntent, HostMessage, PaletteColor, PanelState } from '../types'
 import styles from './App.module.css'
 import { AddClass } from './AddClass'
 import { ClassRow } from './ClassRow'
@@ -19,12 +19,20 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
   const [state, setState] = useState<PanelState>({ status: 'no-selection' })
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<string[]>([])
+  const [palette, setPalette] = useState<PaletteColor[]>([])
+  const [variants, setVariants] = useState<string[]>([])
   const queryRef = useRef('')
 
   useEffect(() => {
     const onMessage = (event: MessageEvent<HostMessage>): void => {
-      if (event.data.type === 'state') setState(event.data.state)
-      else if (event.data.type === 'suggestions' && event.data.query === queryRef.current) {
+      if (event.data.type === 'state') {
+        const next = event.data.state
+        setState(next)
+        if (next.status === 'ready') {
+          if (next.palette.length > 0) setPalette(next.palette)
+          if (next.variants.length > 0) setVariants(next.variants)
+        }
+      } else if (event.data.type === 'suggestions' && event.data.query === queryRef.current) {
         setSuggestions(event.data.matches)
       }
     }
@@ -75,8 +83,8 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
                 explained={explained}
                 key={explained.candidate.index}
                 onIntent={sendIntent}
-                palette={state.palette}
-                availableVariants={state.variants}
+                palette={palette}
+                availableVariants={variants}
               />
             ))}
           </section>

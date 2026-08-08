@@ -57,7 +57,7 @@ export type EditIntent =
   | { type: 'step'; index: number; delta: number }
   | { type: 'setValue'; index: number; value: string }
   | { type: 'setModifier'; index: number; modifier: string | null }
-  | { type: 'addVariant'; index: number; variant: string }
+  | { type: 'addVariant'; index: number; variant: string; position?: 'outer' | 'inner' }
   | { type: 'removeVariant'; index: number; variant: string }
   | { type: 'remove'; index: number }
   | { type: 'add'; text: string }

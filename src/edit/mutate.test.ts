@@ -19,10 +19,12 @@ type Candidate = {
 
 const named = (value: string) => ({ kind: 'named', value })
 const hover = { kind: 'static', root: 'hover' }
+const md = { kind: 'static', root: 'md' }
 
 const SHAPES: Record<string, Candidate> = {
   flex: { kind: 'static', root: 'flex', value: null, modifier: null, variants: [] },
   'hover:flex': { kind: 'static', root: 'flex', value: null, modifier: null, variants: [hover] },
+  'md:flex': { kind: 'static', root: 'flex', value: null, modifier: null, variants: [md] },
   'px-4': { kind: 'functional', root: 'px', value: named('4'), modifier: null, variants: [] },
   'px-0': { kind: 'functional', root: 'px', value: named('0'), modifier: null, variants: [] },
   'bg-blue-600': {
@@ -159,5 +161,19 @@ describe('mutation isolation', () => {
 
     expect(port.printCandidate(port.parseCandidate('bg-blue-600')[0])).toBe(before)
     expect(port.printCandidate(port.parseCandidate('px-4')[0])).toBe('px-4')
+  })
+})
+
+describe('addVariant ordering', () => {
+  it('appends by default, which reads as the outermost variant', () => {
+    expect(addVariant('hover:flex', 'md', port)).toBe('md:hover:flex')
+  })
+
+  it('can insert a variant innermost instead', () => {
+    expect(addVariant('md:flex', 'hover', port, 'inner')).toBe('md:hover:flex')
+  })
+
+  it('inserting innermost on a bare class matches appending', () => {
+    expect(addVariant('flex', 'hover', port, 'inner')).toBe('hover:flex')
   })
 })

@@ -4,7 +4,7 @@ import type { EditIntent } from './intent'
 import { resolveIntent } from './intent'
 import { searchClasses } from './search'
 import { computeState } from './state'
-import type { HostMessage, WebviewMessage } from './types'
+import type { HostMessage, PanelState, WebviewMessage } from './types'
 
 const DEBOUNCE_MS = 150
 const LOADING_NOTICE_MS = 250
@@ -46,6 +46,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
   const disposables: vscode.Disposable[] = []
   let current: vscode.Webview | null = null
   let timer: ReturnType<typeof setTimeout> | undefined
+  let sentFingerprint: string | null = null
 
   const post = (message: HostMessage): void => {
     void current?.postMessage(message)
@@ -77,7 +78,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         languageId: document.languageId,
       })
       if (runGeneration !== generation) return
-      post({ type: 'state', state })
+      post({ type: 'state', state: withoutRepeatedPayload(state) })
     } finally {
       clearTimeout(slowNotice)
     }
@@ -128,6 +129,16 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     post({ type: 'suggestions', query, matches })
   }
 
+  const withoutRepeatedPayload = (state: PanelState): PanelState => {
+    if (state.status !== 'ready') return state
+    const fingerprint = `${state.palette.length}\u0000${state.variants.length}\u0000${
+      state.palette[0]?.name ?? ''
+    }\u0000${state.variants[0] ?? ''}`
+    if (fingerprint === sentFingerprint) return { ...state, palette: [], variants: [] }
+    sentFingerprint = fingerprint
+    return state
+  }
+
   const scheduleRefresh = (): void => {
     if (timer !== undefined) clearTimeout(timer)
     timer = setTimeout(() => guard('read the class string', refresh), DEBOUNCE_MS)
@@ -164,6 +175,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
   const watcher = vscode.workspace.createFileSystemWatcher('**/*.css')
   const invalidate = (): void => {
     clearDesignSystemCache()
+    sentFingerprint = null
     scheduleRefresh()
   }
   watcher.onDidChange(invalidate)

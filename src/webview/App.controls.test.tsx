@@ -158,3 +158,56 @@ describe('App undo affordance', () => {
     expect(screen.getByRole('button', { name: /undo last edit/i }).elements()).toHaveLength(0)
   })
 })
+
+describe('App remembers the design-system payload', () => {
+  const readyWith = (
+    palette: { name: string; value: string }[],
+    variants: string[],
+  ): PanelState => ({
+    status: 'ready',
+    groups: [{ name: 'color', classes: [colourRow()] }],
+    palette,
+    variants,
+  })
+
+  function colourRow(): ExplainedClass {
+    return {
+      candidate: { text: 'bg-blue-600', range: { start: 0, end: 11 }, index: 0 },
+      valid: true,
+      declarations: [{ prop: 'background-color', value: 'blue' }],
+      prose: 'background blue',
+      group: 'color',
+      variants: [],
+      swatch: 'blue',
+      numericValue: null,
+      modifier: null,
+      arbitraryValue: null,
+    }
+  }
+
+  const send = (state: PanelState): void => {
+    window.dispatchEvent(new MessageEvent('message', { data: { type: 'state', state } }))
+  }
+
+  it('keeps the palette when a later state omits it', async () => {
+    const vscode = { postMessage: vi.fn() }
+    const screen = await render(<App vscode={vscode} />)
+
+    send(readyWith([{ name: 'red-500', value: 'red' }], ['hover']))
+    await expect.element(screen.getByRole('button', { name: 'red-500' })).toBeVisible()
+
+    send(readyWith([], []))
+    await expect.element(screen.getByRole('button', { name: 'red-500' })).toBeVisible()
+  })
+
+  it('replaces the palette when a later state supplies a new one', async () => {
+    const vscode = { postMessage: vi.fn() }
+    const screen = await render(<App vscode={vscode} />)
+
+    send(readyWith([{ name: 'red-500', value: 'red' }], ['hover']))
+    send(readyWith([{ name: 'blue-500', value: 'blue' }], ['focus']))
+
+    await expect.element(screen.getByRole('button', { name: 'blue-500' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'red-500' }).elements()).toHaveLength(0)
+  })
+})
