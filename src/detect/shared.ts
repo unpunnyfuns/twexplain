@@ -1,9 +1,13 @@
 import type { Candidate, ClassStringLocation } from '../types'
 
-export const MAX_VALUE_NEWLINES = 8
+export const MAX_VALUE_LENGTH = 5000
 
-export function spansTooManyLines(value: string): boolean {
-  return (value.match(/\n/g)?.length ?? 0) > MAX_VALUE_NEWLINES
+const PUNCTUATION_ONLY = /^[^\p{L}\p{N}]+$/u
+
+export function looksLikeClassList(value: string): boolean {
+  if (value.length > MAX_VALUE_LENGTH) return false
+  if (value.includes('<')) return false
+  return !value.split(/\s+/).some((token) => token !== '' && PUNCTUATION_ONLY.test(token))
 }
 
 export function splitCandidates(value: string, valueStart: number): Candidate[] {
@@ -29,7 +33,7 @@ export function locate(
   uri: string,
   kind: ClassStringLocation['kind'],
 ): ClassStringLocation | null {
-  if (spansTooManyLines(value)) return null
+  if (!looksLikeClassList(value)) return null
   const valueEnd = valueStart + value.length
   if (offset < valueStart || offset > valueEnd) return null
   return {

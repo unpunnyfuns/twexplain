@@ -1,7 +1,6 @@
 import type { ClassStringLocation } from '../types'
 import { locate } from './shared'
 
-const MAX_EXPRESSION_LENGTH = 2000
 const STRING_PATTERN = /(["'`])((?:(?!\1).)*)\1/gs
 const INTERPOLATION = /\$\{[^}]*\}/g
 
@@ -42,11 +41,10 @@ function insideInterpolation(value: string, offset: number): boolean {
 }
 
 function findClosing(text: string, open: number, openChar: string, closeChar: string): number {
-  const limit = Math.min(text.length, open + MAX_EXPRESSION_LENGTH)
   let depth = 1
   let quote: string | null = null
 
-  for (let i = open + 1; i < limit; i++) {
+  for (let i = open + 1; i < text.length; i++) {
     const char = text[i] as string
     if (quote !== null) {
       if (char === '\\') i++
@@ -101,8 +99,9 @@ export function detectExpression(
   let match: RegExpExecArray | null
   while ((match = pattern.exec(text)) !== null) {
     const open = match.index + match[0].length - 1
+    if (offset <= open) continue
     const end = findClosing(text, open, openChar, closeChar)
-    if (end === -1 || offset <= open || offset > end) continue
+    if (end === -1 || offset > end) continue
 
     const found = detectStringsIn(text, offset, uri, kind, open + 1, end)
     if (found !== null) return found
