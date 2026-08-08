@@ -342,3 +342,40 @@ describe('conditional declaration context', () => {
     expect(explained?.prose).toBeNull()
   })
 })
+
+describe('numeric value for steppers', () => {
+  const numericDs: DesignSystemPort = {
+    ...fakeDs,
+    candidatesToCss: (cs) => cs.map(() => '.x { display: flex; }'),
+    parseCandidate: (c) => {
+      if (c === 'px-4') return [{ root: 'px', value: { value: '4' }, variants: [] }]
+      if (c === 'gap-0.5') return [{ root: 'gap', value: { value: '0.5' }, variants: [] }]
+      if (c === 'bg-blue-600') return [{ root: 'bg', value: { value: 'blue-600' }, variants: [] }]
+      if (c === 'p-[13px]') return [{ root: 'p', value: { value: '13px' }, variants: [] }]
+      return [{ root: c, variants: [] }]
+    },
+  }
+
+  const numericOf = (text: string): number | null | undefined =>
+    explainCandidates([candidate(text, 0)], numericDs).flatMap((g) => g.classes)[0]?.numericValue
+
+  it('reports the number for a numeric utility', () => {
+    expect(numericOf('px-4')).toBe(4)
+  })
+
+  it('reports a fractional number', () => {
+    expect(numericOf('gap-0.5')).toBe(0.5)
+  })
+
+  it('reports null for a non-numeric value', () => {
+    expect(numericOf('bg-blue-600')).toBeNull()
+  })
+
+  it('reports null for an arbitrary value', () => {
+    expect(numericOf('p-[13px]')).toBeNull()
+  })
+
+  it('reports null for a utility with no value at all', () => {
+    expect(numericOf('flex')).toBeNull()
+  })
+})

@@ -34,6 +34,13 @@ function collectDeclarations(nodes: CssNode[], out: Declaration[], conditions: s
   }
 }
 
+function numericValueOf(parsed: { value?: { value: string } | null } | undefined): number | null {
+  const raw = parsed?.value?.value
+  if (raw === undefined) return null
+  if (!/^\d+(?:\.\d+)?$/.test(raw)) return null
+  return Number.parseFloat(raw)
+}
+
 function swatchFrom(declarations: Declaration[]): string | null {
   const found = declarations.find((d) => COLOR_PROPS.has(d.prop))
   if (found === undefined) return null
@@ -56,6 +63,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
         group: 'other',
         variants: [],
         swatch: null,
+        numericValue: null,
       }
     }
 
@@ -86,6 +94,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
       group: groupFor(declarations, variants),
       variants,
       swatch: swatchFrom(declarations),
+      numericValue: numericValueOf(parsed),
     }
   })
 

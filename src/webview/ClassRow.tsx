@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import type { ExplainedClass } from '../types'
+import type { EditIntent, ExplainedClass } from '../types'
 import styles from './ClassRow.module.css'
 
 function swatchCondition(explained: ExplainedClass): string | null {
@@ -10,8 +10,14 @@ function swatchCondition(explained: ExplainedClass): string | null {
   return null
 }
 
-export function ClassRow({ explained }: { explained: ExplainedClass }): ReactElement {
-  const { candidate, valid, prose, declarations, swatch } = explained
+export function ClassRow({
+  explained,
+  onIntent,
+}: {
+  explained: ExplainedClass
+  onIntent?: (intent: EditIntent) => void
+}): ReactElement {
+  const { candidate, valid, prose, declarations, swatch, numericValue } = explained
   const condition = swatch === null ? null : swatchCondition(explained)
   const swatchTitle = condition === null ? swatch : `${swatch} — only when ${condition}`
 
@@ -20,6 +26,39 @@ export function ClassRow({ explained }: { explained: ExplainedClass }): ReactEle
       <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
         {candidate.text}
       </span>
+      {onIntent !== undefined && (
+        <span className={styles.controls}>
+          {numericValue !== null && (
+            <>
+              <button
+                type="button"
+                className={styles.control}
+                aria-label={`decrease ${candidate.text}`}
+                disabled={numericValue <= 0}
+                onClick={() => onIntent({ type: 'step', index: candidate.index, delta: -1 })}
+              >
+                −
+              </button>
+              <button
+                type="button"
+                className={styles.control}
+                aria-label={`increase ${candidate.text}`}
+                onClick={() => onIntent({ type: 'step', index: candidate.index, delta: 1 })}
+              >
+                +
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className={styles.control}
+            aria-label={`remove ${candidate.text}`}
+            onClick={() => onIntent({ type: 'remove', index: candidate.index })}
+          >
+            ×
+          </button>
+        </span>
+      )}
       <span>
         {swatch !== null && (
           <span

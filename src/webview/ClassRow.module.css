@@ -1,6 +1,6 @@
 .row {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto auto 1fr;
   gap: 6px;
   align-items: baseline;
   padding: 3px 0;
@@ -47,4 +47,37 @@
   border: 1px solid var(--tw-border);
   margin-right: 4px;
   vertical-align: middle;
+}
+
+.controls {
+  display: inline-flex;
+  gap: 2px;
+  opacity: 0;
+}
+
+.row:hover .controls,
+.controls:focus-within {
+  opacity: 1;
+}
+
+.control {
+  background: transparent;
+  border: 1px solid var(--tw-border);
+  border-radius: 2px;
+  color: var(--tw-muted);
+  cursor: pointer;
+  font-family: var(--tw-mono);
+  font-size: 10px;
+  line-height: 1;
+  padding: 1px 4px;
+}
+
+.control:hover:not(:disabled) {
+  color: var(--tw-fg);
+  border-color: var(--tw-accent);
+}
+
+.control:disabled {
+  cursor: default;
+  opacity: 0.4;
 }

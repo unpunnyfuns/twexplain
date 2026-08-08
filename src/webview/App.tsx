@@ -1,5 +1,5 @@
 import { type ReactElement, useEffect, useState } from 'react'
-import type { HostMessage, PanelState } from '../types'
+import type { EditIntent, HostMessage, PanelState } from '../types'
 import styles from './App.module.css'
 import { ClassRow } from './ClassRow'
 
@@ -26,6 +26,10 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
     return () => window.removeEventListener('message', onMessage)
   }, [vscode])
 
+  const sendIntent = (intent: EditIntent): void => {
+    vscode.postMessage({ type: 'edit', intent })
+  }
+
   return (
     <div className={styles.panel}>
       {state.status === 'wrong-version' && (
@@ -46,7 +50,11 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
           <section className={styles.group} key={group.name}>
             <h2 className={styles.groupName}>{group.name}</h2>
             {group.classes.map((explained) => (
-              <ClassRow explained={explained} key={explained.candidate.index} />
+              <ClassRow
+                explained={explained}
+                key={explained.candidate.index}
+                onIntent={sendIntent}
+              />
             ))}
           </section>
         ))}

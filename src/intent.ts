@@ -3,16 +3,9 @@ import { detectJsx } from './detect/jsx'
 import { addVariant, removeVariant, setModifier, setValue, stepValue } from './edit/mutate'
 import type { TextEdit } from './edit/writeback'
 import { addCandidate, removeCandidate, replaceCandidate } from './edit/writeback'
-import type { ClassStringLocation } from './types'
+import type { ClassStringLocation, EditIntent } from './types'
 
-export type EditIntent =
-  | { type: 'step'; index: number; delta: number }
-  | { type: 'setValue'; index: number; value: string }
-  | { type: 'setModifier'; index: number; modifier: string | null }
-  | { type: 'addVariant'; index: number; variant: string }
-  | { type: 'removeVariant'; index: number; variant: string }
-  | { type: 'remove'; index: number }
-  | { type: 'add'; text: string }
+export type { EditIntent }
 
 export type IntentInput = {
   text: string

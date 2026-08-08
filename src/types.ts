@@ -33,6 +33,7 @@ export type ExplainedClass = {
   group: GroupName
   variants: string[]
   swatch: string | null
+  numericValue: number | null
 }
 
 export type ExplainGroup = { name: GroupName; classes: ExplainedClass[] }
@@ -47,6 +48,15 @@ export type PanelState =
   | { status: 'loading' }
   | { status: 'no-selection' }
   | { status: 'ready'; groups: ExplainGroup[] }
+
+export type EditIntent =
+  | { type: 'step'; index: number; delta: number }
+  | { type: 'setValue'; index: number; value: string }
+  | { type: 'setModifier'; index: number; modifier: string | null }
+  | { type: 'addVariant'; index: number; variant: string }
+  | { type: 'removeVariant'; index: number; variant: string }
+  | { type: 'remove'; index: number }
+  | { type: 'add'; text: string }
 
 export type HostMessage = { type: 'state'; state: PanelState }
 
