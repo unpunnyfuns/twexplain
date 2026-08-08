@@ -97,3 +97,36 @@ describe('read-only rendering', () => {
     expect(screen.getByRole('button').elements()).toHaveLength(0)
   })
 })
+
+describe('variant chips in a row', () => {
+  it('offers variant toggles when editing is enabled', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
+
+    await screen.getByRole('button', { name: 'hover', exact: true }).click()
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'addVariant', index: 3, variant: 'hover' })
+  })
+
+  it('shows the row variants as pressed', async () => {
+    const screen = await render(
+      <ClassRow
+        explained={explained({
+          variants: ['md'],
+          candidate: { text: 'md:px-4', range: { start: 0, end: 7 }, index: 3 },
+        })}
+        onIntent={vi.fn()}
+      />,
+    )
+
+    await expect
+      .element(screen.getByRole('button', { name: 'md', exact: true }))
+      .toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('offers no variant toggles in read-only mode', async () => {
+    const screen = await render(<ClassRow explained={explained()} />)
+
+    expect(screen.getByRole('button', { name: 'hover', exact: true }).elements()).toHaveLength(0)
+  })
+})

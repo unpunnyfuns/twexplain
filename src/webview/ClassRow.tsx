@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import type { EditIntent, ExplainedClass } from '../types'
 import styles from './ClassRow.module.css'
+import { VariantChips } from './VariantChips'
 
 function swatchCondition(explained: ExplainedClass): string | null {
   const { declarations, swatch, variants } = explained
@@ -57,6 +58,7 @@ export function ClassRow({
           >
             ×
           </button>
+          <VariantChips index={candidate.index} variants={explained.variants} onIntent={onIntent} />
         </span>
       )}
       <span>

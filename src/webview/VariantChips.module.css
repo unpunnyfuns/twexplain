@@ -1,0 +1,29 @@
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.chip {
+  background: transparent;
+  border: 1px solid var(--tw-border);
+  border-radius: 8px;
+  color: var(--tw-muted);
+  cursor: pointer;
+  font-family: var(--tw-mono);
+  font-size: 9px;
+  line-height: 1;
+  padding: 2px 5px;
+}
+
+.chip:hover {
+  color: var(--tw-fg);
+  border-color: var(--tw-accent);
+}
+
+.active {
+  background: var(--tw-accent);
+  border-color: var(--tw-accent);
+  color: var(--vscode-editor-background);
+}
