@@ -25,10 +25,16 @@ raw CSS declarations plus a muted note instead of prose.
 | `npm run check-types`   | `tsc --noEmit`                                                            |
 | `npm run lint`          | `oxlint src`                                                              |
 | `npm run format`        | `oxfmt src`, configured by `.oxfmtrc.json`                                |
-| `npm test`              | Unit tests: everything except `*.integration.test.*`                       |
+| `npm test`              | Both test projects: `node` (`*.test.ts`) and `browser` (`*.test.tsx`)      |
 | `npm run test:ds`       | Integration tests that load a real Tailwind design system                 |
 | `npm run test:golden`   | The golden-file corpus only, from `src/explain/corpus.ts`                  |
 | `npm run test:integration` | The extension host test, in a real VS Code instance via `vscode-test`   |
+
+Component tests run in a real Chromium through **Vitest browser mode** (`@vitest/browser` with
+the Playwright provider, plus `vitest-browser-react`). jsdom and happy-dom are not used: a
+simulated DOM can pass a test the real runtime would fail. The two `projects` in
+`vitest.config.ts` exist because browser tests cannot use node built-ins like `fs`, and the
+node-side tests need them.
 
 `test:integration` is preceded by `pretest:integration`, which relinks the fixture workspace's
 `node_modules` (gitignored, so a fresh clone needs it recreated), compiles the test to `out/`, and

@@ -1,10 +1,7 @@
-// @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { render } from 'vitest-browser-react'
 import type { ExplainedClass } from '../types'
 import { ClassRow } from './ClassRow'
-
-afterEach(cleanup)
 
 const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => ({
   candidate: { text: 'px-4', range: { start: 0, end: 4 }, index: 3 },
@@ -19,32 +16,35 @@ const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => (
 })
 
 describe('stepper', () => {
-  it('asks to increase the value, carrying the candidate index', () => {
+  it('asks to increase the value, carrying the candidate index', async () => {
     const onIntent = vi.fn()
-    render(<ClassRow explained={explained()} onIntent={onIntent} />)
+    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /increase px-4/i }))
+    await screen.getByRole('button', { name: 'increase px-4' }).click()
 
     expect(onIntent).toHaveBeenCalledWith({ type: 'step', index: 3, delta: 1 })
   })
 
-  it('asks to decrease the value', () => {
+  it('asks to decrease the value', async () => {
     const onIntent = vi.fn()
-    render(<ClassRow explained={explained()} onIntent={onIntent} />)
+    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /decrease px-4/i }))
+    await screen.getByRole('button', { name: 'decrease px-4' }).click()
 
     expect(onIntent).toHaveBeenCalledWith({ type: 'step', index: 3, delta: -1 })
   })
 
-  it('is absent for a class with no numeric value', () => {
-    render(<ClassRow explained={explained({ numericValue: null })} onIntent={vi.fn()} />)
+  it('is absent for a class with no numeric value', async () => {
+    const screen = await render(
+      <ClassRow explained={explained({ numericValue: null })} onIntent={vi.fn()} />,
+    )
 
-    expect(screen.queryByRole('button', { name: /increase/i })).toBeNull()
+    await expect.element(screen.getByRole('button', { name: 'remove px-4' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'increase px-4' }).elements()).toHaveLength(0)
   })
 
-  it('cannot decrease below zero', () => {
-    render(
+  it('cannot decrease below zero', async () => {
+    const screen = await render(
       <ClassRow
         explained={explained({
           numericValue: 0,
@@ -54,25 +54,23 @@ describe('stepper', () => {
       />,
     )
 
-    expect(screen.getByRole('button', { name: /decrease px-0/i }).hasAttribute('disabled')).toBe(
-      true,
-    )
+    await expect.element(screen.getByRole('button', { name: 'decrease px-0' })).toBeDisabled()
   })
 })
 
 describe('remove control', () => {
-  it('asks to remove the class', () => {
+  it('asks to remove the class', async () => {
     const onIntent = vi.fn()
-    render(<ClassRow explained={explained()} onIntent={onIntent} />)
+    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /remove px-4/i }))
+    await screen.getByRole('button', { name: 'remove px-4' }).click()
 
     expect(onIntent).toHaveBeenCalledWith({ type: 'remove', index: 3 })
   })
 
-  it('is offered even for a class Tailwind does not recognise', () => {
+  it('is offered even for a class Tailwind does not recognise', async () => {
     const onIntent = vi.fn()
-    render(
+    const screen = await render(
       <ClassRow
         explained={explained({
           valid: false,
@@ -85,17 +83,17 @@ describe('remove control', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /remove nope-999/i }))
+    await screen.getByRole('button', { name: 'remove nope-999' }).click()
 
     expect(onIntent).toHaveBeenCalledWith({ type: 'remove', index: 0 })
   })
 })
 
 describe('read-only rendering', () => {
-  it('renders no controls when no intent handler is supplied', () => {
-    render(<ClassRow explained={explained()} />)
+  it('renders no controls when no intent handler is supplied', async () => {
+    const screen = await render(<ClassRow explained={explained()} />)
 
-    expect(screen.queryAllByRole('button')).toHaveLength(0)
-    expect(screen.getByText(/padding of 16px/)).toBeTruthy()
+    await expect.element(screen.getByText(/padding of 16px/)).toBeVisible()
+    expect(screen.getByRole('button').elements()).toHaveLength(0)
   })
 })
