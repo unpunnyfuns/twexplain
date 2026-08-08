@@ -23,6 +23,13 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "twexplain.sortClasses",
+        "title": "Sort Tailwind Classes",
+        "category": "twexplain"
+      }
+    ],
     "views": {
       "twexplain": [
         {

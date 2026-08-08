@@ -17,6 +17,7 @@ vi.mock('vscode', () => ({
     })),
     getWorkspaceFolder: vi.fn(),
   },
+  commands: { registerCommand: vi.fn(() => ({ dispose: vi.fn() })) },
   Uri: { joinPath: vi.fn() },
   Disposable: { from: vi.fn(() => ({ dispose: vi.fn() })) },
 }))

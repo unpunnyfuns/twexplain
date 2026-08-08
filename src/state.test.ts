@@ -86,6 +86,7 @@ describe('computeState', () => {
         theme: { namespace: () => new Map() },
         getClassList: () => [],
         getVariants: () => [],
+        getClassOrder: () => [],
       },
     })
 

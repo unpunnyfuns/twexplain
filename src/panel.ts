@@ -1,8 +1,10 @@
 import * as vscode from 'vscode'
 import { clearDesignSystemCache } from './design-system/load'
+import type { TextEdit } from './edit/writeback'
 import type { EditIntent } from './intent'
 import { resolveIntent } from './intent'
 import { searchClasses } from './search'
+import { resolveSort } from './sort'
 import { computeState } from './state'
 import type { HostMessage, PanelState, WebviewMessage } from './types'
 
@@ -52,6 +54,17 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     void current?.postMessage(message)
   }
 
+  const write = async (document: vscode.TextDocument, edit: TextEdit | null): Promise<void> => {
+    if (edit === null) return
+    const workspaceEdit = new vscode.WorkspaceEdit()
+    workspaceEdit.replace(
+      document.uri,
+      new vscode.Range(document.positionAt(edit.start), document.positionAt(edit.end)),
+      edit.newText,
+    )
+    await vscode.workspace.applyEdit(workspaceEdit)
+  }
+
   const refresh = async (): Promise<void> => {
     const runGeneration = ++generation
     if (current === null) return
@@ -99,15 +112,24 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
       languageId: document.languageId,
       intent,
     })
-    if (edit === null) return
+    await write(document, edit)
+  }
 
-    const workspaceEdit = new vscode.WorkspaceEdit()
-    workspaceEdit.replace(
-      document.uri,
-      new vscode.Range(document.positionAt(edit.start), document.positionAt(edit.end)),
-      edit.newText,
-    )
-    await vscode.workspace.applyEdit(workspaceEdit)
+  const sortClasses = async (): Promise<void> => {
+    const editor = vscode.window.activeTextEditor
+    if (editor === undefined) return
+    const document = editor.document
+    const folder = vscode.workspace.getWorkspaceFolder(document.uri)
+
+    const edit = await resolveSort({
+      text: document.getText(),
+      offset: document.offsetAt(editor.selection.active),
+      uri: document.uri.toString(),
+      workspaceRoot: folder?.uri.fsPath ?? null,
+      fsPath: document.uri.fsPath,
+      languageId: document.languageId,
+    })
+    await write(document, edit)
   }
 
   const undoLastEdit = async (): Promise<void> => {
@@ -167,6 +189,9 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         })
       },
     }),
+    vscode.commands.registerCommand('twexplain.sortClasses', () =>
+      guard('sort the class string', sortClasses),
+    ),
     vscode.window.onDidChangeTextEditorSelection(scheduleRefresh),
     vscode.window.onDidChangeActiveTextEditor(scheduleRefresh),
     vscode.workspace.onDidChangeTextDocument(scheduleRefresh),
