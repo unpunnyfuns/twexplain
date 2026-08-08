@@ -1,15 +1,12 @@
 .row {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
-  gap: 6px;
-  align-items: baseline;
-  padding: 3px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--tw-border) 40%, transparent);
+  padding: 4px 0;
 }
 
 .name {
-  font-family: var(--tw-mono);
   color: var(--tw-accent);
-  white-space: nowrap;
+  font-family: var(--tw-mono);
+  word-break: break-all;
 }
 
 .invalid {
@@ -17,20 +14,24 @@
   text-decoration: line-through;
 }
 
-.prose {
+.description {
   color: var(--tw-fg);
+  line-height: 1.4;
 }
 
-.unexplained {
+.muted {
   color: var(--tw-muted);
   font-style: italic;
 }
 
-.raw {
-  font-family: var(--tw-mono);
-  color: var(--tw-muted);
-  white-space: pre-wrap;
-  margin: 2px 0 0;
+.swatch {
+  border: 1px solid var(--tw-border);
+  border-radius: 2px;
+  display: inline-block;
+  height: 10px;
+  margin-right: 4px;
+  vertical-align: middle;
+  width: 10px;
 }
 
 .swatchConditional {
@@ -39,25 +40,47 @@
   outline-offset: 1px;
 }
 
-.swatch {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  border: 1px solid var(--tw-border);
-  margin-right: 4px;
-  vertical-align: middle;
+.details {
+  margin-top: 2px;
+}
+
+.summary {
+  color: var(--tw-muted);
+  cursor: pointer;
+  font-size: 10px;
+  list-style: none;
+  user-select: none;
+  width: fit-content;
+}
+
+.summary::marker,
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::before {
+  content: '▸ ';
+}
+
+.details[open] .summary::before {
+  content: '▾ ';
+}
+
+.summary:hover {
+  color: var(--tw-fg);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0 2px;
 }
 
 .controls {
-  display: inline-flex;
-  gap: 2px;
-  opacity: 0;
-}
-
-.row:hover .controls,
-.controls:focus-within {
-  opacity: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
 }
 
 .control {
@@ -69,15 +92,22 @@
   font-family: var(--tw-mono);
   font-size: 10px;
   line-height: 1;
-  padding: 1px 4px;
+  padding: 2px 5px;
 }
 
 .control:hover:not(:disabled) {
-  color: var(--tw-fg);
   border-color: var(--tw-accent);
+  color: var(--tw-fg);
 }
 
 .control:disabled {
   cursor: default;
   opacity: 0.4;
+}
+
+.raw {
+  color: var(--tw-muted);
+  font-family: var(--tw-mono);
+  margin: 0;
+  white-space: pre-wrap;
 }

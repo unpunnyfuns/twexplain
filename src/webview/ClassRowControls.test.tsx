@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 import type { ExplainedClass } from '../types'
@@ -17,10 +18,17 @@ const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => (
   ...overrides,
 })
 
+async function renderOpen(ui: ReactElement) {
+  const screen = await render(ui)
+  const summary = screen.getByText(/details/i)
+  if (summary.elements().length > 0) await summary.click()
+  return screen
+}
+
 describe('stepper', () => {
   it('asks to increase the value, carrying the candidate index', async () => {
     const onIntent = vi.fn()
-    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
+    const screen = await renderOpen(<ClassRow explained={explained()} onIntent={onIntent} />)
 
     await screen.getByRole('button', { name: 'increase px-4' }).click()
 
@@ -29,7 +37,7 @@ describe('stepper', () => {
 
   it('asks to decrease the value', async () => {
     const onIntent = vi.fn()
-    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
+    const screen = await renderOpen(<ClassRow explained={explained()} onIntent={onIntent} />)
 
     await screen.getByRole('button', { name: 'decrease px-4' }).click()
 
@@ -37,7 +45,7 @@ describe('stepper', () => {
   })
 
   it('is absent for a class with no numeric value', async () => {
-    const screen = await render(
+    const screen = await renderOpen(
       <ClassRow explained={explained({ numericValue: null })} onIntent={vi.fn()} />,
     )
 
@@ -46,7 +54,7 @@ describe('stepper', () => {
   })
 
   it('cannot decrease below zero', async () => {
-    const screen = await render(
+    const screen = await renderOpen(
       <ClassRow
         explained={explained({
           numericValue: 0,
@@ -63,7 +71,7 @@ describe('stepper', () => {
 describe('remove control', () => {
   it('asks to remove the class', async () => {
     const onIntent = vi.fn()
-    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
+    const screen = await renderOpen(<ClassRow explained={explained()} onIntent={onIntent} />)
 
     await screen.getByRole('button', { name: 'remove px-4' }).click()
 
@@ -72,7 +80,7 @@ describe('remove control', () => {
 
   it('is offered even for a class Tailwind does not recognise', async () => {
     const onIntent = vi.fn()
-    const screen = await render(
+    const screen = await renderOpen(
       <ClassRow
         explained={explained({
           valid: false,
@@ -94,7 +102,7 @@ describe('remove control', () => {
 
 describe('read-only rendering', () => {
   it('renders no controls when no intent handler is supplied', async () => {
-    const screen = await render(<ClassRow explained={explained()} />)
+    const screen = await renderOpen(<ClassRow explained={explained()} />)
 
     await expect.element(screen.getByText(/padding of 16px/)).toBeVisible()
     expect(screen.getByRole('button').elements()).toHaveLength(0)
@@ -104,7 +112,7 @@ describe('read-only rendering', () => {
 describe('variant chips in a row', () => {
   it('offers variant toggles when editing is enabled', async () => {
     const onIntent = vi.fn()
-    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
+    const screen = await renderOpen(<ClassRow explained={explained()} onIntent={onIntent} />)
 
     await screen.getByRole('button', { name: 'hover', exact: true }).click()
 
@@ -112,7 +120,7 @@ describe('variant chips in a row', () => {
   })
 
   it('shows the row variants as pressed', async () => {
-    const screen = await render(
+    const screen = await renderOpen(
       <ClassRow
         explained={explained({
           variants: ['md'],
@@ -128,7 +136,7 @@ describe('variant chips in a row', () => {
   })
 
   it('offers no variant toggles in read-only mode', async () => {
-    const screen = await render(<ClassRow explained={explained()} />)
+    const screen = await renderOpen(<ClassRow explained={explained()} />)
 
     expect(screen.getByRole('button', { name: 'hover', exact: true }).elements()).toHaveLength(0)
   })
@@ -152,7 +160,7 @@ describe('colour picker in a row', () => {
 
   it('offers the palette for a class that resolved a colour', async () => {
     const onIntent = vi.fn()
-    const screen = await render(
+    const screen = await renderOpen(
       <ClassRow explained={colourRow()} onIntent={onIntent} palette={PALETTE} />,
     )
 
@@ -162,7 +170,7 @@ describe('colour picker in a row', () => {
   })
 
   it('offers no palette for a class with no colour', async () => {
-    const screen = await render(
+    const screen = await renderOpen(
       <ClassRow explained={explained()} onIntent={vi.fn()} palette={PALETTE} />,
     )
 
@@ -170,7 +178,7 @@ describe('colour picker in a row', () => {
   })
 
   it('offers no palette in read-only mode', async () => {
-    const screen = await render(<ClassRow explained={colourRow()} palette={PALETTE} />)
+    const screen = await renderOpen(<ClassRow explained={colourRow()} palette={PALETTE} />)
 
     expect(screen.getByRole('button', { name: 'red-500' }).elements()).toHaveLength(0)
   })
@@ -189,7 +197,7 @@ describe('opacity control in a row', () => {
 
   it('offers opacity for a class that resolved a colour', async () => {
     const onIntent = vi.fn()
-    const screen = await render(<ClassRow explained={colour(null)} onIntent={onIntent} />)
+    const screen = await renderOpen(<ClassRow explained={colour(null)} onIntent={onIntent} />)
 
     await screen.getByRole('button', { name: '50% opacity' }).click()
 
@@ -197,7 +205,7 @@ describe('opacity control in a row', () => {
   })
 
   it('shows the current opacity', async () => {
-    const screen = await render(<ClassRow explained={colour('25')} onIntent={vi.fn()} />)
+    const screen = await renderOpen(<ClassRow explained={colour('25')} onIntent={vi.fn()} />)
 
     await expect
       .element(screen.getByRole('button', { name: '25% opacity' }))
@@ -205,7 +213,7 @@ describe('opacity control in a row', () => {
   })
 
   it('offers no opacity control for a class with no colour', async () => {
-    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+    const screen = await renderOpen(<ClassRow explained={explained()} onIntent={vi.fn()} />)
 
     expect(screen.getByRole('button', { name: '50% opacity' }).elements()).toHaveLength(0)
   })
@@ -222,7 +230,7 @@ describe('arbitrary value in a row', () => {
     })
 
   it('offers a text input instead of a stepper', async () => {
-    const screen = await render(<ClassRow explained={arbitrary()} onIntent={vi.fn()} />)
+    const screen = await renderOpen(<ClassRow explained={arbitrary()} onIntent={vi.fn()} />)
 
     await expect
       .element(screen.getByRole('textbox', { name: /arbitrary value/i }))
@@ -231,13 +239,13 @@ describe('arbitrary value in a row', () => {
   })
 
   it('offers no text input for a named value', async () => {
-    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+    const screen = await renderOpen(<ClassRow explained={explained()} onIntent={vi.fn()} />)
 
     expect(screen.getByRole('textbox', { name: /arbitrary value/i }).elements()).toHaveLength(0)
   })
 
   it('offers no text input in read-only mode', async () => {
-    const screen = await render(<ClassRow explained={arbitrary()} />)
+    const screen = await renderOpen(<ClassRow explained={arbitrary()} />)
 
     expect(screen.getByRole('textbox', { name: /arbitrary value/i }).elements()).toHaveLength(0)
   })
