@@ -76,6 +76,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
                 key={explained.candidate.index}
                 onIntent={sendIntent}
                 palette={state.palette}
+                availableVariants={state.variants}
               />
             ))}
           </section>

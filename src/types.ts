@@ -51,7 +51,7 @@ export type PanelState =
   | { status: 'load-error'; message: string }
   | { status: 'loading' }
   | { status: 'no-selection' }
-  | { status: 'ready'; groups: ExplainGroup[]; palette: PaletteColor[] }
+  | { status: 'ready'; groups: ExplainGroup[]; palette: PaletteColor[]; variants: string[] }
 
 export type EditIntent =
   | { type: 'step'; index: number; delta: number }

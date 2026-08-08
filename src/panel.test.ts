@@ -142,7 +142,7 @@ describe('registerPanel generation guard', () => {
     fireReady()
     await Promise.resolve()
 
-    const newerState: PanelState = { status: 'ready', groups: [], palette: [] }
+    const newerState: PanelState = { status: 'ready', groups: [], palette: [], variants: [] }
     const olderState: PanelState = { status: 'no-selection' }
 
     resolveNewer(newerState)
@@ -185,7 +185,7 @@ describe('registerPanel loading state', () => {
       state: { status: 'loading' },
     })
 
-    const ready: PanelState = { status: 'ready', groups: [], palette: [] }
+    const ready: PanelState = { status: 'ready', groups: [], palette: [], variants: [] }
     resolveSlow(ready)
     await Promise.resolve()
     await Promise.resolve()
@@ -205,7 +205,7 @@ describe('registerPanel loading state', () => {
     const { view, webview, fireReady } = makeFakeView()
     captured.provider?.resolveWebviewView(view)
 
-    const ready: PanelState = { status: 'ready', groups: [], palette: [] }
+    const ready: PanelState = { status: 'ready', groups: [], palette: [], variants: [] }
     computeState.mockResolvedValueOnce(ready)
 
     vscode.window.activeTextEditor = makeFakeEditor(1) as never

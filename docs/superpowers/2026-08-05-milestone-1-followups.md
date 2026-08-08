@@ -324,12 +324,21 @@ load-bearing by mutation.
 phrase, because the conditional-context veto fires. That is precisely the regression the veto was
 built to prevent, now demonstrated rather than argued.
 
+**Helper calls without an attribute** are detected too: `cva`, `cn`, `clsx`, `classnames`, `cx`,
+`twMerge`, `tw`, `tv`. So `const button = cva("rounded px-4", { variants: { size: { sm: "px-2" } } })`
+works at every nesting depth, which is where design-system class strings actually live. Strings in
+unrelated calls are ignored, since the anchor is the helper name rather than "any string literal".
+
+**Variant chips now come from the workspace**, via `getVariants()` — verified against real Tailwind
+to exceed 50 entries. The eight common ones stay first so the ones you reach for constantly are
+still one click away, with the rest appended and de-duplicated.
+
 ### Still open after Milestone 3
 
-- `cva()` config objects assigned to a variable are not detected — there is no `class=` anchor,
-  so `const button = cva("rounded", { variants: { size: { sm: "px-2" } } })` is invisible.
-- Detection is still regex, not an AST. The 8-newline and 2000-character caps remain.
-- The common-variant set is 8 hardcoded entries, not Tailwind's 88 from `getVariants()`.
-- Variant stacking order is not controllable; `addVariant` appends.
-- Selector context is still unrecorded (class-strategy dark, `divide-y`, `space-x`).
-- The palette rides on every ready state (~12KB).
+- Detection is still regex, not an AST. The 8-newline, 2000-character and 4000-character caps
+  remain. Replacing it is now a bigger change than when the plan proposed it — five languages
+  depend on it — and wants the golden corpus and the surgical-edit property test as the net.
+- Variant stacking order is not controllable; `addVariant` appends, giving `md:hover:`.
+- Selector context is still unrecorded (class-strategy dark, `divide-y`, `space-x`). Cosmetic:
+  no false statement results.
+- The palette and variant list ride on every ready state (~12KB) rather than being pushed once.

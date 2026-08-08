@@ -56,3 +56,45 @@ describe('VariantChips', () => {
     expect(screen.getByRole('button', { name: 'hover', exact: true }).elements()).toHaveLength(1)
   })
 })
+
+describe('VariantChips with a workspace variant list', () => {
+  it('keeps the common variants first, then offers the rest', async () => {
+    const screen = await render(
+      <VariantChips
+        index={0}
+        variants={[]}
+        available={['hover', '2xl', 'print', 'md']}
+        onIntent={vi.fn()}
+      />,
+    )
+
+    await expect.element(screen.getByRole('button', { name: '2xl', exact: true })).toBeVisible()
+    await expect.element(screen.getByRole('button', { name: 'print', exact: true })).toBeVisible()
+    await expect.element(screen.getByRole('button', { name: 'hover', exact: true })).toBeVisible()
+  })
+
+  it('can now add a variant that is not in the common set', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(
+      <VariantChips index={3} variants={[]} available={['2xl']} onIntent={onIntent} />,
+    )
+
+    await screen.getByRole('button', { name: '2xl', exact: true }).click()
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'addVariant', index: 3, variant: '2xl' })
+  })
+
+  it('does not duplicate a common variant that is also in the workspace list', async () => {
+    const screen = await render(
+      <VariantChips index={0} variants={[]} available={['hover', 'md']} onIntent={vi.fn()} />,
+    )
+
+    expect(screen.getByRole('button', { name: 'hover', exact: true }).elements()).toHaveLength(1)
+  })
+
+  it('falls back to the common set when no list is supplied', async () => {
+    const screen = await render(<VariantChips index={0} variants={[]} onIntent={vi.fn()} />)
+
+    await expect.element(screen.getByRole('button', { name: 'hover', exact: true })).toBeVisible()
+  })
+})

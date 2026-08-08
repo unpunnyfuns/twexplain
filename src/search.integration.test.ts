@@ -46,3 +46,18 @@ describe('searchClasses against the real class list', () => {
     expect(await searchClasses(input, 'definitelynotaclass')).toEqual([])
   })
 })
+
+describe('the real design system exposes what the panel needs', () => {
+  it('lists variants including breakpoints and states', async () => {
+    const { loadDesignSystem } = await import('./design-system/load')
+    const loaded = await loadDesignSystem(input.workspaceRoot, input.fsPath)
+    expect(loaded.ok).toBe(true)
+    if (!loaded.ok) return
+
+    const names = Array.from(loaded.ds.getVariants(), (v) => v.name)
+    expect(names).toContain('hover')
+    expect(names).toContain('focus')
+    expect(names).toContain('dark')
+    expect(names.length).toBeGreaterThan(50)
+  })
+})

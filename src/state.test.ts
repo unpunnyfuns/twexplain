@@ -85,6 +85,7 @@ describe('computeState', () => {
         parseVariant: () => ({ kind: 'static', root: 'hover' }),
         theme: { namespace: () => new Map() },
         getClassList: () => [],
+        getVariants: () => [],
       },
     })
 
@@ -114,6 +115,8 @@ describe('computeState palette', () => {
       printCandidate: () => 'flex',
       parseVariant: () => ({ kind: 'static', root: 'hover' }),
       theme: { namespace: () => new Map(colors) },
+      getClassList: () => [],
+      getVariants: () => [],
     },
   })
 
@@ -148,5 +151,39 @@ describe('computeState palette', () => {
 
     if (state.status !== 'ready') throw new Error('expected ready')
     expect(state.palette).toEqual([])
+  })
+})
+
+describe('computeState variants', () => {
+  const withVariants = (names: string[]) => ({
+    ok: true as const,
+    entry: '/ws/src/app.css',
+    ds: {
+      candidatesToCss: () => ['.flex { display: flex; }'],
+      parseCandidate: () => [{ root: 'flex', variants: [] }],
+      printVariant: () => '',
+      resolveThemeValue: () => undefined,
+      printCandidate: () => 'flex',
+      parseVariant: () => ({ kind: 'static', root: 'hover' }),
+      theme: { namespace: () => new Map() },
+      getClassList: () => [],
+      getVariants: () => names.map((name) => ({ name })),
+    },
+  })
+
+  it('carries the workspace variant names', async () => {
+    givenLoad(withVariants(['hover', 'focus', 'md', '2xl']) as never)
+    const state = await computeState(base)
+
+    if (state.status !== 'ready') throw new Error('expected ready')
+    expect(state.variants).toEqual(['hover', 'focus', 'md', '2xl'])
+  })
+
+  it('reports an empty list rather than failing when there are none', async () => {
+    givenLoad(withVariants([]) as never)
+    const state = await computeState(base)
+
+    if (state.status !== 'ready') throw new Error('expected ready')
+    expect(state.variants).toEqual([])
   })
 })

@@ -22,10 +22,12 @@ export function ClassRow({
   explained,
   onIntent,
   palette = [],
+  availableVariants = [],
 }: {
   explained: ExplainedClass
   onIntent?: (intent: EditIntent) => void
   palette?: PaletteColor[]
+  availableVariants?: string[]
 }): ReactElement {
   const { candidate, valid, prose, declarations, swatch, numericValue } = explained
   const condition = swatch === null ? null : swatchCondition(explained)
@@ -74,7 +76,12 @@ export function ClassRow({
           >
             ×
           </button>
-          <VariantChips index={candidate.index} variants={explained.variants} onIntent={onIntent} />
+          <VariantChips
+            index={candidate.index}
+            variants={explained.variants}
+            available={availableVariants}
+            onIntent={onIntent}
+          />
           {swatch !== null && (
             <OpacityControl
               index={candidate.index}

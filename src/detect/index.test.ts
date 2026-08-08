@@ -118,3 +118,55 @@ describe('detectClassString template literals', () => {
     expect(find(source, 'extra', 'typescriptreact')).toBeNull()
   })
 })
+
+describe('detectClassString helper calls without a class attribute', () => {
+  const cva = [
+    'const button = cva("rounded px-4", {',
+    '  variants: {',
+    '    size: { sm: "px-2 text-sm", lg: "px-6 text-lg" },',
+    '    tone: { danger: "bg-red-500 text-white" },',
+    '  },',
+    '})',
+  ].join('\n')
+
+  it('reads the base string of a cva call', () => {
+    const found = find(cva, 'rounded', 'typescriptreact')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['rounded', 'px-4'])
+  })
+
+  it('reads a nested variant string', () => {
+    const found = find(cva, 'text-sm', 'typescriptreact')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['px-2', 'text-sm'])
+  })
+
+  it('reads a deeply nested variant string', () => {
+    const found = find(cva, 'bg-red-500', 'typescriptreact')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['bg-red-500', 'text-white'])
+  })
+
+  it('does not treat the variant keys as classes', () => {
+    expect(find(cva, 'variants', 'typescriptreact')).toBeNull()
+    expect(find(cva, 'size:', 'typescriptreact')).toBeNull()
+  })
+
+  it('reads a clsx call outside any attribute', () => {
+    const source = 'const cls = clsx("flex gap-2", on && "bg-blue-600")'
+    expect(find(source, 'gap-2', 'typescriptreact')?.candidates.map((c) => c.text)).toEqual([
+      'flex',
+      'gap-2',
+    ])
+  })
+
+  it('ignores strings in calls that have nothing to do with classes', () => {
+    const source = 'const label = t("some translation key")'
+    expect(find(source, 'translation', 'typescriptreact')).toBeNull()
+  })
+
+  it('still prefers a class attribute when the cursor is in one', () => {
+    const source = 'const x = cn("a-1")\nconst el = <div className="flex gap-2">x</div>'
+    expect(find(source, 'gap-2', 'typescriptreact')?.candidates.map((c) => c.text)).toEqual([
+      'flex',
+      'gap-2',
+    ])
+  })
+})

@@ -7,13 +7,16 @@ export const COMMON_VARIANTS = ['hover', 'focus', 'active', 'disabled', 'dark', 
 export function VariantChips({
   index,
   variants,
+  available = [],
   onIntent,
 }: {
   index: number
   variants: string[]
+  available?: string[]
   onIntent: (intent: EditIntent) => void
 }): ReactElement {
-  const offered = [...COMMON_VARIANTS, ...variants.filter((v) => !COMMON_VARIANTS.includes(v))]
+  const extra = [...available, ...variants].filter((v) => !COMMON_VARIANTS.includes(v))
+  const offered = [...COMMON_VARIANTS, ...new Set(extra)]
 
   return (
     <span className={styles.chips}>

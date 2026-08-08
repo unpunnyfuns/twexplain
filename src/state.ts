@@ -18,6 +18,10 @@ function paletteFrom(ds: {
   return Array.from(ds.theme.namespace('--color'), ([name, value]) => ({ name, value }))
 }
 
+function variantsFrom(ds: { getVariants(): Iterable<{ name: string }> }): string[] {
+  return Array.from(ds.getVariants(), (variant) => variant.name)
+}
+
 export async function computeState(input: StateInput): Promise<PanelState> {
   const location = detectClassString(input)
   if (location === null) return { status: 'no-selection' }
@@ -39,5 +43,6 @@ export async function computeState(input: StateInput): Promise<PanelState> {
     status: 'ready',
     groups: explainCandidates(location.candidates, loaded.ds),
     palette: paletteFrom(loaded.ds),
+    variants: variantsFrom(loaded.ds),
   }
 }
