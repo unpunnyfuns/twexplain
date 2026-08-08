@@ -7,8 +7,10 @@ import { ClassRow } from './ClassRow'
 export const NOTICES: Record<string, string> = {
   loading: 'Reading your project\u2019s Tailwind setup\u2026',
   'no-selection': 'Put your cursor inside a className string to see it explained.',
-  'no-workspace-tailwind': 'No Tailwind installed in this workspace.',
-  'no-css-entry': 'No CSS file importing "tailwindcss" was found.',
+  'no-workspace-tailwind':
+    'No Tailwind in this workspace. Install tailwindcss v4 and reopen this panel to explain classes here.',
+  'no-css-entry':
+    'No entry stylesheet found. Add @import "tailwindcss"; to the CSS file your app loads, so twexplain can read your theme.',
   'unsupported-plugin':
     'This project uses a Tailwind @plugin, which twexplain does not support yet.',
   'stale-runtime':
