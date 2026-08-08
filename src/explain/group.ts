@@ -7,7 +7,6 @@ const GROUP_ORDER: GroupName[] = [
   'color',
   'border',
   'effects',
-  'state',
   'other',
 ]
 
@@ -29,9 +28,7 @@ const PREFIX_GROUPS: [RegExp, GroupName][] = [
   ],
 ]
 
-export function groupFor(declarations: Declaration[], variants: string[]): GroupName {
-  if (variants.length > 0) return 'state'
-
+export function groupFor(declarations: Declaration[], _variants: string[]): GroupName {
   const votes = new Map<GroupName, number>()
   const firstIndex = new Map<GroupName, number>()
 

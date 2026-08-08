@@ -40,34 +40,24 @@
   outline-offset: 1px;
 }
 
-.details {
-  margin-top: 2px;
+.header {
+  align-items: baseline;
+  display: flex;
+  gap: 4px;
 }
 
-.summary {
+.toggle {
+  background: transparent;
+  border: none;
   color: var(--tw-muted);
   cursor: pointer;
-  font-size: 10px;
-  list-style: none;
-  user-select: none;
-  width: fit-content;
+  font-size: 9px;
+  line-height: 1;
+  padding: 1px 2px;
 }
 
-.summary::marker,
-.summary::-webkit-details-marker {
-  display: none;
-}
-
-.summary::before {
-  content: '▸ ';
-}
-
-.details[open] .summary::before {
-  content: '▾ ';
-}
-
-.summary:hover {
-  color: var(--tw-fg);
+.toggle:hover {
+  color: var(--tw-accent);
 }
 
 .body {

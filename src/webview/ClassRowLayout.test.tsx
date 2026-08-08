@@ -25,17 +25,29 @@ describe('row layout', () => {
     await expect.element(screen.getByText(/padding of 16px/)).toBeVisible()
   })
 
-  it('keeps the edit controls collapsed until asked for', async () => {
+  it('puts the toggle beside the class name and starts collapsed', async () => {
     const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
 
-    await expect.element(screen.getByText(/details/i)).toBeVisible()
+    await expect
+      .element(screen.getByRole('button', { name: /details for px-4/i }))
+      .toHaveAttribute('aria-expanded', 'false')
     expect(screen.getByRole('button', { name: 'increase px-4' }).elements()).toHaveLength(0)
+  })
+
+  it('marks the toggle expanded once opened', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    await screen.getByRole('button', { name: /details for px-4/i }).click()
+
+    await expect
+      .element(screen.getByRole('button', { name: /details for px-4/i }))
+      .toHaveAttribute('aria-expanded', 'true')
   })
 
   it('reveals the controls when the details section is opened', async () => {
     const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
 
-    await screen.getByText(/details/i).click()
+    await screen.getByRole('button', { name: /details for/i }).click()
 
     await expect.element(screen.getByRole('button', { name: 'increase px-4' })).toBeVisible()
   })
@@ -45,9 +57,9 @@ describe('row layout', () => {
       <ClassRow explained={explained({ prose: null })} onIntent={vi.fn()} />,
     )
 
-    await expect.element(screen.getByText(/padding-inline: 16px/)).not.toBeVisible()
+    expect(screen.getByText(/padding-inline: 16px/).elements()).toHaveLength(0)
 
-    await screen.getByText(/details/i).click()
+    await screen.getByRole('button', { name: /details for/i }).click()
 
     await expect.element(screen.getByText(/padding-inline: 16px/)).toBeVisible()
   })
@@ -55,7 +67,7 @@ describe('row layout', () => {
   it('stays open across a re-render, so an edit does not collapse it', async () => {
     const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
 
-    await screen.getByText(/details/i).click()
+    await screen.getByRole('button', { name: /details for/i }).click()
     await expect.element(screen.getByRole('button', { name: 'increase px-4' })).toBeVisible()
 
     await screen.rerender(
@@ -74,15 +86,15 @@ describe('row layout', () => {
   it('still offers details in read-only mode, for the raw CSS', async () => {
     const screen = await render(<ClassRow explained={explained({ prose: null })} />)
 
-    await screen.getByText(/details/i).click()
+    await screen.getByRole('button', { name: /details for/i }).click()
 
     await expect.element(screen.getByText(/padding-inline: 16px/)).toBeVisible()
     expect(screen.getByRole('button', { name: 'remove px-4' }).elements()).toHaveLength(0)
   })
 
-  it('offers no details section when there is nothing to show', async () => {
+  it('offers no toggle when there is nothing to show', async () => {
     const screen = await render(<ClassRow explained={explained({ declarations: [] })} />)
 
-    expect(screen.getByText(/details/i).elements()).toHaveLength(0)
+    expect(screen.getByRole('button', { name: /details for/i }).elements()).toHaveLength(0)
   })
 })

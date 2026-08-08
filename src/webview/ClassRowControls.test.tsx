@@ -20,8 +20,8 @@ const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => (
 
 async function renderOpen(ui: ReactElement) {
   const screen = await render(ui)
-  const summary = screen.getByText(/details/i)
-  if (summary.elements().length > 0) await summary.click()
+  const toggle = screen.getByRole('button', { name: /details for/i })
+  if (toggle.elements().length > 0) await toggle.click()
   return screen
 }
 
@@ -105,7 +105,9 @@ describe('read-only rendering', () => {
     const screen = await renderOpen(<ClassRow explained={explained()} />)
 
     await expect.element(screen.getByText(/padding of 16px/)).toBeVisible()
-    expect(screen.getByRole('button').elements()).toHaveLength(0)
+    expect(screen.getByRole('button', { name: 'increase px-4' }).elements()).toHaveLength(0)
+    expect(screen.getByRole('button', { name: 'remove px-4' }).elements()).toHaveLength(0)
+    expect(screen.getByRole('button', { name: 'hover', exact: true }).elements()).toHaveLength(0)
   })
 })
 

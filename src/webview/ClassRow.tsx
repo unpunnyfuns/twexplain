@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, useState } from 'react'
 import type { EditIntent, ExplainedClass, PaletteColor } from '../types'
 import { ArbitraryValue } from './ArbitraryValue'
 import styles from './ClassRow.module.css'
@@ -51,11 +51,26 @@ export function ClassRow({
   const swatchTitle = condition === null ? swatch : `${swatch} — only when ${condition}`
   const editable = onIntent !== undefined
   const hasDetails = editable || declarations.length > 0
+  const [open, setOpen] = useState(false)
 
   return (
     <div className={styles.row}>
-      <div className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
-        {candidate.text}
+      <div className={styles.header}>
+        <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
+          {candidate.text}
+        </span>
+        {hasDetails && (
+          <button
+            type="button"
+            className={styles.toggle}
+            aria-expanded={open}
+            aria-label={`${open ? 'hide' : 'show'} details for ${candidate.text}`}
+            title={editable ? 'details and edit' : 'details'}
+            onClick={() => setOpen(!open)}
+          >
+            {open ? '\u25be' : '\u25b8'}
+          </button>
+        )}
       </div>
 
       <div
@@ -73,82 +88,79 @@ export function ClassRow({
         {description(explained)}
       </div>
 
-      {hasDetails && (
-        <details className={styles.details}>
-          <summary className={styles.summary}>{editable ? 'details & edit' : 'details'}</summary>
-          <div className={styles.body}>
-            {onIntent !== undefined && (
-              <div className={styles.controls}>
-                {numericValue !== null && (
-                  <>
-                    <button
-                      type="button"
-                      className={styles.control}
-                      aria-label={`decrease ${candidate.text}`}
-                      disabled={numericValue <= 0}
-                      onClick={() => onIntent({ type: 'step', index: candidate.index, delta: -1 })}
-                    >
-                      −
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.control}
-                      aria-label={`increase ${candidate.text}`}
-                      onClick={() => onIntent({ type: 'step', index: candidate.index, delta: 1 })}
-                    >
-                      +
-                    </button>
-                  </>
-                )}
-                {explained.arbitraryValue !== null && (
-                  <ArbitraryValue
-                    index={candidate.index}
-                    value={explained.arbitraryValue}
-                    onIntent={onIntent}
-                  />
-                )}
-                <button
-                  type="button"
-                  className={styles.control}
-                  aria-label={`remove ${candidate.text}`}
-                  onClick={() => onIntent({ type: 'remove', index: candidate.index })}
-                >
-                  remove
-                </button>
-              </div>
-            )}
+      {hasDetails && open && (
+        <div className={styles.body}>
+          {onIntent !== undefined && (
+            <div className={styles.controls}>
+              {numericValue !== null && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.control}
+                    aria-label={`decrease ${candidate.text}`}
+                    disabled={numericValue <= 0}
+                    onClick={() => onIntent({ type: 'step', index: candidate.index, delta: -1 })}
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.control}
+                    aria-label={`increase ${candidate.text}`}
+                    onClick={() => onIntent({ type: 'step', index: candidate.index, delta: 1 })}
+                  >
+                    +
+                  </button>
+                </>
+              )}
+              {explained.arbitraryValue !== null && (
+                <ArbitraryValue
+                  index={candidate.index}
+                  value={explained.arbitraryValue}
+                  onIntent={onIntent}
+                />
+              )}
+              <button
+                type="button"
+                className={styles.control}
+                aria-label={`remove ${candidate.text}`}
+                onClick={() => onIntent({ type: 'remove', index: candidate.index })}
+              >
+                remove
+              </button>
+            </div>
+          )}
 
-            {onIntent !== undefined && (
-              <VariantChips
-                index={candidate.index}
-                variants={explained.variants}
-                available={availableVariants}
-                onIntent={onIntent}
-              />
-            )}
+          {onIntent !== undefined && (
+            <VariantChips
+              index={candidate.index}
+              variants={explained.variants}
+              available={availableVariants}
+              onIntent={onIntent}
+            />
+          )}
 
-            {onIntent !== undefined && swatch !== null && (
-              <OpacityControl
-                index={candidate.index}
-                modifier={explained.modifier}
-                onIntent={onIntent}
-              />
-            )}
+          {onIntent !== undefined && swatch !== null && (
+            <OpacityControl
+              index={candidate.index}
+              modifier={explained.modifier}
+              onIntent={onIntent}
+            />
+          )}
 
-            {onIntent !== undefined && swatch !== null && (
-              <ColorPicker
-                index={candidate.index}
-                current={currentColorName(explained, palette)}
-                palette={palette}
-                onIntent={onIntent}
-              />
-            )}
+          {onIntent !== undefined && swatch !== null && (
+            <ColorPicker
+              index={candidate.index}
+              current={currentColorName(explained, palette)}
+              palette={palette}
+              onIntent={onIntent}
+            />
+          )}
 
-            {declarations.length > 0 && (
-              <pre className={styles.raw}>{formatDeclarations(explained)}</pre>
-            )}
-          </div>
-        </details>
+          {declarations.length > 0 && (
+            <pre className={styles.raw}>{formatDeclarations(explained)}</pre>
+          )}
+        </div>
       )}
     </div>
   )

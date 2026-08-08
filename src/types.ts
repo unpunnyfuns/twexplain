@@ -22,7 +22,6 @@ export type GroupName =
   | 'color'
   | 'border'
   | 'effects'
-  | 'state'
   | 'other'
 
 export type ExplainedClass = {

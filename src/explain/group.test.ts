@@ -16,8 +16,8 @@ const explained = (name: string, group: ExplainedClass['group']): ExplainedClass
 })
 
 describe('groupFor', () => {
-  it('routes variant-bearing classes to state', () => {
-    expect(groupFor([{ prop: 'background-color', value: 'red' }], ['hover'])).toBe('state')
+  it('routes a variant-bearing class by its property, not into a separate bucket', () => {
+    expect(groupFor([{ prop: 'background-color', value: 'red' }], ['hover'])).toBe('color')
   })
 
   it('routes by property when there are no variants', () => {
@@ -71,16 +71,17 @@ describe('groupFor', () => {
     expect(groupFor([{ prop: 'overflow-wrap', value: 'break-word' }], [])).toBe('typography')
   })
 
-  it('routes multi-declaration with variant to state despite vote', () => {
+  it('applies the majority vote even when the class carries a variant', () => {
     expect(
       groupFor(
         [
           { prop: 'overflow', value: 'hidden' },
           { prop: 'text-overflow', value: 'ellipsis' },
+          { prop: 'white-space', value: 'nowrap' },
         ],
         ['hover'],
       ),
-    ).toBe('state')
+    ).toBe('typography')
   })
 })
 
@@ -93,5 +94,23 @@ describe('groupAll', () => {
   it('preserves canonical group order regardless of input order', () => {
     const result = groupAll([explained('px-4', 'spacing'), explained('flex', 'layout')])
     expect(result.map((g) => g.name)).toEqual(['layout', 'spacing'])
+  })
+})
+
+describe('variants do not move a class to a different group', () => {
+  it('keeps a variant colour class with the other colours', () => {
+    expect(groupFor([{ prop: 'background-color', value: 'red' }], ['hover'])).toBe('color')
+  })
+
+  it('keeps a variant spacing class with the other spacing', () => {
+    expect(groupFor([{ prop: 'padding-inline', value: '16px' }], ['md'])).toBe('spacing')
+  })
+
+  it('groups a stacked-variant class by its properties too', () => {
+    expect(groupFor([{ prop: 'display', value: 'flex' }], ['md', 'hover'])).toBe('layout')
+  })
+
+  it('still falls back to other for an unknown property with a variant', () => {
+    expect(groupFor([{ prop: 'nonsense', value: '1' }], ['hover'])).toBe('other')
   })
 })

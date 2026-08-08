@@ -278,9 +278,9 @@ describe('explainCandidates variants', () => {
     }
   })
 
-  it('still routes a variant-bearing class to the state group', () => {
+  it('groups a variant-bearing class by its properties, not into a separate bucket', () => {
     const groups = explainCandidates([candidate('[&>*]:flex', 0)], variantDs)
-    expect(groups.map((g) => g.name)).toEqual(['state'])
+    expect(groups.map((g) => g.name)).toEqual(['layout'])
   })
 })
 

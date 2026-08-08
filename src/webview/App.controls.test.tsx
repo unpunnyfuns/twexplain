@@ -34,7 +34,7 @@ describe('App forwards edit intents to the host', () => {
   it('posts an edit message when a stepper is clicked', async () => {
     const { screen, vscode } = await mount()
 
-    await screen.getByText('details & edit').nth(0).click()
+    await screen.getByRole('button', { name: /details for px-4/i }).click()
     await screen.getByRole('button', { name: 'increase px-4' }).click()
 
     expect(vscode.postMessage).toHaveBeenCalledWith({
@@ -46,7 +46,7 @@ describe('App forwards edit intents to the host', () => {
   it('posts an edit message when a class is removed', async () => {
     const { screen, vscode } = await mount()
 
-    await screen.getByText('details & edit').nth(1).click()
+    await screen.getByRole('button', { name: /details for flex/i }).click()
     await screen.getByRole('button', { name: 'remove flex' }).click()
 
     expect(vscode.postMessage).toHaveBeenCalledWith({
@@ -196,7 +196,7 @@ describe('App remembers the design-system payload', () => {
     const screen = await render(<App vscode={vscode} />)
 
     send(readyWith([{ name: 'red-500', value: 'red' }], ['hover']))
-    await screen.getByText('details & edit').click()
+    await screen.getByRole('button', { name: /details for bg-blue-600/i }).click()
     await expect.element(screen.getByRole('button', { name: 'red-500' })).toBeVisible()
 
     send(readyWith([], []))
@@ -209,7 +209,7 @@ describe('App remembers the design-system payload', () => {
 
     send(readyWith([{ name: 'red-500', value: 'red' }], ['hover']))
     send(readyWith([{ name: 'blue-500', value: 'blue' }], ['focus']))
-    await screen.getByText('details & edit').click()
+    await screen.getByRole('button', { name: /details for bg-blue-600/i }).click()
 
     await expect.element(screen.getByRole('button', { name: 'blue-500' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'red-500' }).elements()).toHaveLength(0)
