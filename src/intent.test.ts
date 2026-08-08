@@ -57,6 +57,7 @@ const base = {
   uri: 'file:///a.tsx',
   fsPath: '/a.tsx',
   workspaceRoot: '/ws',
+  languageId: 'typescriptreact',
 }
 
 const apply = (edit: { start: number; end: number; newText: string } | null): string =>

@@ -1,5 +1,5 @@
 import { loadDesignSystem } from './design-system/load'
-import { detectJsx } from './detect/jsx'
+import { detectClassString } from './detect/index'
 import { addVariant, removeVariant, setModifier, setValue, stepValue } from './edit/mutate'
 import type { TextEdit } from './edit/writeback'
 import { addCandidate, removeCandidate, replaceCandidate } from './edit/writeback'
@@ -13,6 +13,7 @@ export type IntentInput = {
   uri: string
   workspaceRoot: string | null
   fsPath: string
+  languageId: string
   intent: EditIntent
 }
 
@@ -42,7 +43,7 @@ function candidateText(location: ClassStringLocation, index: number): string | n
 }
 
 export async function resolveIntent(input: IntentInput): Promise<TextEdit | null> {
-  const location = detectJsx(input.text, input.offset, input.uri)
+  const location = detectClassString(input)
   if (location === null) return null
 
   const { intent } = input

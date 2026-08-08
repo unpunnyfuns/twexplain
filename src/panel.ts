@@ -65,6 +65,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         uri: document.uri.toString(),
         workspaceRoot: folder?.uri.fsPath ?? null,
         fsPath: document.uri.fsPath,
+        languageId: document.languageId,
       })
       if (runGeneration !== generation) return
       post({ type: 'state', state })
@@ -85,6 +86,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
       uri: document.uri.toString(),
       workspaceRoot: folder?.uri.fsPath ?? null,
       fsPath: document.uri.fsPath,
+      languageId: document.languageId,
       intent,
     })
     if (edit === null) return

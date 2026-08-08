@@ -14,7 +14,12 @@
   "activationEvents": [
     "onView:twexplain.panel",
     "onLanguage:typescriptreact",
-    "onLanguage:javascriptreact"
+    "onLanguage:javascriptreact",
+    "onLanguage:html",
+    "onLanguage:vue",
+    "onLanguage:svelte",
+    "onLanguage:css",
+    "onLanguage:postcss"
   ],
   "main": "./dist/extension.js",
   "contributes": {

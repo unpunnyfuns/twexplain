@@ -18,6 +18,7 @@ suite('twexplain integration', () => {
       uri: uri.toString(),
       workspaceRoot: folder.uri.fsPath,
       fsPath: uri.fsPath,
+      languageId: 'typescriptreact',
     })
 
     assert.strictEqual(state.status, 'ready')

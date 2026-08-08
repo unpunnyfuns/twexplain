@@ -15,6 +15,7 @@ const base = {
   uri: 'file:///a.tsx',
   fsPath: '/a.tsx',
   workspaceRoot: '/ws',
+  languageId: 'typescriptreact',
 }
 
 const givenLoad = (result: LoadResult): void => {

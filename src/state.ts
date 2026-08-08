@@ -1,5 +1,5 @@
 import { loadDesignSystem } from './design-system/load'
-import { detectJsx } from './detect/jsx'
+import { detectClassString } from './detect/index'
 import { explainCandidates } from './explain/index'
 import type { PaletteColor, PanelState } from './types'
 
@@ -9,6 +9,7 @@ export type StateInput = {
   uri: string
   workspaceRoot: string | null
   fsPath: string
+  languageId: string
 }
 
 function paletteFrom(ds: {
@@ -18,7 +19,7 @@ function paletteFrom(ds: {
 }
 
 export async function computeState(input: StateInput): Promise<PanelState> {
-  const location = detectJsx(input.text, input.offset, input.uri)
+  const location = detectClassString(input)
   if (location === null) return { status: 'no-selection' }
   if (input.workspaceRoot === null) return { status: 'no-workspace-tailwind' }
 
