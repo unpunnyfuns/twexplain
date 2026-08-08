@@ -266,7 +266,7 @@ shadow-blue-500
 
 shadow-inner
   group: effects
-  prose: drop shadow
+  prose: inset drop shadow
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
 
 inset-shadow-sm

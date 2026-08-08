@@ -43,7 +43,7 @@ function borderOn(where: string): (declarations: Declaration[]) => string {
 }
 
 const COMPOSITE: Record<string, Composite> = {
-  shadow: 'drop shadow',
+  shadow: (_, parsed) => (parsed.value?.value === 'inner' ? 'inset drop shadow' : 'drop shadow'),
   'inset-shadow': 'inner drop shadow',
   border: borderOn('all sides'),
   'border-t': borderOn('the top'),

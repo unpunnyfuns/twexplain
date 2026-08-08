@@ -83,6 +83,14 @@ describe('utilities whose value the override can read', () => {
     expect(proseOf('scale-95')).toBe('scaled to 95%')
   })
 
+  it('says a shadow is inset when the utility makes it inset', () => {
+    expect(proseOf('shadow-inner')).toBe('inset drop shadow')
+  })
+
+  it('keeps an ordinary shadow described as a drop shadow', () => {
+    expect(proseOf('shadow-lg')).toBe('drop shadow')
+  })
+
   it('states the width a border utility sets', () => {
     expect(proseOf('border-2')).toBe('2px border on all sides')
   })

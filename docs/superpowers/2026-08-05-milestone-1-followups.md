@@ -352,3 +352,110 @@ Two entries left this list:
   caches the last non-empty values. Invalidating the design-system cache resets the fingerprint,
   so a theme edit resends. That removes ~12KB from every keystroke without needing stateful
   cache-keying in `panel.ts` — one string comparison does it.
+
+## Milestone 4 — curation and polish, and the last two open items
+
+### Selector context is now recorded (closes open item 1)
+
+`explain/selector.ts` rewrites the candidate's own class token in the compiled selector as the
+CSS nesting marker, so `.hover\:bg-red-500:hover` records `&:hover` and
+`:where(.divide-y > :not(:last-child))` records `:where(& > :not(:last-child))`. Nested rules
+resolve by substituting the outer scope for `&`, which is CSS nesting's own rule.
+
+The token is found by **unescaping the selector**, not by re-escaping the candidate. Escaping
+would have meant reproducing `CSS.escape`, and the hex form Tailwind emits for a leading digit —
+`.\32 xl\:flex`, with a significant trailing space — would have broken that guess. Unescaping is
+the CSS spec's own algorithm, so it survives Tailwind changing its mind.
+
+Consequences:
+
+- Every pseudo-class variant now shows its selector in the raw CSS view. `focus:outline-none`
+  used to present `outline-style: none` as unconditional.
+- Class-strategy dark mode is recorded, which was the case that opened this item.
+- A swatch whose colour lands on other elements says so: `divide-red-500` reads
+  *only on :where(& > :not(:last-child))* rather than implying the element gets a red border.
+- `isConditional` counts selector scope, so a variantless class that only styles children cannot
+  derive prose crediting the element. Verified load-bearing by mutation.
+
+### The detection caps are gone (closes open item 2, not as planned)
+
+The 8-newline cap was not a minor limitation. A class string wrapped by prettier over ten lines
+produced **no panel at all** — the exact input the extension exists for. The 2000-character
+expression window and 4000-character helper-call window truncated long `cva` definitions the
+same way.
+
+All three removed; scans are bounded by the document. Measured: **1.1ms** on a 422KB file, and
+**4.7ms** on a 469KB file with a deliberately unbalanced brace. The caps were not paying for
+themselves.
+
+**An AST was not the answer, and this is worth recording.** A real parser reproduces the same
+unterminated-quote over-match, because that is what browsers do with `<div class="foo>`. It also
+fails on the mid-edit invalid files that are the common editor state, where regex keeps working,
+and costs roughly 2MB of bundle for five languages. What the newline cap was really guarding is
+now checked directly, in `looksLikeClassList`: a value carrying a tag, a bare punctuation token,
+or more than 5000 characters is not a class list. That is a heuristic, and named as one — but it
+keeps the pathological case out without discarding the common one.
+
+Replacing the regexes with real parsers remains available and unjudged; it is no longer urgent.
+
+### Sort command
+
+`twexplain.sortClasses`, backed by `getClassOrder`, so the order is Tailwind's rather than one
+this extension invents. Classes Tailwind does not know keep their relative order at the front
+instead of being dropped, and the original separators are reused, so a wrapped class string stays
+wrapped on the same lines.
+
+### Curation backlog command
+
+`twexplain.showCurationBacklog` opens a markdown report of every class seen this session that
+compiled but had no prose, grouped by candidate root — the key the override table uses — so the
+report is a work list rather than a tally.
+
+### The override table, filled out
+
+The corpus was widened to the classes people actually write, which turned the golden file into
+the backlog. **102 classes with no plain-English entry, worked down to 7.**
+
+Two mechanisms were added:
+
+- Composite overrides can read a value out of the declarations, so `border-2` states *2px border
+  on all sides* rather than announcing itself.
+- A negating value gets its own wording instead of silence. `shadow-none` said nothing at all;
+  it now says *no drop shadow*.
+
+**The seven that remain are refusals, not omissions.** `shadow-blue-500`, `inset-shadow-blue-500`
+and `ring-white` set only a colour on a root whose prose describes the whole effect — lending it
+is precisely the bug fixed in Milestone 1. `ring-offset-2` and `ring-offset-white` share a root
+that carries both a size and a colour, so any single sentence is false for half of them.
+`space-x-0` / `space-y-0` are negated and child-scoped, and the veto is right to withhold.
+
+**A recorded belief was wrong.** These notes said the `divide` root was unreachable. It is not:
+it is what `divide-{color}` parses to, while `divide-y` has its own root. That is why
+`divide-red-500` can now be described without touching `divide-y`, and there is a test holding
+those two apart.
+
+### Parked items closed
+
+| Item | Outcome |
+|---|---|
+| `animate-spin` lost its prose | Already restored in Milestone 3; reads *runs the animation spin 1s linear infinite* |
+| `animate` / `divide` entries unreachable | `animate` is genuinely unreachable and stays absent; `divide` was reachable all along and now carries the colour prose |
+| `shadow-inner` reads "drop shadow" | Fixed. It sets `--tw-shadow: inset …`, so it now reads *inset drop shadow* |
+| Template literals skipped | Closed in Milestone 3 |
+
+### Error states
+
+Every `PanelState` the host can send renders a notice, held by a structural test that walks the
+whole union, so a new status cannot ship with a blank panel. The two notices that only named a
+problem now name the fix — which package to install, and which import to add where.
+
+One deviation from the spec: it calls for a status-bar notice when no CSS entry is found. The
+panel already says it, with the remedy, and a second surface saying the same thing is noise.
+
+### Still open
+
+- Detection is regex, deliberately (see above). The `looksLikeClassList` heuristic is the part
+  most worth revisiting: it rejects a value containing a bare punctuation token, which would
+  misfire on a class list that legitimately contained one. None exists in Tailwind today.
+- First panel open on a very large tree still costs one full walk (~2.7s), off the UI thread.
+- Seven classes remain without prose, listed above, each for a stated reason.
