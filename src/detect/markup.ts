@@ -6,7 +6,8 @@ const STRING_PATTERN = /(["'`])((?:(?!\1).)*)\1/gs
 const INTERPOLATION = /\$\{[^}]*\}/g
 
 function attributePattern(names: string[]): RegExp {
-  return new RegExp(`(?:${names.join('|')})\\s*=\\s*(["'])((?:(?!\\1).)*)\\1`, 'gs')
+  const guarded = names.map((name) => `(?<![-:\\w])${name}`)
+  return new RegExp(`(?:${guarded.join('|')})\\s*=\\s*(["'])((?:(?!\\1).)*)\\1`, 'gs')
 }
 
 export function detectAttribute(

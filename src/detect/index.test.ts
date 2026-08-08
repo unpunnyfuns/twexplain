@@ -170,3 +170,25 @@ describe('detectClassString helper calls without a class attribute', () => {
     ])
   })
 })
+
+describe('detectClassString does not mistake expressions for class lists', () => {
+  it('returns null for a vue bound class when the cursor is not in a string', () => {
+    const source = '<div :class="{ \'bg-red-500\': isOn }">x</div>'
+    expect(find(source, 'isOn', 'vue')).toBeNull()
+  })
+
+  it('returns null for a v-bind:class expression outside its strings', () => {
+    const source = '<div v-bind:class="[base, extra]">x</div>'
+    expect(find(source, 'extra', 'vue')).toBeNull()
+  })
+
+  it('does not read a data-class attribute as a class list', () => {
+    const source = '<div data-class="not-a-class">x</div>'
+    expect(find(source, 'not-a-class', 'html')).toBeNull()
+  })
+
+  it('still reads a genuine static class beside a bound one in vue', () => {
+    const source = '<div class="flex gap-2" :class="[extra]">x</div>'
+    expect(find(source, 'gap-2', 'vue')?.candidates.map((c) => c.text)).toEqual(['flex', 'gap-2'])
+  })
+})

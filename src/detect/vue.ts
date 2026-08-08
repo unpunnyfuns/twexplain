@@ -14,5 +14,5 @@ export function detectVue(text: string, offset: number, uri: string): ClassStrin
     const found = detectStringsIn(text, offset, uri, 'vue', valueStart, valueStart + value.length)
     if (found !== null) return found
   }
-  return detectAttribute(text, offset, uri, 'vue', ['\\bclass'])
+  return detectAttribute(text, offset, uri, 'vue', ['class'])
 }
