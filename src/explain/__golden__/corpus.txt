@@ -1,6 +1,6 @@
 container
   group: spacing
-  prose: [no prose — raw CSS shown]
+  prose: full width, but never wider than the current breakpoint
     width: 100%
     max-width: 640px   [@media (width >= 40rem)]
     max-width: 768px   [@media (width >= 48rem)]
@@ -85,7 +85,7 @@ m-auto
 
 -mt-2
   group: spacing
-  prose: [no prose — raw CSS shown]
+  prose: margin of -8px on the top
     margin-top: -8px
 
 w-1/2
@@ -132,12 +132,12 @@ leading-tight
 
 tracking-wide
   group: typography
-  prose: [no prose — raw CSS shown]
+  prose: letter spacing 0.025em
     letter-spacing: 0.025em
 
 text-center
   group: typography
-  prose: [no prose — raw CSS shown]
+  prose: text centred
     text-align: center
 
 truncate
@@ -200,7 +200,7 @@ text-white
 
 border-red-500
   group: border
-  prose: [no prose — raw CSS shown]
+  prose: border oklch(63.7% 0.237 25.331)
     border-color: oklch(63.7% 0.237 25.331)
 
 rounded
@@ -220,19 +220,19 @@ rounded-full
 
 border
   group: border
-  prose: [no prose — raw CSS shown]
+  prose: 1px border on all sides
     border-style: var(--tw-border-style)
     border-width: 1px
 
 border-2
   group: border
-  prose: [no prose — raw CSS shown]
+  prose: 2px border on all sides
     border-style: var(--tw-border-style)
     border-width: 2px
 
 border-t
   group: border
-  prose: [no prose — raw CSS shown]
+  prose: 1px border on the top
     border-top-style: var(--tw-border-style)
     border-top-width: 1px
 
@@ -256,7 +256,7 @@ shadow-lg
 
 shadow-none
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: no drop shadow
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
 
 shadow-blue-500
@@ -276,7 +276,7 @@ inset-shadow-sm
 
 inset-shadow-none
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: no inner drop shadow
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
 
 inset-shadow-blue-500
@@ -291,7 +291,7 @@ ring-2
 
 ring-0
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: no ring
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
 
 ring-white
@@ -306,12 +306,12 @@ opacity-50
 
 blur-sm
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: blurred
     filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)
 
 backdrop-blur
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: blurs what is behind the element
     -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)
     backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)
 
@@ -323,7 +323,7 @@ backdrop-filter
 
 backdrop-filter-none
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: no backdrop filters applied
     -webkit-backdrop-filter: none
     backdrop-filter: none
 
@@ -339,7 +339,7 @@ filter-none
 
 transition
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: animates changes to most properties
     transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events
     transition-timing-function: var(--tw-ease, cubic-bezier(0.4, 0, 0.2, 1))
     transition-duration: 150ms
@@ -366,27 +366,27 @@ transform-none
 
 divide-red-500
   group: border
-  prose: [no prose — raw CSS shown]
+  prose: the colour of the dividing lines between children
     border-color: oklch(63.7% 0.237 25.331)   [:where(& > :not(:last-child))]
 
 from-blue-500
   group: other
-  prose: [no prose — internal variables only]
+  prose: the colour a gradient starts from
 
 
 via-purple-500
   group: other
-  prose: [no prose — internal variables only]
+  prose: the colour a gradient passes through
 
 
 to-pink-500
   group: other
-  prose: [no prose — internal variables only]
+  prose: the colour a gradient ends at
 
 
 ring-inset
   group: other
-  prose: [no prose — internal variables only]
+  prose: draws the ring inside the edge rather than outside it
 
 
 ring-offset-2
@@ -396,7 +396,7 @@ ring-offset-2
 
 space-x-reverse
   group: other
-  prose: [no prose — internal variables only]
+  prose: reverses which side the horizontal gap is added to
 
 
 space-x-4
@@ -430,7 +430,7 @@ hover:bg-blue-700
 
 focus:outline-none
   group: border
-  prose: [no prose — raw CSS shown]
+  prose: no outline
     outline-style: none   [&:focus]
 
 md:w-1/2
@@ -440,7 +440,7 @@ md:w-1/2
 
 lg:flex-row
   group: layout
-  prose: [no prose — raw CSS shown]
+  prose: children laid out left to right
     flex-direction: row   [@media (width >= 64rem)]
 
 dark:bg-slate-900
@@ -452,6 +452,461 @@ group-hover:opacity-100
   group: effects
   prose: 100% opaque
     opacity: 100%   [@media (hover: hover) &:is(:where(.group):hover *)]
+
+pt-4
+  group: spacing
+  prose: padding of 16px on the top
+    padding-top: 16px
+
+pb-2
+  group: spacing
+  prose: padding of 8px on the bottom
+    padding-bottom: 8px
+
+pl-1
+  group: spacing
+  prose: padding of 4px on the left
+    padding-left: 4px
+
+pr-3
+  group: spacing
+  prose: padding of 12px on the right
+    padding-right: 12px
+
+mt-4
+  group: spacing
+  prose: margin of 16px on the top
+    margin-top: 16px
+
+mb-2
+  group: spacing
+  prose: margin of 8px on the bottom
+    margin-bottom: 8px
+
+ml-auto
+  group: spacing
+  prose: an automatic left margin, which pushes a sized element to the right
+    margin-left: auto
+
+mx-auto
+  group: spacing
+  prose: equal automatic margins left and right, which centres an element that has a width
+    margin-inline: auto
+
+my-6
+  group: spacing
+  prose: margin of 24px on the top and bottom
+    margin-block: 24px
+
+gap-x-2
+  group: spacing
+  prose: 8px between columns
+    column-gap: 8px
+
+gap-y-4
+  group: spacing
+  prose: 16px between rows
+    row-gap: 16px
+
+text-left
+  group: typography
+  prose: text aligned left
+    text-align: left
+
+text-right
+  group: typography
+  prose: text aligned right
+    text-align: right
+
+font-medium
+  group: typography
+  prose: font weight 500
+    font-weight: 500
+
+italic
+  group: typography
+  prose: italic
+    font-style: italic
+
+not-italic
+  group: typography
+  prose: upright rather than italic
+    font-style: normal
+
+uppercase
+  group: typography
+  prose: text in capitals
+    text-transform: uppercase
+
+lowercase
+  group: typography
+  prose: text in lower case
+    text-transform: lowercase
+
+capitalize
+  group: typography
+  prose: each word capitalised
+    text-transform: capitalize
+
+normal-case
+  group: typography
+  prose: text left as written
+    text-transform: none
+
+underline
+  group: typography
+  prose: underlined
+    text-decoration-line: underline
+
+line-through
+  group: typography
+  prose: struck through
+    text-decoration-line: line-through
+
+no-underline
+  group: typography
+  prose: no underline or strikethrough
+    text-decoration-line: none
+
+rounded-t
+  group: border
+  prose: top-left corner rounded by 4px; top-right corner rounded by 4px
+    border-top-left-radius: 4px
+    border-top-right-radius: 4px
+
+rounded-l
+  group: border
+  prose: top-left corner rounded by 4px; bottom-left corner rounded by 4px
+    border-top-left-radius: 4px
+    border-bottom-left-radius: 4px
+
+rounded-none
+  group: border
+  prose: corners rounded by 0
+    border-radius: 0
+
+border-b
+  group: border
+  prose: 1px border on the bottom
+    border-bottom-style: var(--tw-border-style)
+    border-bottom-width: 1px
+
+border-l
+  group: border
+  prose: 1px border on the left
+    border-left-style: var(--tw-border-style)
+    border-left-width: 1px
+
+border-x
+  group: border
+  prose: 1px border on the left and right
+    border-inline-style: var(--tw-border-style)
+    border-inline-width: 1px
+
+border-y
+  group: border
+  prose: 1px border on the top and bottom
+    border-block-style: var(--tw-border-style)
+    border-block-width: 1px
+
+border-none
+  group: border
+  prose: no border line
+    border-style: none
+
+border-dashed
+  group: border
+  prose: dashed border line
+    border-style: dashed
+
+cursor-pointer
+  group: other
+  prose: pointer cursor
+    cursor: pointer
+
+cursor-not-allowed
+  group: other
+  prose: not-allowed cursor
+    cursor: not-allowed
+
+select-none
+  group: other
+  prose: cannot be selected as text
+    -webkit-user-select: none
+    user-select: none
+
+pointer-events-none
+  group: other
+  prose: ignores mouse and touch entirely
+    pointer-events: none
+
+z-10
+  group: layout
+  prose: stacking order 10
+    z-index: 10
+
+flex-1
+  group: layout
+  prose: grows and shrinks to share the free space
+    flex: 1
+
+flex-none
+  group: layout
+  prose: neither grows nor shrinks
+    flex: none
+
+flex-col
+  group: layout
+  prose: children stacked top to bottom
+    flex-direction: column
+
+flex-wrap
+  group: layout
+  prose: children wrap onto more lines when they run out of room
+    flex-wrap: wrap
+
+grow
+  group: layout
+  prose: grows to take the free space
+    flex-grow: 1
+
+shrink-0
+  group: layout
+  prose: never shrinks below its natural size
+    flex-shrink: 0
+
+basis-1/2
+  group: layout
+  prose: starting size 50%
+    flex-basis: 50%
+
+self-center
+  group: layout
+  prose: this item aligned center on the cross axis
+    align-self: center
+
+justify-center
+  group: layout
+  prose: children distributed along the main axis (center)
+    justify-content: center
+
+col-span-2
+  group: layout
+  prose: spans 2 columns
+    grid-column: span 2 / span 2
+
+object-cover
+  group: other
+  prose: fills the box, cropping what does not fit
+    object-fit: cover
+
+overflow-x-auto
+  group: layout
+  prose: scrolls sideways when content overflows
+    overflow-x: auto
+
+whitespace-nowrap
+  group: typography
+  prose: whitespace handling: nowrap
+    white-space: nowrap
+
+list-none
+  group: typography
+  prose: no bullet or number
+    list-style-type: none
+
+align-middle
+  group: typography
+  prose: aligned to the middle of the line
+    vertical-align: middle
+
+appearance-none
+  group: other
+  prose: stripped of the browser default control styling
+    appearance: none
+
+resize-none
+  group: other
+  prose: cannot be resized by dragging
+    resize: none
+
+outline-none
+  group: border
+  prose: no outline
+    outline-style: none
+
+duration-300
+  group: effects
+  prose: transitions over 300ms
+    transition-duration: 300ms
+
+ease-in-out
+  group: effects
+  prose: eased with cubic-bezier(0.4, 0, 0.2, 1)
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1)
+
+delay-100
+  group: effects
+  prose: transitions after a 100ms delay
+    transition-delay: 100ms
+
+scale-95
+  group: other
+  prose: scaled to 95%
+    scale: var(--tw-scale-x) var(--tw-scale-y)
+
+rotate-45
+  group: other
+  prose: rotated 45deg
+    rotate: 45deg
+
+translate-x-2
+  group: other
+  prose: moved horizontally
+    translate: var(--tw-translate-x) var(--tw-translate-y)
+
+invisible
+  group: layout
+  prose: invisible, but still taking up space
+    visibility: hidden
+
+visible
+  group: layout
+  prose: visible
+    visibility: visible
+
+static
+  group: layout
+  prose: positioned normally, and ignores top, left, right and bottom
+    position: static
+
+inset-0
+  group: layout
+  prose: 0px from every edge
+    inset: 0px
+
+top-0
+  group: layout
+  prose: 0px from the top
+    top: 0px
+
+w-px
+  group: spacing
+  prose: width 1px
+    width: 1px
+
+h-full
+  group: spacing
+  prose: height 100%
+    height: 100%
+
+max-w-md
+  group: spacing
+  prose: never wider than 448px
+    max-width: 448px
+
+min-h-screen
+  group: spacing
+  prose: never shorter than 100vh
+    min-height: 100vh
+
+aspect-square
+  group: other
+  prose: kept square
+    aspect-ratio: 1 / 1
+
+float-left
+  group: layout
+  prose: floated to the left
+    float: left
+
+clear-both
+  group: layout
+  prose: sits below any floated element
+    clear: both
+
+uppercase
+  group: typography
+  prose: text in capitals
+    text-transform: uppercase
+
+font-mono
+  group: typography
+  prose: the ui-monospace font stack
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace
+
+text-nowrap
+  group: typography
+  prose: never wraps onto another line
+    text-wrap: nowrap
+
+grid-cols-3
+  group: layout
+  prose: 3 equal columns
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+
+grid-rows-2
+  group: layout
+  prose: 2 equal rows
+    grid-template-rows: repeat(2, minmax(0, 1fr))
+
+place-items-center
+  group: layout
+  prose: children aligned center both ways
+    place-items: center
+
+content-between
+  group: layout
+  prose: rows distributed space-between
+    align-content: space-between
+
+items-start
+  group: layout
+  prose: children centered on the cross axis (flex-start)
+    align-items: flex-start
+
+justify-items-center
+  group: layout
+  prose: children aligned center within their grid cells
+    justify-items: center
+
+transition-none
+  group: effects
+  prose: no transition
+    transition-property: none
+
+blur-none
+  group: effects
+  prose: no blur
+    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)
+
+divide-x
+  group: border
+  prose: vertical dividing lines between children, except the last
+    border-inline-style: var(--tw-border-style)   [:where(& > :not(:last-child))]
+    border-inline-start-width: calc(1px * var(--tw-divide-x-reverse))   [:where(& > :not(:last-child))]
+    border-inline-end-width: calc(1px * calc(1 - var(--tw-divide-x-reverse)))   [:where(& > :not(:last-child))]
+
+ring-offset-white
+  group: other
+  prose: [no prose — internal variables only]
+
+
+scale-100
+  group: other
+  prose: scaled to 100%
+    scale: var(--tw-scale-x) var(--tw-scale-y)
+
+translate-none
+  group: other
+  prose: no translation applied
+    translate: none
+
+space-y-reverse
+  group: other
+  prose: reverses which side the vertical gap is added to
+
 
 nope-999
   [invalid]

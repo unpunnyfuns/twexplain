@@ -102,3 +102,60 @@ describe('animation and transform phrases', () => {
     )
   })
 })
+
+describe('derive over shorthands that need reading, not restating', () => {
+  it('reads a repeat() grid as a plain column count', () => {
+    expect(derive([{ prop: 'grid-template-columns', value: 'repeat(3, minmax(0, 1fr))' }])).toBe(
+      '3 equal columns',
+    )
+  })
+
+  it('falls back to stating an unusual grid rather than claiming a count', () => {
+    expect(
+      derive([{ prop: 'grid-template-columns', value: 'repeat(auto-fill, minmax(200px, 1fr))' }]),
+    ).toBe('grid columns: repeat(auto-fill, minmax(200px, 1fr))')
+  })
+
+  it('reads a span shorthand as a span', () => {
+    expect(derive([{ prop: 'grid-column', value: 'span 2 / span 2' }])).toBe('spans 2 columns')
+  })
+
+  it('reads the flex shorthand rather than echoing it', () => {
+    expect(derive([{ prop: 'flex', value: '1' }])).toBe('grows and shrinks to share the free space')
+    expect(derive([{ prop: 'flex', value: 'none' }])).toBe('neither grows nor shrinks')
+  })
+
+  it('names a square aspect ratio', () => {
+    expect(derive([{ prop: 'aspect-ratio', value: '1 / 1' }])).toBe('kept square')
+  })
+
+  it('hedges an automatic margin, since it only centres a sized element', () => {
+    expect(derive([{ prop: 'margin-inline', value: 'auto' }])).toBe(
+      'equal automatic margins left and right, which centres an element that has a width',
+    )
+  })
+
+  it('states a measured margin plainly', () => {
+    expect(derive([{ prop: 'margin-top', value: '16px' }])).toBe('margin of 16px on the top')
+  })
+})
+
+describe('derive when two declarations say the same thing', () => {
+  it('states a vendor-prefixed pair once rather than twice', () => {
+    expect(
+      derive([
+        { prop: '-webkit-user-select', value: 'none' },
+        { prop: 'user-select', value: 'none' },
+      ]),
+    ).toBe('cannot be selected as text')
+  })
+
+  it('still states two genuinely different effects', () => {
+    expect(
+      derive([
+        { prop: 'display', value: 'flex' },
+        { prop: 'text-align', value: 'center' },
+      ]),
+    ).toBe('lays children out in a row; text centred')
+  })
+})

@@ -203,27 +203,26 @@ const proseOf = (text: string): string | null | undefined => {
 }
 
 describe('overrides applied through the pipeline', () => {
-  it.each([
-    'shadow-none',
-    'shadow-blue-500',
-    'inset-shadow-none',
-    'ring-0',
-    'ring-white',
-    'divide-red-500',
-    'space-x-0',
-  ])('does not lend the positive root prose to %s', (text) => {
-    expect(proseOf(text)).toBeNull()
-  })
+  it.each(['shadow-blue-500', 'ring-white', 'space-x-0'])(
+    'does not lend the positive root prose to %s',
+    (text) => {
+      expect(proseOf(text)).toBeNull()
+    },
+  )
 
   it.each([
     ['animate-none', 'no animation'],
     ['filter-none', 'no filters applied'],
     ['backdrop-filter-none', 'no backdrop filters applied'],
+    ['shadow-none', 'no drop shadow'],
+    ['inset-shadow-none', 'no inner drop shadow'],
+    ['ring-0', 'no ring'],
   ])('describes %s accurately rather than lending it the positive prose', (text, expected) => {
     const prose = proseOf(text)
     expect(prose).toBe(expected)
     expect(prose).not.toContain('runs a named animation')
     expect(prose).not.toContain('applies a')
+    expect(prose?.startsWith('no ')).toBe(true)
   })
 
   it.each([

@@ -35,13 +35,17 @@ describe('overrideFor', () => {
     )
   })
 
-  it('withholds a composite override when the value negates the effect', () => {
-    expect(overrideFor({ root: 'shadow', value: { value: 'none' } }, OPAQUE_SHADOW)).toBeNull()
-    expect(
+  it('never claims the effect a negating value switches off', () => {
+    const negated = [
+      overrideFor({ root: 'shadow', value: { value: 'none' } }, OPAQUE_SHADOW),
       overrideFor({ root: 'inset-shadow', value: { value: 'none' } }, OPAQUE_SHADOW),
-    ).toBeNull()
-    expect(overrideFor({ root: 'ring', value: { value: '0' } }, OPAQUE_SHADOW)).toBeNull()
-    expect(overrideFor({ root: 'ring', value: { value: '0px' } }, OPAQUE_SHADOW)).toBeNull()
+      overrideFor({ root: 'ring', value: { value: '0' } }, OPAQUE_SHADOW),
+      overrideFor({ root: 'ring', value: { value: '0px' } }, OPAQUE_SHADOW),
+    ]
+
+    for (const prose of negated) {
+      expect(prose === null || prose.startsWith('no ')).toBe(true)
+    }
   })
 
   it('withholds a composite override when the declarations are not opaque', () => {
@@ -56,7 +60,7 @@ describe('overrideFor', () => {
       ]),
     ).toBeNull()
     expect(
-      overrideFor({ root: 'divide', value: { value: 'red-500' } }, [
+      overrideFor({ root: 'divide-y', value: { value: 'red-500' } }, [
         { prop: 'border-color', value: 'oklch(63.7% 0.237 25.331)' },
       ]),
     ).toBeNull()
@@ -90,12 +94,67 @@ describe('reachable override roots', () => {
     )
   })
 
-  it('no longer carries entries for roots Tailwind never produces', () => {
-    expect(overrideFor({ root: 'divide', value: null }, OPAQUE_DIVIDE_Y)).toBeNull()
+  it('carries no entry for animate, a root Tailwind never produces', () => {
     expect(overrideFor({ root: 'animate', value: { value: 'spin' } }, OPAQUE_DIVIDE_Y)).toBeNull()
+  })
+
+  it('describes the divide root as the colour it is, not as the lines divide-y draws', () => {
+    expect(overrideFor({ root: 'divide', value: { value: 'red-500' } }, OPAQUE_DIVIDE_Y)).toBe(
+      'the colour of the dividing lines between children',
+    )
   })
 
   it('still withholds a divide override when a zero value negates it', () => {
     expect(overrideFor({ root: 'divide-y', value: { value: '0' } }, OPAQUE_DIVIDE_Y)).toBeNull()
+  })
+})
+
+describe('overrides that read a value out of the declarations', () => {
+  const borderDecls = (width: string): Declaration[] => [
+    { prop: 'border-style', value: 'var(--tw-border-style)' },
+    { prop: 'border-width', value: width },
+  ]
+
+  it('states the width a border utility actually sets', () => {
+    expect(overrideFor({ root: 'border', value: { value: '2' } }, borderDecls('2px'))).toBe(
+      '2px border on all sides',
+    )
+  })
+
+  it('falls back to naming the border when no width is resolvable', () => {
+    expect(
+      overrideFor({ root: 'border' }, [{ prop: 'border-style', value: 'var(--tw-border-style)' }]),
+    ).toBe('a border on all sides')
+  })
+
+  it('leaves a border colour utility to the derived prose, since it sets no width', () => {
+    expect(overrideFor({ root: 'border' }, [{ prop: 'border-color', value: 'red' }])).toBeNull()
+  })
+})
+
+describe('overrides for utilities that switch an effect off', () => {
+  it('says a shadow is removed rather than saying nothing', () => {
+    expect(overrideFor({ root: 'shadow', value: { value: 'none' } }, OPAQUE_SHADOW)).toBe(
+      'no drop shadow',
+    )
+  })
+
+  it('says a ring is removed rather than saying nothing', () => {
+    expect(overrideFor({ root: 'ring', value: { value: '0' } }, OPAQUE_SHADOW)).toBe('no ring')
+  })
+
+  it('still says nothing for a negated utility with no negated wording', () => {
+    expect(overrideFor({ root: 'space-x', value: { value: '0' } }, OPAQUE_SPACE_X)).toBeNull()
+  })
+})
+
+describe('a border on one edge', () => {
+  it('reads the width from the edge-specific property', () => {
+    expect(
+      overrideFor({ root: 'border-t' }, [
+        { prop: 'border-top-style', value: 'var(--tw-border-style)' },
+        { prop: 'border-top-width', value: '1px' },
+      ]),
+    ).toBe('1px border on the top')
   })
 })
