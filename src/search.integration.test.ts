@@ -61,3 +61,61 @@ describe('the real design system exposes what the panel needs', () => {
     expect(names.length).toBeGreaterThan(50)
   })
 })
+
+describe('variant chips offered to the panel', () => {
+  it('excludes variants that need an argument and cannot stand alone', async () => {
+    const { computeState } = await import('./state')
+    const state = await computeState({
+      text: '<div className="flex">x</div>',
+      offset: 17,
+      uri: 'file:///a.tsx',
+      workspaceRoot: input.workspaceRoot,
+      fsPath: input.fsPath,
+      languageId: 'typescriptreact',
+    })
+
+    expect(state.status).toBe('ready')
+    if (state.status !== 'ready') return
+
+    for (const needsArgument of ['data', 'aria', 'supports', 'group', 'peer', '@max', 'not']) {
+      expect(state.variants, needsArgument).not.toContain(needsArgument)
+    }
+  })
+
+  it('still offers the variants people actually reach for', async () => {
+    const { computeState } = await import('./state')
+    const state = await computeState({
+      text: '<div className="flex">x</div>',
+      offset: 17,
+      uri: 'file:///a.tsx',
+      workspaceRoot: input.workspaceRoot,
+      fsPath: input.fsPath,
+      languageId: 'typescriptreact',
+    })
+
+    if (state.status !== 'ready') throw new Error('expected ready')
+    for (const usable of ['hover', 'focus', 'dark', 'md', 'lg', 'first', 'last', 'print']) {
+      expect(state.variants, usable).toContain(usable)
+    }
+  })
+
+  it('every offered variant compiles on a real utility', async () => {
+    const { computeState } = await import('./state')
+    const { loadDesignSystem } = await import('./design-system/load')
+    const state = await computeState({
+      text: '<div className="flex">x</div>',
+      offset: 17,
+      uri: 'file:///a.tsx',
+      workspaceRoot: input.workspaceRoot,
+      fsPath: input.fsPath,
+      languageId: 'typescriptreact',
+    })
+    const loaded = await loadDesignSystem(input.workspaceRoot, input.fsPath)
+    if (state.status !== 'ready' || !loaded.ok) throw new Error('expected ready')
+
+    const compiled = loaded.ds.candidatesToCss(state.variants.map((v) => `${v}:border-slate-600`))
+    const broken = state.variants.filter((_, i) => compiled[i] === null)
+
+    expect(broken).toEqual([])
+  })
+})

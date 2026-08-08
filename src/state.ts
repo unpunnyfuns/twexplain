@@ -18,8 +18,24 @@ function paletteFrom(ds: {
   return Array.from(ds.theme.namespace('--color'), ([name, value]) => ({ name, value }))
 }
 
-function variantsFrom(ds: { getVariants(): Iterable<{ name: string }> }): string[] {
-  return Array.from(ds.getVariants(), (variant) => variant.name)
+type VariantSource = {
+  getVariants(): Iterable<{ name: string }>
+  candidatesToCss(candidates: string[]): (string | null)[]
+}
+
+const USABLE_VARIANTS = new WeakMap<object, string[]>()
+const VARIANT_PROBE = 'flex'
+
+function variantsFrom(ds: VariantSource): string[] {
+  const cached = USABLE_VARIANTS.get(ds)
+  if (cached !== undefined) return cached
+
+  const names = Array.from(ds.getVariants(), (variant) => variant.name)
+  const compiled = ds.candidatesToCss(names.map((name) => `${name}:${VARIANT_PROBE}`))
+  const usable = names.filter((_, index) => compiled[index] !== null)
+
+  USABLE_VARIANTS.set(ds, usable)
+  return usable
 }
 
 export async function computeState(input: StateInput): Promise<PanelState> {

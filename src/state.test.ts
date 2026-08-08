@@ -187,3 +187,48 @@ describe('computeState variants', () => {
     expect(state.variants).toEqual([])
   })
 })
+
+describe('computeState offers only usable variants', () => {
+  const dsWith = (names: string[], compiles: (c: string) => boolean) => ({
+    ok: true as const,
+    entry: '/ws/src/app.css',
+    ds: {
+      candidatesToCss: (cs: string[]) => cs.map((c) => (compiles(c) ? '.x{}' : null)),
+      parseCandidate: () => [{ root: 'flex', variants: [] }],
+      printVariant: () => '',
+      resolveThemeValue: () => undefined,
+      printCandidate: () => 'flex',
+      parseVariant: () => ({ kind: 'static', root: 'hover' }),
+      theme: { namespace: () => new Map() },
+      getClassList: () => [],
+      getVariants: () => names.map((name) => ({ name })),
+    },
+  })
+
+  const variantsOf = async (names: string[], compiles: (c: string) => boolean) => {
+    givenLoad(dsWith(names, compiles) as never)
+    const state = await computeState(base)
+    if (state.status !== 'ready') throw new Error('expected ready')
+    return state.variants
+  }
+
+  it('drops variants that need an argument and cannot stand alone', async () => {
+    const usable = new Set(['hover:flex', 'md:flex'])
+    const variants = await variantsOf(
+      ['hover', 'md', 'data', 'aria', '@max'],
+      (c) => usable.has(c) || c === 'flex',
+    )
+
+    expect(variants).toEqual(['hover', 'md'])
+  })
+
+  it('keeps every variant when they all stand alone', async () => {
+    const variants = await variantsOf(['hover', 'focus'], () => true)
+    expect(variants).toEqual(['hover', 'focus'])
+  })
+
+  it('reports none rather than failing when nothing stands alone', async () => {
+    const variants = await variantsOf(['data', 'aria'], (c) => c === 'flex')
+    expect(variants).toEqual([])
+  })
+})
