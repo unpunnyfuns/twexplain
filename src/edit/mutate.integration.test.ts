@@ -52,3 +52,19 @@ describe('mutation against the real design system', () => {
     expect(ds.printCandidate(ds.parseCandidate('px-4')[0])).toBe('px-4')
   })
 })
+
+describe('the validation guard against real Tailwind', () => {
+  it('agrees that a sound arbitrary value compiles', () => {
+    expect(ds.candidatesToCss(['p-[20px]'])[0]).not.toBeNull()
+  })
+
+  it('catches an empty arbitrary value, which does not compile', () => {
+    expect(ds.candidatesToCss(['p-[]'])[0]).toBeNull()
+  })
+
+  it('shows why a value guard alone is not enough: Tailwind passes nonsense through', () => {
+    const css = ds.candidatesToCss(['p-[garbage]'])[0]
+    expect(css).not.toBeNull()
+    expect(css).toContain('padding: garbage')
+  })
+})

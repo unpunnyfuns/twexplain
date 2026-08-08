@@ -42,13 +42,28 @@ function candidateText(location: ClassStringLocation, index: number): string | n
   return location.candidates.find((c) => c.index === index)?.text ?? null
 }
 
+function assertCompiles(
+  ds: { candidatesToCss(candidates: string[]): (string | null)[] },
+  candidate: string,
+): void {
+  if (ds.candidatesToCss([candidate])[0] !== null) return
+  throw new Error(`Tailwind cannot compile "${candidate}", so it was not written`)
+}
+
 export async function resolveIntent(input: IntentInput): Promise<TextEdit | null> {
   const location = detectClassString(input)
   if (location === null) return null
 
   const { intent } = input
   if (intent.type === 'remove') return removeCandidate(input.text, location, intent.index)
-  if (intent.type === 'add') return addCandidate(location, intent.text)
+
+  if (intent.type === 'add') {
+    const edit = addCandidate(location, intent.text)
+    if (edit === null || input.workspaceRoot === null) return edit
+    const loaded = await loadDesignSystem(input.workspaceRoot, input.fsPath)
+    if (loaded.ok) assertCompiles(loaded.ds, intent.text)
+    return edit
+  }
 
   const current = candidateText(location, intent.index)
   if (current === null) return null
@@ -59,6 +74,7 @@ export async function resolveIntent(input: IntentInput): Promise<TextEdit | null
 
   const next = mutateText(current, intent, loaded.ds)
   if (next === null) return null
+  assertCompiles(loaded.ds, next)
 
   return replaceCandidate(location, intent.index, next)
 }

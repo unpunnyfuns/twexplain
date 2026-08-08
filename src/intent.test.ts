@@ -42,7 +42,7 @@ const ds = {
     return `${prefix}${body}${c.modifier ? `/${c.modifier.value}` : ''}`
   },
   parseVariant: (text: string) => ({ kind: 'static', root: text }),
-  candidatesToCss: (cs: string[]) => cs.map(() => null),
+  candidatesToCss: (cs: string[]) => cs.map(() => '.x{}'),
   printVariant: (v: unknown) => (v as { root?: string }).root ?? '',
   resolveThemeValue: () => undefined,
   theme: { namespace: () => new Map<string, string>() },
@@ -120,6 +120,61 @@ describe('resolveIntent', () => {
     loadDesignSystem.mockResolvedValue({ ok: false, reason: 'no-tailwind' } as LoadResult)
     expect(apply(await run({ type: 'remove', index: 1 }))).toBe(
       '<div className="flex px-4">x</div>',
+    )
+  })
+})
+
+describe('resolveIntent refuses to write a class Tailwind cannot compile', () => {
+  const compiling = (valid: string[]) => ({
+    ok: true as const,
+    entry: '/ws/app.css',
+    ds: {
+      ...ds,
+      candidatesToCss: (cs: string[]) => cs.map((c) => (valid.includes(c) ? '.x{}' : null)),
+    },
+  })
+
+  it('rejects an arbitrary value that does not compile', async () => {
+    loadDesignSystem.mockResolvedValue(compiling(['gap-2']) as never)
+
+    await expect(run({ type: 'setValue', index: 1, value: '[]' })).rejects.toThrow(
+      /cannot compile/i,
+    )
+  })
+
+  it('names the offending class so the message is actionable', async () => {
+    loadDesignSystem.mockResolvedValue(compiling(['gap-2']) as never)
+
+    await expect(run({ type: 'setValue', index: 1, value: '[]' })).rejects.toThrow(/gap-\[\]/)
+  })
+
+  it('allows a mutation that does compile', async () => {
+    loadDesignSystem.mockResolvedValue(compiling(['gap-2', 'gap-3']) as never)
+
+    expect(apply(await run({ type: 'step', index: 1, delta: 1 }))).toBe(
+      '<div className="flex gap-3 px-4">x</div>',
+    )
+  })
+
+  it('rejects adding a class that does not compile', async () => {
+    loadDesignSystem.mockResolvedValue(compiling(['gap-2']) as never)
+
+    await expect(run({ type: 'add', text: 'not-a-class' })).rejects.toThrow(/cannot compile/i)
+  })
+
+  it('still allows removing a class when Tailwind is unavailable', async () => {
+    loadDesignSystem.mockResolvedValue({ ok: false, reason: 'no-tailwind' } as never)
+
+    expect(apply(await run({ type: 'remove', index: 1 }))).toBe(
+      '<div className="flex px-4">x</div>',
+    )
+  })
+
+  it('still allows adding when Tailwind is unavailable to check', async () => {
+    loadDesignSystem.mockResolvedValue({ ok: false, reason: 'no-tailwind' } as never)
+
+    expect(apply(await run({ type: 'add', text: 'anything' }))).toBe(
+      '<div className="flex gap-2 px-4 anything">x</div>',
     )
   })
 })
