@@ -32,6 +32,7 @@ export type GroupName =
 export type ExplainedClass = {
   candidate: Candidate
   valid: boolean
+  root: string | null
   declarations: Declaration[]
   prose: string | null
   group: GroupName

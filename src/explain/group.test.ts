@@ -5,6 +5,7 @@ import { groupAll, groupFor } from './group'
 const explained = (name: string, group: ExplainedClass['group']): ExplainedClass => ({
   candidate: { text: name, range: { start: 0, end: name.length }, index: 0 },
   valid: true,
+  root: null,
   declarations: [],
   prose: null,
   group,

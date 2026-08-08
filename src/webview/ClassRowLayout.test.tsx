@@ -6,6 +6,7 @@ import { ClassRow } from './ClassRow'
 const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => ({
   candidate: { text: 'px-4', range: { start: 0, end: 4 }, index: 0 },
   valid: true,
+  root: null,
   declarations: [{ prop: 'padding-inline', value: '16px' }],
   prose: 'padding of 16px on the left and right',
   group: 'spacing',

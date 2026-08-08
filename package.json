@@ -28,6 +28,11 @@
         "command": "twexplain.sortClasses",
         "title": "Sort Tailwind Classes",
         "category": "twexplain"
+      },
+      {
+        "command": "twexplain.showCurationBacklog",
+        "title": "Show Curation Backlog",
+        "category": "twexplain"
       }
     ],
     "views": {

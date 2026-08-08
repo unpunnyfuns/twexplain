@@ -443,6 +443,18 @@ describe('arbitrary value for the text input', () => {
   })
 })
 
+describe('the root an override would be keyed on', () => {
+  it('reports the root Tailwind parsed the candidate to', () => {
+    const groups = explainCandidates([candidate('px-4', 0)], fakeDs)
+    expect(groups[0]?.classes[0]?.root).toBe('px')
+  })
+
+  it('reports no root for a class Tailwind cannot parse', () => {
+    const groups = explainCandidates([candidate('nope-999', 0)], fakeDs)
+    expect(groups[0]?.classes[0]?.root).toBeNull()
+  })
+})
+
 describe('selector context', () => {
   const CSS: Record<string, string> = {
     flex: '.flex { display: flex; }',

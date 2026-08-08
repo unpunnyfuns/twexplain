@@ -7,6 +7,7 @@ import { ClassRow } from './ClassRow'
 const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => ({
   candidate: { text: 'px-4', range: { start: 0, end: 4 }, index: 3 },
   valid: true,
+  root: null,
   declarations: [{ prop: 'padding-inline', value: '16px' }],
   prose: 'padding of 16px on the left and right',
   group: 'spacing',
@@ -84,6 +85,7 @@ describe('remove control', () => {
       <ClassRow
         explained={explained({
           valid: false,
+          root: null,
           prose: null,
           declarations: [],
           numericValue: null,

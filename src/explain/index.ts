@@ -74,6 +74,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
       return {
         candidate,
         valid: false,
+        root: null,
         declarations: [],
         prose: null,
         group: 'other',
@@ -112,6 +113,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
     return {
       candidate,
       valid: true,
+      root: parsed?.root ?? null,
       declarations,
       prose,
       group: groupFor(declarations, variants),

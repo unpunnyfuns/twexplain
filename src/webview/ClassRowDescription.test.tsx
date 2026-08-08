@@ -11,6 +11,7 @@ const explained = (
 ): ExplainedClass => ({
   candidate: { text, range: { start: 0, end: text.length }, index: 0 },
   valid,
+  root: null,
   declarations,
   prose,
   group: 'other',

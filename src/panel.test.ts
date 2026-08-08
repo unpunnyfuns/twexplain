@@ -18,6 +18,7 @@ vi.mock('vscode', () => ({
     activeTextEditor: undefined,
     showTextDocument: vi.fn(async () => undefined),
     showErrorMessage: vi.fn(async () => undefined),
+    showInformationMessage: vi.fn(async () => undefined),
   },
   commands: {
     executeCommand: vi.fn(async () => undefined),
@@ -36,6 +37,7 @@ vi.mock('vscode', () => ({
     })),
     getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
     applyEdit: vi.fn(async () => true),
+    openTextDocument: vi.fn(async (options: unknown) => ({ options })),
   },
   WorkspaceEdit: class {
     replacements: unknown[] = []
@@ -511,5 +513,79 @@ describe('registerPanel sort command', () => {
     await captured.commands.get('twexplain.sortClasses')?.()
 
     expect(vi.mocked(vscode.workspace.applyEdit)).not.toHaveBeenCalled()
+  })
+})
+
+describe('registerPanel curation backlog', () => {
+  const unexplained = (text: string) => ({
+    status: 'ready' as const,
+    palette: [],
+    variants: [],
+    groups: [
+      {
+        name: 'other' as const,
+        classes: [
+          {
+            candidate: { text, range: { start: 0, end: text.length }, index: 0 },
+            valid: true,
+            root: text,
+            declarations: [{ prop: 'border-top-width', value: '1px' }],
+            prose: null,
+            group: 'other' as const,
+            variants: [],
+            swatch: null,
+            numericValue: null,
+            modifier: null,
+            arbitraryValue: null,
+          },
+        ],
+      },
+    ],
+  })
+
+  it('registers the backlog command', async () => {
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+
+    expect(captured.commands.has('twexplain.showCurationBacklog')).toBe(true)
+  })
+
+  it('opens a report naming the classes the panel could not describe', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireReady } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue(unexplained('divide-y'))
+
+    fireReady()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await captured.commands.get('twexplain.showCurationBacklog')?.()
+
+    const opened = vi.mocked(vscode.workspace.openTextDocument).mock.calls[0]?.[0] as {
+      content: string
+      language: string
+    }
+    expect(opened.language).toBe('markdown')
+    expect(opened.content).toContain('divide-y')
+    expect(vi.mocked(vscode.window.showTextDocument)).toHaveBeenCalled()
+  })
+
+  it('reports an empty backlog rather than doing nothing', async () => {
+    const vscode = await import('vscode')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+
+    await captured.commands.get('twexplain.showCurationBacklog')?.()
+
+    const opened = vi.mocked(vscode.workspace.openTextDocument).mock.calls[0]?.[0] as {
+      content: string
+    }
+    expect(opened.content).toContain('Nothing to curate')
   })
 })

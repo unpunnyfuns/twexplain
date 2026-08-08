@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import { createBacklog } from './backlog'
 import { clearDesignSystemCache } from './design-system/load'
 import type { TextEdit } from './edit/writeback'
 import type { EditIntent } from './intent'
@@ -46,6 +47,7 @@ function html(webview: vscode.Webview, extensionUri: vscode.Uri): string {
 
 export function registerPanel(context: vscode.ExtensionContext): vscode.Disposable {
   const disposables: vscode.Disposable[] = []
+  const backlog = createBacklog()
   let current: vscode.Webview | null = null
   let timer: ReturnType<typeof setTimeout> | undefined
   let sentFingerprint: string | null = null
@@ -91,6 +93,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         languageId: document.languageId,
       })
       if (runGeneration !== generation) return
+      if (state.status === 'ready') backlog.record(state.groups.flatMap((g) => g.classes))
       post({ type: 'state', state: withoutRepeatedPayload(state) })
     } finally {
       clearTimeout(slowNotice)
@@ -130,6 +133,14 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
       languageId: document.languageId,
     })
     await write(document, edit)
+  }
+
+  const showBacklog = async (): Promise<void> => {
+    const document = await vscode.workspace.openTextDocument({
+      content: backlog.report(),
+      language: 'markdown',
+    })
+    await vscode.window.showTextDocument(document)
   }
 
   const undoLastEdit = async (): Promise<void> => {
@@ -191,6 +202,9 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     }),
     vscode.commands.registerCommand('twexplain.sortClasses', () =>
       guard('sort the class string', sortClasses),
+    ),
+    vscode.commands.registerCommand('twexplain.showCurationBacklog', () =>
+      guard('open the curation backlog', showBacklog),
     ),
     vscode.window.onDidChangeTextEditorSelection(scheduleRefresh),
     vscode.window.onDidChangeActiveTextEditor(scheduleRefresh),

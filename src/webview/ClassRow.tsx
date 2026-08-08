@@ -1,5 +1,6 @@
 import { type ReactElement, useState } from 'react'
-import type { Declaration, EditIntent, ExplainedClass, PaletteColor } from '../types'
+import { formatDeclarations } from '../explain/format'
+import type { EditIntent, ExplainedClass, PaletteColor } from '../types'
 import { ArbitraryValue } from './ArbitraryValue'
 import styles from './ClassRow.module.css'
 import { ColorPicker } from './ColorPicker'
@@ -35,44 +36,6 @@ function description(explained: ExplainedClass): string {
   if (explained.prose !== null) return explained.prose
   if (explained.declarations.length === 0) return 'sets only Tailwind-internal variables'
   return 'no plain-English entry yet'
-}
-
-type ScopedGroup = { context?: string; selector?: string; declarations: Declaration[] }
-
-function groupByScope(declarations: Declaration[]): ScopedGroup[] {
-  const groups: ScopedGroup[] = []
-  for (const declaration of declarations) {
-    const last = groups.at(-1)
-    if (
-      last !== undefined &&
-      last.context === declaration.context &&
-      last.selector === declaration.selector
-    ) {
-      last.declarations.push(declaration)
-      continue
-    }
-    groups.push({
-      context: declaration.context,
-      selector: declaration.selector,
-      declarations: [declaration],
-    })
-  }
-  return groups
-}
-
-function formatDeclarations(explained: ExplainedClass): string {
-  return groupByScope(explained.declarations)
-    .map((group) => {
-      const wrappers = [group.context, group.selector].filter((part) => part !== undefined)
-      const body = group.declarations.map((d) => `${d.prop}: ${d.value}`)
-      return wrappers
-        .reduceRight<string[]>(
-          (inner, wrapper) => [`${wrapper} {`, ...inner.map((line) => `  ${line}`), '}'],
-          body,
-        )
-        .join('\n')
-    })
-    .join('\n')
 }
 
 export function ClassRow({
@@ -202,7 +165,7 @@ export function ClassRow({
           )}
 
           {declarations.length > 0 && (
-            <pre className={styles.raw}>{formatDeclarations(explained)}</pre>
+            <pre className={styles.raw}>{formatDeclarations(declarations)}</pre>
           )}
         </div>
       )}

@@ -6,6 +6,7 @@ import { App } from './App'
 const row = (text: string, index: number, numericValue: number | null): ExplainedClass => ({
   candidate: { text, range: { start: 0, end: text.length }, index },
   valid: true,
+  root: null,
   declarations: [],
   prose: 'something',
   group: 'spacing',
@@ -176,6 +177,7 @@ describe('App remembers the design-system payload', () => {
     return {
       candidate: { text: 'bg-blue-600', range: { start: 0, end: 11 }, index: 0 },
       valid: true,
+      root: null,
       declarations: [{ prop: 'background-color', value: 'blue' }],
       prose: 'background blue',
       group: 'color',
