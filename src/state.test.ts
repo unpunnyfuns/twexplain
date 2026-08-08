@@ -83,6 +83,7 @@ describe('computeState', () => {
         printCandidate: () => 'flex',
         parseVariant: () => ({ kind: 'static', root: 'hover' }),
         theme: { namespace: () => new Map() },
+        getClassList: () => [],
       },
     })
 

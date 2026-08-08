@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import { clearDesignSystemCache } from './design-system/load'
 import type { EditIntent } from './intent'
 import { resolveIntent } from './intent'
+import { searchClasses } from './search'
 import { computeState } from './state'
 import type { HostMessage, WebviewMessage } from './types'
 
@@ -97,6 +98,18 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     await vscode.workspace.applyEdit(workspaceEdit)
   }
 
+  const suggest = async (query: string): Promise<void> => {
+    const editor = vscode.window.activeTextEditor
+    if (editor === undefined) return
+    const folder = vscode.workspace.getWorkspaceFolder(editor.document.uri)
+
+    const matches = await searchClasses(
+      { workspaceRoot: folder?.uri.fsPath ?? null, fsPath: editor.document.uri.fsPath },
+      query,
+    )
+    post({ type: 'suggestions', query, matches })
+  }
+
   const scheduleRefresh = (): void => {
     if (timer !== undefined) clearTimeout(timer)
     timer = setTimeout(() => void refresh(), DEBOUNCE_MS)
@@ -111,6 +124,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         view.webview.onDidReceiveMessage((message: WebviewMessage) => {
           if (message.type === 'ready') void refresh()
           else if (message.type === 'edit') void applyIntent(message.intent as EditIntent)
+          else if (message.type === 'search') void suggest(message.query)
         })
         view.onDidDispose(() => {
           current = null

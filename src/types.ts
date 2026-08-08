@@ -60,6 +60,11 @@ export type EditIntent =
   | { type: 'remove'; index: number }
   | { type: 'add'; text: string }
 
-export type HostMessage = { type: 'state'; state: PanelState }
+export type HostMessage =
+  | { type: 'state'; state: PanelState }
+  | { type: 'suggestions'; query: string; matches: string[] }
 
-export type WebviewMessage = { type: 'ready' } | { type: 'edit'; intent: unknown }
+export type WebviewMessage =
+  | { type: 'ready' }
+  | { type: 'edit'; intent: unknown }
+  | { type: 'search'; query: string }

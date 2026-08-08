@@ -1,3 +1,7 @@
+export type SearchPort = {
+  getClassList(): Iterable<[string, unknown]>
+}
+
 export type ThemePort = {
   theme: { namespace(prefix: string): Iterable<[string, string]> }
 }

@@ -63,3 +63,70 @@ describe('App forwards edit intents to the host', () => {
     await expect.element(screen.getByText(/put your cursor inside a classname/i)).toBeVisible()
   })
 })
+
+describe('App add-class flow', () => {
+  it('asks the host to search as the user types', async () => {
+    const { screen, vscode } = await mount()
+
+    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+
+    expect(vscode.postMessage).toHaveBeenCalledWith({ type: 'search', query: 'gap' })
+  })
+
+  it('shows suggestions the host returns for the current query', async () => {
+    const { screen } = await mount()
+
+    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { type: 'suggestions', query: 'gap', matches: ['gap-2', 'gap-4'] },
+      }),
+    )
+
+    await expect.element(screen.getByRole('option', { name: 'gap-2' })).toBeVisible()
+  })
+
+  it('discards suggestions for a query the user has moved on from', async () => {
+    const { screen } = await mount()
+
+    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { type: 'suggestions', query: 'px', matches: ['px-4'] },
+      }),
+    )
+
+    expect(screen.getByRole('option', { name: 'px-4' }).elements()).toHaveLength(0)
+  })
+
+  it('posts an add intent when a suggestion is picked', async () => {
+    const { screen, vscode } = await mount()
+
+    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { type: 'suggestions', query: 'gap', matches: ['gap-2'] },
+      }),
+    )
+    await screen.getByRole('option', { name: 'gap-2' }).click()
+
+    expect(vscode.postMessage).toHaveBeenCalledWith({
+      type: 'edit',
+      intent: { type: 'add', text: 'gap-2' },
+    })
+  })
+
+  it('clears the query after adding, so the next search starts fresh', async () => {
+    const { screen } = await mount()
+
+    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { type: 'suggestions', query: 'gap', matches: ['gap-2'] },
+      }),
+    )
+    await screen.getByRole('option', { name: 'gap-2' }).click()
+
+    await expect.element(screen.getByRole('combobox', { name: /add a class/i })).toHaveValue('')
+  })
+})

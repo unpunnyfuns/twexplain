@@ -1,6 +1,7 @@
-import { type ReactElement, useEffect, useState } from 'react'
+import { type ReactElement, useEffect, useRef, useState } from 'react'
 import type { EditIntent, HostMessage, PanelState } from '../types'
 import styles from './App.module.css'
+import { AddClass } from './AddClass'
 import { ClassRow } from './ClassRow'
 
 export const NOTICES: Record<string, string> = {
@@ -16,10 +17,16 @@ export const NOTICES: Record<string, string> = {
 
 export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): ReactElement {
   const [state, setState] = useState<PanelState>({ status: 'no-selection' })
+  const [query, setQuery] = useState('')
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const queryRef = useRef('')
 
   useEffect(() => {
     const onMessage = (event: MessageEvent<HostMessage>): void => {
       if (event.data.type === 'state') setState(event.data.state)
+      else if (event.data.type === 'suggestions' && event.data.query === queryRef.current) {
+        setSuggestions(event.data.matches)
+      }
     }
     window.addEventListener('message', onMessage)
     vscode.postMessage({ type: 'ready' })
@@ -28,6 +35,20 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
 
   const sendIntent = (intent: EditIntent): void => {
     vscode.postMessage({ type: 'edit', intent })
+  }
+
+  const search = (next: string): void => {
+    queryRef.current = next
+    setQuery(next)
+    setSuggestions([])
+    vscode.postMessage({ type: 'search', query: next })
+  }
+
+  const pick = (text: string): void => {
+    sendIntent({ type: 'add', text })
+    queryRef.current = ''
+    setQuery('')
+    setSuggestions([])
   }
 
   return (
@@ -59,6 +80,9 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
             ))}
           </section>
         ))}
+      {state.status === 'ready' && (
+        <AddClass value={query} suggestions={suggestions} onChange={search} onPick={pick} />
+      )}
     </div>
   )
 }

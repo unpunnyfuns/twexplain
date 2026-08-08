@@ -46,6 +46,7 @@ const ds = {
   printVariant: (v: unknown) => (v as { root?: string }).root ?? '',
   resolveThemeValue: () => undefined,
   theme: { namespace: () => new Map<string, string>() },
+  getClassList: () => [] as [string, unknown][],
 }
 
 const SOURCE = '<div className="flex gap-2 px-4">x</div>'
