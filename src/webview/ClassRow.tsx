@@ -55,23 +55,29 @@ export function ClassRow({
 
   return (
     <div className={styles.row}>
-      <div className={styles.header}>
-        <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
-          {candidate.text}
-        </span>
-        {hasDetails && (
-          <button
-            type="button"
-            className={styles.toggle}
-            aria-expanded={open}
-            aria-label={`${open ? 'hide' : 'show'} details for ${candidate.text}`}
-            title={editable ? 'details and edit' : 'details'}
-            onClick={() => setOpen(!open)}
-          >
+      {hasDetails ? (
+        <button
+          type="button"
+          className={styles.header}
+          aria-expanded={open}
+          aria-label={`${open ? 'hide' : 'show'} details for ${candidate.text}`}
+          title={editable ? 'details and edit' : 'details'}
+          onClick={() => setOpen(!open)}
+        >
+          <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
+            {candidate.text}
+          </span>
+          <span className={styles.chevron} aria-hidden="true">
             {open ? '\u25be' : '\u25b8'}
-          </button>
-        )}
-      </div>
+          </span>
+        </button>
+      ) : (
+        <div className={styles.header}>
+          <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
+            {candidate.text}
+          </span>
+        </div>
+      )}
 
       <div
         className={prose === null ? `${styles.description} ${styles.muted}` : styles.description}

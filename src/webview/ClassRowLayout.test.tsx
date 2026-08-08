@@ -98,3 +98,43 @@ describe('row layout', () => {
     expect(screen.getByRole('button', { name: /details for/i }).elements()).toHaveLength(0)
   })
 })
+
+describe('clicking the class name', () => {
+  it('expands the details', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    await screen.getByText('px-4', { exact: true }).click()
+
+    await expect.element(screen.getByRole('button', { name: 'increase px-4' })).toBeVisible()
+  })
+
+  it('collapses again on a second click', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    await screen.getByText('px-4', { exact: true }).click()
+    await screen.getByText('px-4', { exact: true }).click()
+
+    expect(screen.getByRole('button', { name: 'increase px-4' }).elements()).toHaveLength(0)
+  })
+
+  it('keeps the class name readable as text', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    await expect.element(screen.getByText('px-4', { exact: true })).toBeVisible()
+  })
+
+  it('names the class in the toggle so it is clear what expands', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    await expect
+      .element(screen.getByRole('button', { name: /details for px-4/i }))
+      .toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('leaves the name inert when there is nothing to show', async () => {
+    const screen = await render(<ClassRow explained={explained({ declarations: [] })} />)
+
+    await expect.element(screen.getByText('px-4', { exact: true })).toBeVisible()
+    expect(screen.getByRole('button', { name: /details for/i }).elements()).toHaveLength(0)
+  })
+})
