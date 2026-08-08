@@ -12,6 +12,7 @@ const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => (
   variants: [],
   swatch: null,
   numericValue: 4,
+  modifier: null,
   ...overrides,
 })
 
@@ -77,6 +78,7 @@ describe('remove control', () => {
           prose: null,
           declarations: [],
           numericValue: null,
+          modifier: null,
           candidate: { text: 'nope-999', range: { start: 0, end: 8 }, index: 0 },
         })}
         onIntent={onIntent}
@@ -170,5 +172,40 @@ describe('colour picker in a row', () => {
     const screen = await render(<ClassRow explained={colourRow()} palette={PALETTE} />)
 
     expect(screen.getByRole('button', { name: 'red-500' }).elements()).toHaveLength(0)
+  })
+})
+
+describe('opacity control in a row', () => {
+  const colour = (modifier: string | null) =>
+    explained({
+      candidate: { text: 'bg-blue-600', range: { start: 0, end: 11 }, index: 5 },
+      declarations: [{ prop: 'background-color', value: 'oklch(55% 0.22 262)' }],
+      group: 'color',
+      swatch: 'oklch(55% 0.22 262)',
+      numericValue: null,
+      modifier,
+    })
+
+  it('offers opacity for a class that resolved a colour', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(<ClassRow explained={colour(null)} onIntent={onIntent} />)
+
+    await screen.getByRole('button', { name: '50% opacity' }).click()
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'setModifier', index: 5, modifier: '50' })
+  })
+
+  it('shows the current opacity', async () => {
+    const screen = await render(<ClassRow explained={colour('25')} onIntent={vi.fn()} />)
+
+    await expect
+      .element(screen.getByRole('button', { name: '25% opacity' }))
+      .toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('offers no opacity control for a class with no colour', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    expect(screen.getByRole('button', { name: '50% opacity' }).elements()).toHaveLength(0)
   })
 })

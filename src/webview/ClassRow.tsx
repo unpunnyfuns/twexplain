@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 import type { EditIntent, ExplainedClass, PaletteColor } from '../types'
 import styles from './ClassRow.module.css'
 import { ColorPicker } from './ColorPicker'
+import { OpacityControl } from './OpacityControl'
 import { VariantChips } from './VariantChips'
 
 function currentColorName(explained: ExplainedClass, palette: PaletteColor[]): string | null {
@@ -66,6 +67,13 @@ export function ClassRow({
             ×
           </button>
           <VariantChips index={candidate.index} variants={explained.variants} onIntent={onIntent} />
+          {swatch !== null && (
+            <OpacityControl
+              index={candidate.index}
+              modifier={explained.modifier}
+              onIntent={onIntent}
+            />
+          )}
           {swatch !== null && (
             <ColorPicker
               index={candidate.index}

@@ -34,6 +34,7 @@ export type ExplainedClass = {
   variants: string[]
   swatch: string | null
   numericValue: number | null
+  modifier: string | null
 }
 
 export type ExplainGroup = { name: GroupName; classes: ExplainedClass[] }

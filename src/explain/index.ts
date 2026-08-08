@@ -10,9 +10,12 @@ export type ParsedVariant = { kind: string; root?: string }
 
 export type DesignSystemPort = {
   candidatesToCss(candidates: string[]): (string | null)[]
-  parseCandidate(
-    candidate: string,
-  ): { root: string; variants: ParsedVariant[]; value?: { value: string } | null }[]
+  parseCandidate(candidate: string): {
+    root: string
+    variants: ParsedVariant[]
+    value?: { value: string } | null
+    modifier?: { value: string } | null
+  }[]
   printVariant(variant: ParsedVariant): string
   resolveThemeValue(key: string): string | undefined
 }
@@ -64,6 +67,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
         variants: [],
         swatch: null,
         numericValue: null,
+        modifier: null,
       }
     }
 
@@ -95,6 +99,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
       variants,
       swatch: swatchFrom(declarations),
       numericValue: numericValueOf(parsed),
+      modifier: parsed?.modifier?.value ?? null,
     }
   })
 

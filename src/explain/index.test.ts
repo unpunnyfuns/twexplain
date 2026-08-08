@@ -379,3 +379,29 @@ describe('numeric value for steppers', () => {
     expect(numericOf('flex')).toBeNull()
   })
 })
+
+describe('modifier for the opacity control', () => {
+  const modifierDs: DesignSystemPort = {
+    ...fakeDs,
+    candidatesToCss: (cs) => cs.map(() => '.x { color: red; }'),
+    parseCandidate: (c) => {
+      if (c === 'bg-blue-600/50')
+        return [
+          { root: 'bg', value: { value: 'blue-600' }, modifier: { value: '50' }, variants: [] },
+        ]
+      if (c === 'bg-blue-600') return [{ root: 'bg', value: { value: 'blue-600' }, variants: [] }]
+      return [{ root: c, variants: [] }]
+    },
+  }
+
+  const modifierOf = (text: string): string | null | undefined =>
+    explainCandidates([candidate(text, 0)], modifierDs).flatMap((g) => g.classes)[0]?.modifier
+
+  it('reports the modifier when the class has one', () => {
+    expect(modifierOf('bg-blue-600/50')).toBe('50')
+  })
+
+  it('reports null when the class has no modifier', () => {
+    expect(modifierOf('bg-blue-600')).toBeNull()
+  })
+})

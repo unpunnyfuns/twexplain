@@ -17,6 +17,7 @@ const explained = (
   variants: [],
   swatch: null,
   numericValue: null,
+  modifier: null,
 })
 
 const render = (row: ExplainedClass): string => renderToStaticMarkup(<ClassRow explained={row} />)

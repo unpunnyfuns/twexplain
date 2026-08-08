@@ -12,6 +12,7 @@ const row = (text: string, index: number, numericValue: number | null): Explaine
   variants: [],
   swatch: null,
   numericValue,
+  modifier: null,
 })
 
 const ready: PanelState = {
