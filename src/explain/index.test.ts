@@ -405,3 +405,32 @@ describe('modifier for the opacity control', () => {
     expect(modifierOf('bg-blue-600')).toBeNull()
   })
 })
+
+describe('arbitrary value for the text input', () => {
+  const arbitraryDs: DesignSystemPort = {
+    ...fakeDs,
+    candidatesToCss: (cs) => cs.map(() => '.x { padding: 13px; }'),
+    parseCandidate: (c) => {
+      if (c === 'p-[13px]')
+        return [{ root: 'p', value: { kind: 'arbitrary', value: '13px' }, variants: [] }]
+      if (c === 'px-4') return [{ root: 'px', value: { kind: 'named', value: '4' }, variants: [] }]
+      return [{ root: c, variants: [] }]
+    },
+  }
+
+  const arbitraryOf = (text: string): string | null | undefined =>
+    explainCandidates([candidate(text, 0)], arbitraryDs).flatMap((g) => g.classes)[0]
+      ?.arbitraryValue
+
+  it('reports the raw value for an arbitrary utility', () => {
+    expect(arbitraryOf('p-[13px]')).toBe('13px')
+  })
+
+  it('reports null for a named value', () => {
+    expect(arbitraryOf('px-4')).toBeNull()
+  })
+
+  it('reports null for a utility with no value', () => {
+    expect(arbitraryOf('flex')).toBeNull()
+  })
+})

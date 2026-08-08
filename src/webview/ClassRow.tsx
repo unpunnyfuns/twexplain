@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import type { EditIntent, ExplainedClass, PaletteColor } from '../types'
 import styles from './ClassRow.module.css'
+import { ArbitraryValue } from './ArbitraryValue'
 import { ColorPicker } from './ColorPicker'
 import { OpacityControl } from './OpacityControl'
 import { VariantChips } from './VariantChips'
@@ -57,6 +58,13 @@ export function ClassRow({
                 +
               </button>
             </>
+          )}
+          {explained.arbitraryValue !== null && (
+            <ArbitraryValue
+              index={candidate.index}
+              value={explained.arbitraryValue}
+              onIntent={onIntent}
+            />
           )}
           <button
             type="button"

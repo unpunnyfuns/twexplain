@@ -242,3 +242,47 @@ Still to build for Milestone 2: the panel controls (steppers, colour picker, var
 add-class combobox with host-side search over `getClassList()`), and the remaining write-back
 rulings — session-scoped disable list, the revision-token echo guard, arbitrary-value text
 inputs.
+
+## Milestone 2 — complete
+
+Full editing surface, each control mapping to one intent, one `WorkspaceEdit`, one undo step:
+
+| control | intent | shown when |
+|---|---|---|
+| `− +` stepper | `step` | the value is numeric |
+| text input | `setValue` with `[…]` | the value is arbitrary |
+| colour grid | `setValue` | the class resolved a colour |
+| `100 / 75 / 50 / 25` | `setModifier` | the class resolved a colour |
+| variant chips | `addVariant` / `removeVariant` | always, when editing |
+| `×` | `remove` | always, including invalid classes |
+| combobox | `add` | at the panel foot |
+| undo last edit | — runs the editor's own undo | at the panel foot |
+
+Everything the panel needs to decide *which* control to show — `numericValue`, `modifier`,
+`arbitraryValue`, `swatch` — is computed in the pipeline from Tailwind's parsed candidate, never
+re-derived from the class text in the view. Splitting `bg-blue-600` naively gives root `bg-blue`
+and value `600`; splitting on `/` breaks `w-1/2`.
+
+### Two rulings closed by other means, not implemented
+
+**Session-scoped disable list — deliberately not built.** The spec designed `×` to record the
+removed class in an in-memory list so it could be toggled back. Building that would have been a
+worse re-implementation of undo: `addCandidate` appends, so restoring the first class in a string
+would silently move it to the end. The ruling's purpose was that the panel not pretend removal is
+reversible when it isn't — and the editor's undo makes it genuinely reversible, at the original
+position, with formatting intact. So the panel now surfaces **that** undo instead, labelled as the
+editor's own so there is no ambiguity about which undo it is.
+
+**Revision-token echo guard — not needed.** Its stated goal was that the panel never fight the
+user's typing. The generation guard already ensures only the newest refresh posts a state, and
+after an edit a refresh is exactly what should happen — it is how the explanation updates as a
+value is stepped. A token suppressing panel-originated refreshes would have broken that.
+
+### Known gaps
+
+- The common-variant set is hardcoded (8 entries), not read from `getVariants()`' 88. Uncommon
+  variants can be removed but not added.
+- Variant stacking order is not controllable: `addVariant` appends, giving `md:hover:`.
+- `void applyIntent(...)` swallows a rejection, as `void refresh()` does. If an intent throws
+  rather than returning null, the click does nothing with no feedback.
+- The palette rides on every ready state (~12KB) rather than being pushed once.

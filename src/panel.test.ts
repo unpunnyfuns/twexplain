@@ -14,7 +14,9 @@ vi.mock('vscode', () => ({
     onDidChangeTextEditorSelection: vi.fn(() => ({ dispose: vi.fn() })),
     onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
     activeTextEditor: undefined,
+    showTextDocument: vi.fn(async () => undefined),
   },
+  commands: { executeCommand: vi.fn(async () => undefined) },
   workspace: {
     onDidChangeTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     createFileSystemWatcher: vi.fn(() => ({
@@ -71,6 +73,7 @@ function makeFakeView() {
     webview,
     fireReady: () => readyCb?.({ type: 'ready' }),
     fireEdit: (intent: unknown) => readyCb?.({ type: 'edit', intent } as never),
+    fireUndo: () => readyCb?.({ type: 'undo' } as never),
     fireDispose: () => disposeCb?.(),
   }
 }
@@ -284,5 +287,42 @@ describe('registerPanel edit intents', () => {
     await Promise.resolve()
 
     expect(vi.mocked(vscode.workspace.applyEdit)).not.toHaveBeenCalled()
+  })
+})
+
+describe('registerPanel undo', () => {
+  it('focuses the editor and runs the editor undo command', async () => {
+    const vscode = await import('vscode')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireUndo } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+
+    fireUndo()
+    await Promise.resolve()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(vi.mocked(vscode.window.showTextDocument)).toHaveBeenCalled()
+    expect(vi.mocked(vscode.commands.executeCommand)).toHaveBeenCalledWith('undo')
+  })
+
+  it('does nothing without an active editor', async () => {
+    const vscode = await import('vscode')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireUndo } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = undefined
+    fireUndo()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(vi.mocked(vscode.commands.executeCommand)).not.toHaveBeenCalled()
   })
 })

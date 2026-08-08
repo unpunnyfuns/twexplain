@@ -13,6 +13,7 @@ const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => (
   swatch: null,
   numericValue: 4,
   modifier: null,
+  arbitraryValue: null,
   ...overrides,
 })
 
@@ -207,5 +208,37 @@ describe('opacity control in a row', () => {
     const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
 
     expect(screen.getByRole('button', { name: '50% opacity' }).elements()).toHaveLength(0)
+  })
+})
+
+describe('arbitrary value in a row', () => {
+  const arbitrary = () =>
+    explained({
+      candidate: { text: 'p-[13px]', range: { start: 0, end: 8 }, index: 2 },
+      declarations: [{ prop: 'padding', value: '13px' }],
+      group: 'spacing',
+      numericValue: null,
+      arbitraryValue: '13px',
+    })
+
+  it('offers a text input instead of a stepper', async () => {
+    const screen = await render(<ClassRow explained={arbitrary()} onIntent={vi.fn()} />)
+
+    await expect
+      .element(screen.getByRole('textbox', { name: /arbitrary value/i }))
+      .toHaveValue('13px')
+    expect(screen.getByRole('button', { name: 'increase p-[13px]' }).elements()).toHaveLength(0)
+  })
+
+  it('offers no text input for a named value', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    expect(screen.getByRole('textbox', { name: /arbitrary value/i }).elements()).toHaveLength(0)
+  })
+
+  it('offers no text input in read-only mode', async () => {
+    const screen = await render(<ClassRow explained={arbitrary()} />)
+
+    expect(screen.getByRole('textbox', { name: /arbitrary value/i }).elements()).toHaveLength(0)
   })
 })

@@ -35,6 +35,7 @@ export type ExplainedClass = {
   swatch: string | null
   numericValue: number | null
   modifier: string | null
+  arbitraryValue: string | null
 }
 
 export type ExplainGroup = { name: GroupName; classes: ExplainedClass[] }
@@ -69,3 +70,4 @@ export type WebviewMessage =
   | { type: 'ready' }
   | { type: 'edit'; intent: unknown }
   | { type: 'search'; query: string }
+  | { type: 'undo' }

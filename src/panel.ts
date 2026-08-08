@@ -98,6 +98,13 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     await vscode.workspace.applyEdit(workspaceEdit)
   }
 
+  const undoLastEdit = async (): Promise<void> => {
+    const editor = vscode.window.activeTextEditor
+    if (editor === undefined) return
+    await vscode.window.showTextDocument(editor.document, { preserveFocus: false })
+    await vscode.commands.executeCommand('undo')
+  }
+
   const suggest = async (query: string): Promise<void> => {
     const editor = vscode.window.activeTextEditor
     if (editor === undefined) return
@@ -125,6 +132,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
           if (message.type === 'ready') void refresh()
           else if (message.type === 'edit') void applyIntent(message.intent as EditIntent)
           else if (message.type === 'search') void suggest(message.query)
+          else if (message.type === 'undo') void undoLastEdit()
         })
         view.onDidDispose(() => {
           current = null

@@ -13,7 +13,7 @@ export type DesignSystemPort = {
   parseCandidate(candidate: string): {
     root: string
     variants: ParsedVariant[]
-    value?: { value: string } | null
+    value?: { kind?: string; value: string } | null
     modifier?: { value: string } | null
   }[]
   printVariant(variant: ParsedVariant): string
@@ -68,6 +68,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
         swatch: null,
         numericValue: null,
         modifier: null,
+        arbitraryValue: null,
       }
     }
 
@@ -100,6 +101,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
       swatch: swatchFrom(declarations),
       numericValue: numericValueOf(parsed),
       modifier: parsed?.modifier?.value ?? null,
+      arbitraryValue: parsed?.value?.kind === 'arbitrary' ? parsed.value.value : null,
     }
   })
 

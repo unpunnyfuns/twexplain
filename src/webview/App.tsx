@@ -81,7 +81,17 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
           </section>
         ))}
       {state.status === 'ready' && (
-        <AddClass value={query} suggestions={suggestions} onChange={search} onPick={pick} />
+        <>
+          <AddClass value={query} suggestions={suggestions} onChange={search} onPick={pick} />
+          <button
+            type="button"
+            className={styles.undo}
+            title="Runs the editor’s own undo, the same as ⌘Z"
+            onClick={() => vscode.postMessage({ type: 'undo' })}
+          >
+            undo last edit
+          </button>
+        </>
       )}
     </div>
   )

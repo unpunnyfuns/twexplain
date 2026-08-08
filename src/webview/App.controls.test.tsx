@@ -13,6 +13,7 @@ const row = (text: string, index: number, numericValue: number | null): Explaine
   swatch: null,
   numericValue,
   modifier: null,
+  arbitraryValue: null,
 })
 
 const ready: PanelState = {
@@ -129,5 +130,30 @@ describe('App add-class flow', () => {
     await screen.getByRole('option', { name: 'gap-2' }).click()
 
     await expect.element(screen.getByRole('combobox', { name: /add a class/i })).toHaveValue('')
+  })
+})
+
+describe('App undo affordance', () => {
+  it('asks the host to undo when the button is used', async () => {
+    const { screen, vscode } = await mount()
+
+    await screen.getByRole('button', { name: /undo last edit/i }).click()
+
+    expect(vscode.postMessage).toHaveBeenCalledWith({ type: 'undo' })
+  })
+
+  it('names the editor shortcut so it is clear which undo this is', async () => {
+    const { screen } = await mount()
+
+    await expect
+      .element(screen.getByRole('button', { name: /undo last edit/i }))
+      .toHaveAttribute('title', 'Runs the editor’s own undo, the same as ⌘Z')
+  })
+
+  it('offers no undo before a class string is selected', async () => {
+    const vscode = { postMessage: vi.fn() }
+    const screen = await render(<App vscode={vscode} />)
+
+    expect(screen.getByRole('button', { name: /undo last edit/i }).elements()).toHaveLength(0)
   })
 })

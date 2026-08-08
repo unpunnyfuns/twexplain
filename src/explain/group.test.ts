@@ -12,6 +12,7 @@ const explained = (name: string, group: ExplainedClass['group']): ExplainedClass
   swatch: null,
   numericValue: null,
   modifier: null,
+  arbitraryValue: null,
 })
 
 describe('groupFor', () => {
