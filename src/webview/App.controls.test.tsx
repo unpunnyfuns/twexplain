@@ -17,6 +17,7 @@ const row = (text: string, index: number, numericValue: number | null): Explaine
 const ready: PanelState = {
   status: 'ready',
   groups: [{ name: 'spacing', classes: [row('px-4', 0, 4), row('flex', 1, null)] }],
+  palette: [],
 }
 
 async function mount() {

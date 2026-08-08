@@ -130,3 +130,45 @@ describe('variant chips in a row', () => {
     expect(screen.getByRole('button', { name: 'hover', exact: true }).elements()).toHaveLength(0)
   })
 })
+
+const PALETTE = [
+  { name: 'blue-600', value: 'oklch(55% 0.22 262)' },
+  { name: 'red-500', value: 'oklch(64% 0.24 25)' },
+]
+
+describe('colour picker in a row', () => {
+  const colourRow = () =>
+    explained({
+      candidate: { text: 'bg-blue-600', range: { start: 0, end: 11 }, index: 5 },
+      declarations: [{ prop: 'background-color', value: 'oklch(55% 0.22 262)' }],
+      prose: 'background oklch(55% 0.22 262)',
+      group: 'color',
+      swatch: 'oklch(55% 0.22 262)',
+      numericValue: null,
+    })
+
+  it('offers the palette for a class that resolved a colour', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(
+      <ClassRow explained={colourRow()} onIntent={onIntent} palette={PALETTE} />,
+    )
+
+    await screen.getByRole('button', { name: 'red-500' }).click()
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 5, value: 'red-500' })
+  })
+
+  it('offers no palette for a class with no colour', async () => {
+    const screen = await render(
+      <ClassRow explained={explained()} onIntent={vi.fn()} palette={PALETTE} />,
+    )
+
+    expect(screen.getByRole('button', { name: 'red-500' }).elements()).toHaveLength(0)
+  })
+
+  it('offers no palette in read-only mode', async () => {
+    const screen = await render(<ClassRow explained={colourRow()} palette={PALETTE} />)
+
+    expect(screen.getByRole('button', { name: 'red-500' }).elements()).toHaveLength(0)
+  })
+})

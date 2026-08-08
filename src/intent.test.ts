@@ -45,6 +45,7 @@ const ds = {
   candidatesToCss: (cs: string[]) => cs.map(() => null),
   printVariant: (v: unknown) => (v as { root?: string }).root ?? '',
   resolveThemeValue: () => undefined,
+  theme: { namespace: () => new Map<string, string>() },
 }
 
 const SOURCE = '<div className="flex gap-2 px-4">x</div>'

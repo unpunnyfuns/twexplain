@@ -1,3 +1,7 @@
+export type ThemePort = {
+  theme: { namespace(prefix: string): Iterable<[string, string]> }
+}
+
 export type EditPort = {
   parseCandidate(candidate: string): unknown[]
   printCandidate(candidate: unknown): string

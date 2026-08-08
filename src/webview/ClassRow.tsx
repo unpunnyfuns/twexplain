@@ -1,7 +1,12 @@
 import type { ReactElement } from 'react'
-import type { EditIntent, ExplainedClass } from '../types'
+import type { EditIntent, ExplainedClass, PaletteColor } from '../types'
 import styles from './ClassRow.module.css'
+import { ColorPicker } from './ColorPicker'
 import { VariantChips } from './VariantChips'
+
+function currentColorName(explained: ExplainedClass, palette: PaletteColor[]): string | null {
+  return palette.find((color) => color.value === explained.swatch)?.name ?? null
+}
 
 function swatchCondition(explained: ExplainedClass): string | null {
   const { declarations, swatch, variants } = explained
@@ -14,9 +19,11 @@ function swatchCondition(explained: ExplainedClass): string | null {
 export function ClassRow({
   explained,
   onIntent,
+  palette = [],
 }: {
   explained: ExplainedClass
   onIntent?: (intent: EditIntent) => void
+  palette?: PaletteColor[]
 }): ReactElement {
   const { candidate, valid, prose, declarations, swatch, numericValue } = explained
   const condition = swatch === null ? null : swatchCondition(explained)
@@ -59,6 +66,14 @@ export function ClassRow({
             ×
           </button>
           <VariantChips index={candidate.index} variants={explained.variants} onIntent={onIntent} />
+          {swatch !== null && (
+            <ColorPicker
+              index={candidate.index}
+              current={currentColorName(explained, palette)}
+              palette={palette}
+              onIntent={onIntent}
+            />
+          )}
         </span>
       )}
       <span>

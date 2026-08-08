@@ -82,6 +82,7 @@ describe('computeState', () => {
         resolveThemeValue: () => undefined,
         printCandidate: () => 'flex',
         parseVariant: () => ({ kind: 'static', root: 'hover' }),
+        theme: { namespace: () => new Map() },
       },
     })
 
@@ -96,5 +97,54 @@ describe('computeState stale runtime', () => {
   it('tells the user to reload rather than reporting a generic load error', async () => {
     givenLoad({ ok: false, reason: 'stale-runtime', detail: 'loaded 4.1.0, now 4.2.0' })
     expect((await computeState(base)).status).toBe('stale-runtime')
+  })
+})
+
+describe('computeState palette', () => {
+  const withTheme = (colors: [string, string][]) => ({
+    ok: true as const,
+    entry: '/ws/src/app.css',
+    ds: {
+      candidatesToCss: () => ['.flex { display: flex; }'],
+      parseCandidate: () => [{ root: 'flex', variants: [] }],
+      printVariant: () => '',
+      resolveThemeValue: () => undefined,
+      printCandidate: () => 'flex',
+      parseVariant: () => ({ kind: 'static', root: 'hover' }),
+      theme: { namespace: () => new Map(colors) },
+    },
+  })
+
+  it('carries the workspace palette so the picker can offer real colours', async () => {
+    givenLoad(
+      withTheme([
+        ['blue-600', 'oklch(1 2 3)'],
+        ['brand-600', '#4f46e5'],
+      ]) as never,
+    )
+    const state = await computeState(base)
+
+    expect(state.status).toBe('ready')
+    if (state.status !== 'ready') return
+    expect(state.palette).toEqual([
+      { name: 'blue-600', value: 'oklch(1 2 3)' },
+      { name: 'brand-600', value: '#4f46e5' },
+    ])
+  })
+
+  it('includes custom @theme colours, not just Tailwind defaults', async () => {
+    givenLoad(withTheme([['brand-600', '#4f46e5']]) as never)
+    const state = await computeState(base)
+
+    if (state.status !== 'ready') throw new Error('expected ready')
+    expect(state.palette.map((c) => c.name)).toContain('brand-600')
+  })
+
+  it('reports an empty palette rather than failing when the theme has no colours', async () => {
+    givenLoad(withTheme([]) as never)
+    const state = await computeState(base)
+
+    if (state.status !== 'ready') throw new Error('expected ready')
+    expect(state.palette).toEqual([])
   })
 })

@@ -1,7 +1,7 @@
 import { loadDesignSystem } from './design-system/load'
 import { detectJsx } from './detect/jsx'
 import { explainCandidates } from './explain/index'
-import type { PanelState } from './types'
+import type { PaletteColor, PanelState } from './types'
 
 export type StateInput = {
   text: string
@@ -9,6 +9,12 @@ export type StateInput = {
   uri: string
   workspaceRoot: string | null
   fsPath: string
+}
+
+function paletteFrom(ds: {
+  theme: { namespace(prefix: string): Iterable<[string, string]> }
+}): PaletteColor[] {
+  return Array.from(ds.theme.namespace('--color'), ([name, value]) => ({ name, value }))
 }
 
 export async function computeState(input: StateInput): Promise<PanelState> {
@@ -28,5 +34,9 @@ export async function computeState(input: StateInput): Promise<PanelState> {
     return { status: 'load-error', message: loaded.detail ?? 'unknown error' }
   }
 
-  return { status: 'ready', groups: explainCandidates(location.candidates, loaded.ds) }
+  return {
+    status: 'ready',
+    groups: explainCandidates(location.candidates, loaded.ds),
+    palette: paletteFrom(loaded.ds),
+  }
 }

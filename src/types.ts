@@ -38,6 +38,8 @@ export type ExplainedClass = {
 
 export type ExplainGroup = { name: GroupName; classes: ExplainedClass[] }
 
+export type PaletteColor = { name: string; value: string }
+
 export type PanelState =
   | { status: 'no-workspace-tailwind' }
   | { status: 'wrong-version'; found: string }
@@ -47,7 +49,7 @@ export type PanelState =
   | { status: 'load-error'; message: string }
   | { status: 'loading' }
   | { status: 'no-selection' }
-  | { status: 'ready'; groups: ExplainGroup[] }
+  | { status: 'ready'; groups: ExplainGroup[]; palette: PaletteColor[] }
 
 export type EditIntent =
   | { type: 'step'; index: number; delta: number }
