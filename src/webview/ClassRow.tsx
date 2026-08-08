@@ -1,5 +1,5 @@
 import { type ReactElement, useState } from 'react'
-import type { EditIntent, ExplainedClass, PaletteColor } from '../types'
+import type { Declaration, EditIntent, ExplainedClass, PaletteColor } from '../types'
 import { ArbitraryValue } from './ArbitraryValue'
 import styles from './ClassRow.module.css'
 import { ColorPicker } from './ColorPicker'
@@ -10,12 +10,24 @@ function currentColorName(explained: ExplainedClass, palette: PaletteColor[]): s
   return palette.find((color) => color.value === explained.swatch)?.name ?? null
 }
 
-function swatchCondition(explained: ExplainedClass): string | null {
+function swatchTitle(explained: ExplainedClass): string | null {
   const { declarations, swatch, variants } = explained
+  if (swatch === null) return null
+
   const source = declarations.find((d) => d.value === swatch)
-  if (source?.context !== undefined) return source.context
-  if (variants.length > 0) return variants.join(', ')
-  return null
+  const when = source?.context ?? (variants.length > 0 ? variants.join(', ') : null)
+  const where = source?.selector ?? null
+
+  if (when !== null && where !== null) return `${swatch} — only when ${when}, on ${where}`
+  if (when !== null) return `${swatch} — only when ${when}`
+  if (where !== null) return `${swatch} — only on ${where}`
+  return swatch
+}
+
+function isScoped(explained: ExplainedClass): boolean {
+  const source = explained.declarations.find((d) => d.value === explained.swatch)
+  if (source?.context !== undefined || source?.selector !== undefined) return true
+  return explained.variants.length > 0
 }
 
 function description(explained: ExplainedClass): string {
@@ -25,13 +37,41 @@ function description(explained: ExplainedClass): string {
   return 'no plain-English entry yet'
 }
 
+type ScopedGroup = { context?: string; selector?: string; declarations: Declaration[] }
+
+function groupByScope(declarations: Declaration[]): ScopedGroup[] {
+  const groups: ScopedGroup[] = []
+  for (const declaration of declarations) {
+    const last = groups.at(-1)
+    if (
+      last !== undefined &&
+      last.context === declaration.context &&
+      last.selector === declaration.selector
+    ) {
+      last.declarations.push(declaration)
+      continue
+    }
+    groups.push({
+      context: declaration.context,
+      selector: declaration.selector,
+      declarations: [declaration],
+    })
+  }
+  return groups
+}
+
 function formatDeclarations(explained: ExplainedClass): string {
-  return explained.declarations
-    .map((d) =>
-      d.context === undefined
-        ? `${d.prop}: ${d.value}`
-        : `${d.context} {\n  ${d.prop}: ${d.value}\n}`,
-    )
+  return groupByScope(explained.declarations)
+    .map((group) => {
+      const wrappers = [group.context, group.selector].filter((part) => part !== undefined)
+      const body = group.declarations.map((d) => `${d.prop}: ${d.value}`)
+      return wrappers
+        .reduceRight<string[]>(
+          (inner, wrapper) => [`${wrapper} {`, ...inner.map((line) => `  ${line}`), '}'],
+          body,
+        )
+        .join('\n')
+    })
     .join('\n')
 }
 
@@ -47,8 +87,8 @@ export function ClassRow({
   availableVariants?: string[]
 }): ReactElement {
   const { candidate, valid, prose, declarations, swatch, numericValue } = explained
-  const condition = swatch === null ? null : swatchCondition(explained)
-  const swatchTitle = condition === null ? swatch : `${swatch} — only when ${condition}`
+  const scoped = swatch !== null && isScoped(explained)
+  const title = swatchTitle(explained)
   const editable = onIntent !== undefined
   const hasDetails = editable || declarations.length > 0
   const [open, setOpen] = useState(false)
@@ -84,11 +124,9 @@ export function ClassRow({
       >
         {swatch !== null && (
           <span
-            className={
-              condition === null ? styles.swatch : `${styles.swatch} ${styles.swatchConditional}`
-            }
+            className={scoped ? `${styles.swatch} ${styles.swatchConditional}` : styles.swatch}
             style={{ background: swatch }}
-            title={swatchTitle ?? undefined}
+            title={title ?? undefined}
           />
         )}
         {description(explained)}

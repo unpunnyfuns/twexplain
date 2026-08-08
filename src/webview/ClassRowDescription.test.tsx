@@ -167,3 +167,99 @@ describe('swatch qualification', () => {
     expect(screen.getByTitle(/only when/).elements()).toHaveLength(0)
   })
 })
+
+describe('selector scope', () => {
+  it('wraps a child-scoped declaration in the selector it actually targets', async () => {
+    const screen = await open(
+      explained('divide-y', null, [
+        {
+          prop: 'border-top-width',
+          value: '1px',
+          selector: ':where(& > :not(:last-child))',
+        },
+      ]),
+    )
+
+    await expect.element(screen.getByText(/:where\(& > :not\(:last-child\)\) \{/)).toBeVisible()
+  })
+
+  it('nests the selector inside the at-rule rather than listing them side by side', async () => {
+    const screen = await open(
+      explained('hover-ish', null, [
+        {
+          prop: 'background-color',
+          value: 'red',
+          context: '@media (hover: hover)',
+          selector: '&:hover',
+        },
+      ]),
+    )
+
+    const raw = screen.getByText(/@media \(hover: hover\)/)
+    await expect.element(raw).toBeVisible()
+    expect((await raw.element()).textContent).toBe(
+      '@media (hover: hover) {\n  &:hover {\n    background-color: red\n  }\n}',
+    )
+  })
+
+  it('states a shared scope once rather than repeating it per declaration', async () => {
+    const screen = await open(
+      explained('divide-y', null, [
+        { prop: 'border-top-width', value: '1px', selector: ':where(& > *)' },
+        { prop: 'border-bottom-width', value: '0px', selector: ':where(& > *)' },
+      ]),
+    )
+
+    const raw = screen.getByText(/border-top-width/)
+    expect((await raw.element()).textContent).toBe(
+      ':where(& > *) {\n  border-top-width: 1px\n  border-bottom-width: 0px\n}',
+    )
+  })
+
+  it('says a swatch lands on other elements rather than implying it is unconditional', async () => {
+    const screen = await render(
+      <ClassRow
+        explained={{
+          ...withSwatch(
+            'divide-red-500',
+            [
+              {
+                prop: 'border-color',
+                value: 'red',
+                selector: ':where(& > :not(:last-child))',
+              },
+            ],
+            'red',
+          ),
+        }}
+      />,
+    )
+
+    await expect
+      .element(screen.getByTitle('red — only on :where(& > :not(:last-child))'))
+      .toBeVisible()
+  })
+
+  it('names both when a swatch applies and what it applies to', async () => {
+    const screen = await render(
+      <ClassRow
+        explained={withSwatch(
+          'dark:divide-red-500',
+          [
+            {
+              prop: 'border-color',
+              value: 'red',
+              selector: ':where(&:where(.dark, .dark *) > *)',
+            },
+          ],
+          'red',
+          ['dark'],
+        )}
+      />,
+    )
+
+    await expect
+      .element(screen.getByTitle('red — only when dark, on :where(&:where(.dark, .dark *) > *)'))
+      .toBeVisible()
+  })
+})

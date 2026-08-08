@@ -239,10 +239,10 @@ border-t
 divide-y
   group: border
   prose: horizontal dividing lines between children, except the last
-    border-bottom-style: var(--tw-border-style)
-    border-top-style: var(--tw-border-style)
-    border-top-width: calc(1px * var(--tw-divide-y-reverse))
-    border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)))
+    border-bottom-style: var(--tw-border-style)   [:where(& > :not(:last-child))]
+    border-top-style: var(--tw-border-style)   [:where(& > :not(:last-child))]
+    border-top-width: calc(1px * var(--tw-divide-y-reverse))   [:where(& > :not(:last-child))]
+    border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)))   [:where(& > :not(:last-child))]
 
 shadow
   group: effects
@@ -367,7 +367,7 @@ transform-none
 divide-red-500
   group: border
   prose: [no prose — raw CSS shown]
-    border-color: oklch(63.7% 0.237 25.331)
+    border-color: oklch(63.7% 0.237 25.331)   [:where(& > :not(:last-child))]
 
 from-blue-500
   group: other
@@ -402,36 +402,36 @@ space-x-reverse
 space-x-4
   group: spacing
   prose: horizontal gap between children, except the last
-    margin-inline-start: calc(16px * var(--tw-space-x-reverse))
-    margin-inline-end: calc(16px * calc(1 - var(--tw-space-x-reverse)))
+    margin-inline-start: calc(16px * var(--tw-space-x-reverse))   [:where(& > :not(:last-child))]
+    margin-inline-end: calc(16px * calc(1 - var(--tw-space-x-reverse)))   [:where(& > :not(:last-child))]
 
 space-y-2
   group: spacing
   prose: vertical gap between children, except the last
-    margin-block-start: calc(8px * var(--tw-space-y-reverse))
-    margin-block-end: calc(8px * calc(1 - var(--tw-space-y-reverse)))
+    margin-block-start: calc(8px * var(--tw-space-y-reverse))   [:where(& > :not(:last-child))]
+    margin-block-end: calc(8px * calc(1 - var(--tw-space-y-reverse)))   [:where(& > :not(:last-child))]
 
 space-x-0
   group: spacing
   prose: [no prose — raw CSS shown]
-    margin-inline-start: 0
-    margin-inline-end: 0
+    margin-inline-start: 0   [:where(& > :not(:last-child))]
+    margin-inline-end: 0   [:where(& > :not(:last-child))]
 
 space-y-0
   group: spacing
   prose: [no prose — raw CSS shown]
-    margin-block-start: 0
-    margin-block-end: 0
+    margin-block-start: 0   [:where(& > :not(:last-child))]
+    margin-block-end: 0   [:where(& > :not(:last-child))]
 
 hover:bg-blue-700
   group: color
   prose: background oklch(48.8% 0.243 264.376)
-    background-color: oklch(48.8% 0.243 264.376)   [@media (hover: hover)]
+    background-color: oklch(48.8% 0.243 264.376)   [@media (hover: hover) &:hover]
 
 focus:outline-none
   group: border
   prose: [no prose — raw CSS shown]
-    outline-style: none
+    outline-style: none   [&:focus]
 
 md:w-1/2
   group: spacing
@@ -451,7 +451,7 @@ dark:bg-slate-900
 group-hover:opacity-100
   group: effects
   prose: 100% opaque
-    opacity: 100%   [@media (hover: hover)]
+    opacity: 100%   [@media (hover: hover) &:is(:where(.group):hover *)]
 
 nope-999
   [invalid]

@@ -442,3 +442,70 @@ describe('arbitrary value for the text input', () => {
     expect(arbitraryOf('flex')).toBeNull()
   })
 })
+
+describe('selector context', () => {
+  const CSS: Record<string, string> = {
+    flex: '.flex { display: flex; }',
+    'divide-y': ':where(.divide-y > :not(:last-child)) { border-top-width: 1px; }',
+    'dark:bg-slate-900': '.dark\\:bg-slate-900:where(.dark, .dark *) { background-color: red; }',
+    'hover:bg-red-500':
+      '@media (hover: hover) { .hover\\:bg-red-500:hover { background-color: red; } }',
+    'divide-red-500': ':where(.divide-red-500 > :not(:last-child)) { border-color: red; }',
+    'child-padded': ':where(.child-padded > *) { padding: 16px; }',
+    'md:divide-y':
+      '@media (width >= 48rem) { :where(.md\\:divide-y > :not(:last-child)) { border-top-width: 1px; } }',
+  }
+
+  const selectorDs: DesignSystemPort = {
+    candidatesToCss: (cs) => cs.map((c) => CSS[c] ?? null),
+    parseCandidate: (c) => [{ root: c, variants: [] }],
+    printVariant: () => '',
+    resolveThemeValue: () => undefined,
+  }
+
+  const explain = (text: string) =>
+    explainCandidates([candidate(text, 0)], selectorDs).flatMap((g) => g.classes)[0]
+
+  it('records nothing when the rule targets the element itself', () => {
+    expect(explain('flex')?.declarations).toEqual([{ prop: 'display', value: 'flex' }])
+  })
+
+  it('records that a divide utility styles children rather than the element', () => {
+    expect(explain('divide-y')?.declarations).toEqual([
+      {
+        prop: 'border-top-width',
+        value: '1px',
+        selector: ':where(& > :not(:last-child))',
+      },
+    ])
+  })
+
+  it('records the class-strategy dark scope the at-rule pass cannot see', () => {
+    expect(explain('dark:bg-slate-900')?.declarations).toEqual([
+      { prop: 'background-color', value: 'red', selector: '&:where(.dark, .dark *)' },
+    ])
+  })
+
+  it('records the at-rule and the selector together', () => {
+    expect(explain('hover:bg-red-500')?.declarations).toEqual([
+      {
+        prop: 'background-color',
+        value: 'red',
+        context: '@media (hover: hover)',
+        selector: '&:hover',
+      },
+    ])
+  })
+
+  it('nests a selector inside an enclosing at-rule', () => {
+    expect(explain('md:divide-y')?.declarations[0]?.selector).toBe(':where(& > :not(:last-child))')
+  })
+
+  it('withholds derived prose that would claim a child-scoped effect for the element', () => {
+    expect(explain('child-padded')?.prose).toBeNull()
+  })
+
+  it('reports the swatch even when the colour lands on children', () => {
+    expect(explain('divide-red-500')?.swatch).toBe('red')
+  })
+})

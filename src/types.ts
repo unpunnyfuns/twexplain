@@ -13,7 +13,12 @@ export type ClassStringLocation = {
   candidates: Candidate[]
 }
 
-export type Declaration = { prop: string; value: string; context?: string }
+export type Declaration = {
+  prop: string
+  value: string
+  context?: string
+  selector?: string
+}
 
 export type GroupName =
   | 'layout'

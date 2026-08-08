@@ -4,6 +4,7 @@ import { derive, isConditional } from './derive'
 import { flattenValue, remToPx } from './flatten'
 import { groupAll, groupFor } from './group'
 import { overrideFor } from './overrides'
+import { resolveNesting, selectorContext } from './selector'
 import { strip } from './strip'
 
 export type ParsedVariant = { kind: string; root?: string }
@@ -22,18 +23,30 @@ export type DesignSystemPort = {
 
 const COLOR_PROPS = new Set(['background-color', 'color', 'border-color', 'fill', 'stroke'])
 
-function collectDeclarations(nodes: CssNode[], out: Declaration[], conditions: string[]): void {
+type Scope = { conditions: string[]; selector: string | null; candidate: string }
+
+function collectDeclarations(nodes: CssNode[], out: Declaration[], scope: Scope): void {
   for (const node of nodes) {
     if (node.type === 'decl') {
-      out.push(
-        conditions.length > 0
-          ? { prop: node.prop, value: node.value, context: conditions.join(' and ') }
-          : { prop: node.prop, value: node.value },
-      )
+      out.push({
+        prop: node.prop,
+        value: node.value,
+        ...(scope.conditions.length > 0 ? { context: scope.conditions.join(' and ') } : {}),
+        ...(scope.selector !== null ? { selector: scope.selector } : {}),
+      })
       continue
     }
-    const nested = node.selector.startsWith('@') ? [...conditions, node.selector] : conditions
-    collectDeclarations(node.children, out, nested)
+    if (node.selector.startsWith('@')) {
+      collectDeclarations(node.children, out, {
+        ...scope,
+        conditions: [...scope.conditions, node.selector],
+      })
+      continue
+    }
+    collectDeclarations(node.children, out, {
+      ...scope,
+      selector: resolveNesting(scope.selector, selectorContext(node.selector, scope.candidate)),
+    })
   }
 }
 
@@ -73,11 +86,16 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
     }
 
     const raw: Declaration[] = []
-    collectDeclarations(strip(parseCss(css)), raw, [])
+    collectDeclarations(strip(parseCss(css)), raw, {
+      conditions: [],
+      selector: null,
+      candidate: candidate.text,
+    })
     const declarations = raw.map((d) => ({
       prop: d.prop,
       value: remToPx(flattenValue(d.value, resolve)),
       ...(d.context !== undefined ? { context: d.context } : {}),
+      ...(d.selector !== undefined ? { selector: d.selector } : {}),
     }))
 
     const parsed = ds.parseCandidate(candidate.text)[0]

@@ -76,7 +76,7 @@ export function isOpaque(declarations: Declaration[]): boolean {
 }
 
 export function isConditional(declarations: Declaration[]): boolean {
-  return declarations.some((d) => d.context !== undefined)
+  return declarations.some((d) => d.context !== undefined || d.selector !== undefined)
 }
 
 function phraseFor(declaration: Declaration): string | null {
