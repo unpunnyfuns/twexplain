@@ -27,11 +27,11 @@ const EMERGENT: Record<string, string> = {
 const COMPOSITE: Record<string, string> = {
   shadow: 'drop shadow',
   'inset-shadow': 'inner drop shadow',
+  'divide-x': 'vertical dividing lines between children, except the last',
+  'divide-y': 'horizontal dividing lines between children, except the last',
   ring: 'outline ring drawn outside the border',
   'space-x': 'horizontal gap between children, except the last',
   'space-y': 'vertical gap between children, except the last',
-  divide: 'dividing lines drawn between children',
-  animate: 'runs a named animation',
   transform: 'applies a geometric transform',
   filter: 'applies a visual filter',
   'backdrop-filter': 'applies a filter to what is behind the element',

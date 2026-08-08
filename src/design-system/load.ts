@@ -22,8 +22,12 @@ export type LoadResult =
 
 const PLUGIN_DIRECTIVE = /@plugin\s+['"]/
 
+function stripComments(css: string): string {
+  return css.replace(/\/\*[\s\S]*?(?:\*\/|$)/g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1')
+}
+
 export function hasPluginDirective(css: string): boolean {
-  return PLUGIN_DIRECTIVE.test(css)
+  return PLUGIN_DIRECTIVE.test(stripComments(css))
 }
 
 const cache = new Map<string, LoadResult>()

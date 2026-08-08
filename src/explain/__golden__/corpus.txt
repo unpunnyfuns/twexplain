@@ -105,7 +105,7 @@ h-screen
 
 min-w-0
   group: spacing
-  prose: [no prose — raw CSS shown]
+  prose: never narrower than 0px
     min-width: 0px
 
 text-sm
@@ -238,7 +238,7 @@ border-t
 
 divide-y
   group: border
-  prose: [no prose — raw CSS shown]
+  prose: horizontal dividing lines between children, except the last
     border-bottom-style: var(--tw-border-style)
     border-top-style: var(--tw-border-style)
     border-top-width: calc(1px * var(--tw-divide-y-reverse))
@@ -334,7 +334,7 @@ filter
 
 filter-none
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: no filters applied
     filter: none
 
 transition
@@ -346,12 +346,12 @@ transition
 
 animate-spin
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: runs the animation spin 1s linear infinite
     animation: spin 1s linear infinite
 
 animate-none
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: no animation
     animation: none
 
 transform
@@ -361,7 +361,7 @@ transform
 
 transform-none
   group: effects
-  prose: [no prose — raw CSS shown]
+  prose: no transform applied
     transform: none
 
 divide-red-500

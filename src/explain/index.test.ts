@@ -209,13 +209,21 @@ describe('overrides applied through the pipeline', () => {
     'inset-shadow-none',
     'ring-0',
     'ring-white',
-    'animate-none',
-    'filter-none',
-    'backdrop-filter-none',
     'divide-red-500',
     'space-x-0',
   ])('does not lend the positive root prose to %s', (text) => {
     expect(proseOf(text)).toBeNull()
+  })
+
+  it.each([
+    ['animate-none', 'no animation'],
+    ['filter-none', 'no filters applied'],
+    ['backdrop-filter-none', 'no backdrop filters applied'],
+  ])('describes %s accurately rather than lending it the positive prose', (text, expected) => {
+    const prose = proseOf(text)
+    expect(prose).toBe(expected)
+    expect(prose).not.toContain('runs a named animation')
+    expect(prose).not.toContain('applies a')
   })
 
   it.each([

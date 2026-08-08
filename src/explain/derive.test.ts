@@ -55,7 +55,7 @@ describe('derive', () => {
     expect(
       derive([
         { prop: 'display', value: 'flex' },
-        { prop: 'clip', value: 'rect(0, 0, 0, 0)' },
+        { prop: 'scroll-behavior', value: 'smooth' },
       ]),
     ).toBeNull()
   })
@@ -74,5 +74,31 @@ describe('derive', () => {
 
   it('describes opacity for leading-dot decimal values', () => {
     expect(derive([{ prop: 'opacity', value: '.5' }])).toBe('50% opaque')
+  })
+})
+
+describe('animation and transform phrases', () => {
+  it('describes a named animation', () => {
+    expect(derive([{ prop: 'animation', value: 'spin 1s linear infinite' }])).toBe(
+      'runs the animation spin 1s linear infinite',
+    )
+  })
+
+  it('describes animation: none as no animation', () => {
+    expect(derive([{ prop: 'animation', value: 'none' }])).toBe('no animation')
+  })
+
+  it('describes a filter value', () => {
+    expect(derive([{ prop: 'filter', value: 'none' }])).toBe('no filters applied')
+  })
+
+  it('describes a transform value', () => {
+    expect(derive([{ prop: 'transform', value: 'none' }])).toBe('no transform applied')
+  })
+
+  it('describes a clip value', () => {
+    expect(derive([{ prop: 'clip', value: 'rect(0, 0, 0, 0)' }])).toBe(
+      'clipped to rect(0, 0, 0, 0)',
+    )
   })
 })

@@ -20,6 +20,10 @@ const EXACT: Record<string, Record<string, string>> = {
     hidden: 'clips anything overflowing',
     auto: 'scrolls when content overflows',
   },
+  animation: { none: 'no animation' },
+  filter: { none: 'no filters applied' },
+  'backdrop-filter': { none: 'no backdrop filters applied' },
+  transform: { none: 'no transform applied' },
 }
 
 const PHRASES: Record<string, Phrase> = {
@@ -59,6 +63,12 @@ const PHRASES: Record<string, Phrase> = {
     return null
   },
   'white-space': (v) => `whitespace handling: ${v}`,
+  animation: (v) => `runs the animation ${v}`,
+  clip: (v) => `clipped to ${v}`,
+  'max-width': (v) => `never wider than ${v}`,
+  'max-height': (v) => `never taller than ${v}`,
+  'min-width': (v) => `never narrower than ${v}`,
+  'min-height': (v) => `never shorter than ${v}`,
 }
 
 export function isOpaque(declarations: Declaration[]): boolean {

@@ -77,3 +77,25 @@ describe('overrideFor', () => {
     expect(overrideFor({ root: 'px', value: { value: '4' } }, [])).toBeNull()
   })
 })
+
+const OPAQUE_DIVIDE_Y = [
+  { prop: 'border-top-width', value: 'calc(1px * var(--tw-divide-y-reverse))' },
+  { prop: 'border-bottom-width', value: 'calc(1px * calc(1 - var(--tw-divide-y-reverse)))' },
+]
+
+describe('reachable override roots', () => {
+  it('covers the real divide roots, which is how Tailwind actually parses them', () => {
+    expect(overrideFor({ root: 'divide-y', value: null }, OPAQUE_DIVIDE_Y)).toBe(
+      'horizontal dividing lines between children, except the last',
+    )
+  })
+
+  it('no longer carries entries for roots Tailwind never produces', () => {
+    expect(overrideFor({ root: 'divide', value: null }, OPAQUE_DIVIDE_Y)).toBeNull()
+    expect(overrideFor({ root: 'animate', value: { value: 'spin' } }, OPAQUE_DIVIDE_Y)).toBeNull()
+  })
+
+  it('still withholds a divide override when a zero value negates it', () => {
+    expect(overrideFor({ root: 'divide-y', value: { value: '0' } }, OPAQUE_DIVIDE_Y)).toBeNull()
+  })
+})

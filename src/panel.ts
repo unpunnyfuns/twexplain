@@ -11,6 +11,15 @@ const LOADING_NOTICE_MS = 250
 
 let generation = 0
 
+function report(what: string, error: unknown): void {
+  const detail = error instanceof Error ? error.message : String(error)
+  void vscode.window.showErrorMessage(`twexplain could not ${what}: ${detail}`)
+}
+
+function guard(what: string, run: () => Promise<void>): void {
+  run().catch((error: unknown) => report(what, error))
+}
+
 function nonce(): string {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   return Array.from({ length: 32 }, () =>
@@ -121,7 +130,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
 
   const scheduleRefresh = (): void => {
     if (timer !== undefined) clearTimeout(timer)
-    timer = setTimeout(() => void refresh(), DEBOUNCE_MS)
+    timer = setTimeout(() => guard('read the class string', refresh), DEBOUNCE_MS)
   }
 
   disposables.push(
@@ -131,10 +140,12 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         view.webview.options = { enableScripts: true }
         view.webview.html = html(view.webview, context.extensionUri)
         view.webview.onDidReceiveMessage((message: WebviewMessage) => {
-          if (message.type === 'ready') void refresh()
-          else if (message.type === 'edit') void applyIntent(message.intent as EditIntent)
-          else if (message.type === 'search') void suggest(message.query)
-          else if (message.type === 'undo') void undoLastEdit()
+          if (message.type === 'ready') guard('read the class string', refresh)
+          else if (message.type === 'edit')
+            guard('apply that change', () => applyIntent(message.intent as EditIntent))
+          else if (message.type === 'search')
+            guard('search for classes', () => suggest(message.query))
+          else if (message.type === 'undo') guard('undo', undoLastEdit)
         })
         view.onDidDispose(() => {
           current = null

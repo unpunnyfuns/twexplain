@@ -15,6 +15,7 @@ vi.mock('vscode', () => ({
     onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
     activeTextEditor: undefined,
     showTextDocument: vi.fn(async () => undefined),
+    showErrorMessage: vi.fn(async () => undefined),
   },
   commands: { executeCommand: vi.fn(async () => undefined) },
   workspace: {
@@ -324,5 +325,65 @@ describe('registerPanel undo', () => {
     await Promise.resolve()
 
     expect(vi.mocked(vscode.commands.executeCommand)).not.toHaveBeenCalled()
+  })
+})
+
+describe('registerPanel failure reporting', () => {
+  it('tells the user when an edit intent throws instead of failing silently', async () => {
+    const vscode = await import('vscode')
+    const intentModule = await import('./intent')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireEdit } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(intentModule.resolveIntent).mockRejectedValue(new Error('boom'))
+
+    fireEdit({ type: 'step', index: 0, delta: 1 })
+    for (let i = 0; i < 6; i++) await Promise.resolve()
+
+    expect(vi.mocked(vscode.window.showErrorMessage)).toHaveBeenCalledWith(
+      expect.stringContaining('boom'),
+    )
+  })
+
+  it('tells the user when a refresh throws', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireReady } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockRejectedValue(new Error('kaboom'))
+
+    fireReady()
+    for (let i = 0; i < 6; i++) await Promise.resolve()
+
+    expect(vi.mocked(vscode.window.showErrorMessage)).toHaveBeenCalledWith(
+      expect.stringContaining('kaboom'),
+    )
+  })
+
+  it('does not report anything when nothing throws', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireReady } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue({ status: 'no-selection' })
+
+    fireReady()
+    for (let i = 0; i < 6; i++) await Promise.resolve()
+
+    expect(vi.mocked(vscode.window.showErrorMessage)).not.toHaveBeenCalled()
   })
 })
