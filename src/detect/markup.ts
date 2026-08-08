@@ -2,7 +2,8 @@ import type { ClassStringLocation } from '../types'
 import { locate } from './shared'
 
 const MAX_EXPRESSION_LENGTH = 2000
-const STRING_PATTERN = /(["'])((?:(?!\1).)*)\1/gs
+const STRING_PATTERN = /(["'`])((?:(?!\1).)*)\1/gs
+const INTERPOLATION = /\$\{[^}]*\}/g
 
 function attributePattern(names: string[]): RegExp {
   return new RegExp(`(?:${names.join('|')})\\s*=\\s*(["'])((?:(?!\\1).)*)\\1`, 'gs')
@@ -24,6 +25,19 @@ export function detectAttribute(
     if (found !== null) return found
   }
   return null
+}
+
+function blankInterpolations(value: string): string {
+  return value.replace(INTERPOLATION, (match) => ' '.repeat(match.length))
+}
+
+function insideInterpolation(value: string, offset: number): boolean {
+  INTERPOLATION.lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = INTERPOLATION.exec(value)) !== null) {
+    if (offset > match.index && offset < match.index + match[0].length) return true
+  }
+  return false
 }
 
 function findClosing(text: string, open: number, openChar: string, closeChar: string): number {
@@ -63,8 +77,10 @@ export function detectStringsIn(
   STRING_PATTERN.lastIndex = 0
   let literal: RegExpExecArray | null
   while ((literal = STRING_PATTERN.exec(body)) !== null) {
-    const value = literal[2] as string
+    const raw = literal[2] as string
     const valueStart = spanStart + literal.index + 1
+    const value = literal[1] === '`' ? blankInterpolations(raw) : raw
+    if (literal[1] === '`' && insideInterpolation(raw, offset - valueStart)) return null
     const found = locate(value, valueStart, offset, uri, kind)
     if (found !== null) return found
   }

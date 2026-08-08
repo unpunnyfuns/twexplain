@@ -66,3 +66,55 @@ describe('detectClassString dispatch', () => {
     expect(find('const x = 1', 'x', 'typescriptreact')).toBeNull()
   })
 })
+
+describe('detectClassString svelte class directive', () => {
+  it('reads the class name from a class: directive', () => {
+    const source = '<div class:bg-red-500={isOn}>x</div>'
+    const found = find(source, 'bg-red-500', 'svelte')
+
+    expect(found?.kind).toBe('svelte')
+    expect(found?.candidates.map((c) => c.text)).toEqual(['bg-red-500'])
+  })
+
+  it('recovers the directive class from its offsets', () => {
+    const source = '<div class:px-4={on}>x</div>'
+    const found = find(source, 'px-4', 'svelte')
+    const candidate = found?.candidates[0]
+
+    expect(source.slice(candidate?.range.start, candidate?.range.end)).toBe('px-4')
+  })
+
+  it('does not treat the condition as a class', () => {
+    const source = '<div class:px-4={isOn}>x</div>'
+    expect(find(source, 'isOn', 'svelte')).toBeNull()
+  })
+
+  it('still prefers a plain class attribute when both are present', () => {
+    const source = '<div class="flex gap-2" class:px-4={on}>x</div>'
+    expect(find(source, 'gap-2', 'svelte')?.candidates.map((c) => c.text)).toEqual([
+      'flex',
+      'gap-2',
+    ])
+  })
+})
+
+describe('detectClassString template literals', () => {
+  it('reads the static parts of a template literal', () => {
+    const source = '<div className={`flex gap-2 ${extra}`}>x</div>'
+    const found = find(source, 'gap-2', 'typescriptreact')
+
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'gap-2'])
+  })
+
+  it('does not offer an interpolation as a class', () => {
+    const source = '<div className={`flex ${extra}`}>x</div>'
+    const found = find(source, 'flex', 'typescriptreact')
+
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex'])
+  })
+
+  it('returns null when the cursor is inside an interpolation', () => {
+    const source = '<div className={`flex ${extra}`}>x</div>'
+    expect(find(source, 'extra', 'typescriptreact')).toBeNull()
+  })
+})

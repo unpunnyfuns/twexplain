@@ -286,3 +286,50 @@ value is stepped. A token suppressing panel-originated refreshes would have brok
 - `void applyIntent(...)` swallows a rejection, as `void refresh()` does. If an intent throws
   rather than returning null, the click does nothing with no feedback.
 - The palette rides on every ready state (~12KB) rather than being pushed once.
+
+## Milestone 3 — detection across languages
+
+A dispatcher on `languageId` routes to one detector per language; every one returns the same
+`ClassStringLocation`, so `explain`, `writeback`, `intent` and the panel were untouched. The
+boundary drawn in Milestone 1 finally earned its keep.
+
+| language | forms |
+|---|---|
+| typescriptreact / javascriptreact | `className` / `class` attributes, `{…}` expressions, template literals |
+| html | `class` attributes |
+| vue | `class`, `:class` / `v-bind:class` array and object syntax |
+| svelte | `class`, `class={…}`, `class:name={cond}` directives, `@apply` in `<style>` |
+| css / postcss | `@apply`, terminated by `;` or `}`, wrapping across lines |
+
+Shared offset arithmetic lives in `detect/shared.ts`, shared attribute and expression scanning in
+`detect/markup.ts`. `jsx.ts` is now nine lines because it composes those rather than duplicating
+them — which is how template literals arrived there for free.
+
+**Template literals** are supported by blanking interpolations to spaces before splitting, so
+`` `flex gap-2 ${extra}` `` yields `flex` and `gap-2` and never offers `${extra}` as a class. A
+cursor inside the interpolation returns nothing rather than a wrong answer. Verified
+load-bearing by mutation.
+
+### Fixed alongside
+
+- Panel failures were swallowed by `void` calls; they now report what they were trying to do.
+- The `@plugin` detector matched the text inside a comment, making the panel refuse to explain
+  anything in a file that merely mentioned it. Comments are stripped first.
+- `animate-spin` regained prose, and the negating forms gained accurate descriptions rather than
+  none. Six classes gained honest prose in the golden diff, none lost any.
+- Two unreachable override roots (`animate`, `divide`) replaced with `divide-x` / `divide-y`,
+  which is how Tailwind actually parses them.
+
+**Confirmation worth keeping:** `container` still withholds prose now that `max-width` has a
+phrase, because the conditional-context veto fires. That is precisely the regression the veto was
+built to prevent, now demonstrated rather than argued.
+
+### Still open after Milestone 3
+
+- `cva()` config objects assigned to a variable are not detected — there is no `class=` anchor,
+  so `const button = cva("rounded", { variants: { size: { sm: "px-2" } } })` is invisible.
+- Detection is still regex, not an AST. The 8-newline and 2000-character caps remain.
+- The common-variant set is 8 hardcoded entries, not Tailwind's 88 from `getVariants()`.
+- Variant stacking order is not controllable; `addVariant` appends.
+- Selector context is still unrecorded (class-strategy dark, `divide-y`, `space-x`).
+- The palette rides on every ready state (~12KB).
