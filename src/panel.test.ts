@@ -589,3 +589,28 @@ describe('registerPanel curation backlog', () => {
     expect(opened.content).toContain('Nothing to curate')
   })
 })
+
+describe('registerPanel webview document', () => {
+  async function htmlFor(): Promise<string> {
+    const { registerPanel } = await import('./panel')
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    return view.webview.html
+  }
+
+  it('allows the codicon font, which the panel icons need', async () => {
+    expect(await htmlFor()).toContain('font-src csp-source')
+  })
+
+  it('still forbids everything not explicitly allowed', async () => {
+    expect(await htmlFor()).toContain("default-src 'none'")
+  })
+
+  it('links the codicon stylesheet alongside the panel stylesheet', async () => {
+    const html = await htmlFor()
+    const sheets = html.match(/rel="stylesheet"/g) ?? []
+
+    expect(sheets).toHaveLength(2)
+  })
+})

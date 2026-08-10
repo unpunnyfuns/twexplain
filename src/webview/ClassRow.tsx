@@ -4,6 +4,7 @@ import type { EditIntent, ExplainedClass, PaletteColor } from '../types'
 import { ArbitraryValue } from './ArbitraryValue'
 import styles from './ClassRow.module.css'
 import { ColorPicker } from './ColorPicker'
+import { Icon } from './Icon'
 import { OpacityControl } from './OpacityControl'
 import { VariantChips } from './VariantChips'
 
@@ -71,8 +72,8 @@ export function ClassRow({
             <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
               {candidate.text}
             </span>
-            <span className={styles.chevron} aria-hidden="true">
-              {open ? '\u25be' : '\u25b8'}
+            <span className={styles.chevron}>
+              <Icon name={open ? 'chevron-down' : 'chevron-right'} />
             </span>
           </button>
         ) : (
@@ -90,7 +91,7 @@ export function ClassRow({
             title="Remove this class"
             onClick={() => onIntent({ type: 'remove', index: candidate.index })}
           >
-            <span aria-hidden="true">{'\u00d7'}</span>
+            <Icon name="close" />
           </button>
         )}
       </div>
@@ -121,7 +122,7 @@ export function ClassRow({
                     disabled={numericValue <= 0}
                     onClick={() => onIntent({ type: 'step', index: candidate.index, delta: -1 })}
                   >
-                    −
+                    <Icon name="remove" />
                   </button>
                   <button
                     type="button"
@@ -129,7 +130,7 @@ export function ClassRow({
                     aria-label={`increase ${candidate.text}`}
                     onClick={() => onIntent({ type: 'step', index: candidate.index, delta: 1 })}
                   >
-                    +
+                    <Icon name="add" />
                   </button>
                 </>
               )}

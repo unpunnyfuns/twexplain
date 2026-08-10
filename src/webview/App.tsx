@@ -3,6 +3,7 @@ import type { EditIntent, HostMessage, PaletteColor, PanelState } from '../types
 import styles from './App.module.css'
 import { AddClass } from './AddClass'
 import { ClassRow } from './ClassRow'
+import { Icon } from './Icon'
 
 export const NOTICES: Record<string, string> = {
   loading: 'Reading your project\u2019s Tailwind setup\u2026',
@@ -109,7 +110,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
             title="Add a class"
             onClick={toggleAdding}
           >
-            <span aria-hidden="true">+</span>
+            <Icon name="add" />
           </button>
           <button
             type="button"
@@ -118,7 +119,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
             title="Runs the editor’s own undo, the same as ⌘Z"
             onClick={() => vscode.postMessage({ type: 'undo' })}
           >
-            <span aria-hidden="true">{'↶'}</span>
+            <Icon name="discard" />
           </button>
           {adding && (
             <AddClass

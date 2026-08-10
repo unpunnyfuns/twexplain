@@ -33,12 +33,14 @@ function nonce(): string {
 function html(webview: vscode.Webview, extensionUri: vscode.Uri): string {
   const script = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'dist', 'webview.js'))
   const style = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'dist', 'webview.css'))
+  const codicons = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'dist', 'codicon.css'))
   const n = nonce()
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${n}';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; font-src ${webview.cspSource}; script-src 'nonce-${n}';">
+<link href="${codicons}" rel="stylesheet">
 <link href="${style}" rel="stylesheet">
 </head>
 <body><div id="root"></div><script nonce="${n}" src="${script}"></script></body>

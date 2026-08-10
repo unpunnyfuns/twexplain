@@ -47,17 +47,21 @@
 }
 
 .remove {
+  align-items: center;
   background: transparent;
   border: none;
   border-radius: 3px;
   color: var(--tw-muted);
   cursor: pointer;
+  display: inline-flex;
   flex: none;
   font: inherit;
-  font-size: 13px;
+  height: 18px;
+  justify-content: center;
   line-height: 1;
   opacity: 0.6;
-  padding: 0 4px;
+  padding: 0;
+  width: 18px;
 }
 
 .remove:hover {
@@ -106,14 +110,19 @@ button.header:hover .chevron {
 }
 
 .control {
+  align-items: center;
   background: transparent;
   border: 1px solid var(--tw-border);
   border-radius: 2px;
   color: var(--tw-muted);
   cursor: pointer;
   font-family: var(--tw-mono);
+  display: inline-flex;
   font-size: 10px;
+  justify-content: center;
   line-height: 1;
+  min-height: 18px;
+  min-width: 20px;
   padding: 2px 5px;
 }
 

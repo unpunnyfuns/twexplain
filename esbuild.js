@@ -1,3 +1,6 @@
+const { copyFile, mkdir } = require('node:fs/promises')
+const { dirname, join } = require('node:path')
+
 const esbuild = require('esbuild')
 
 const production = process.argv.includes('--production')
@@ -29,7 +32,17 @@ const configs = [
   },
 ]
 
+async function copyCodicons() {
+  const from = dirname(require.resolve('@vscode/codicons/package.json'))
+  await mkdir('dist', { recursive: true })
+  for (const file of ['codicon.css', 'codicon.ttf']) {
+    await copyFile(join(from, 'dist', file), join('dist', file))
+  }
+}
+
 async function main() {
+  await copyCodicons()
+
   if (watch) {
     const ctxs = await Promise.all(configs.map((c) => esbuild.context(c)))
     await Promise.all(ctxs.map((c) => c.watch()))

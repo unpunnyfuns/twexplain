@@ -26,12 +26,14 @@
       {
         "command": "twexplain.sortClasses",
         "title": "Sort Classes",
-        "category": "Tailwind Explain"
+        "category": "Tailwind Explain",
+        "icon": "$(sort-precedence)"
       },
       {
         "command": "twexplain.showCurationBacklog",
         "title": "Show Curation Backlog",
-        "category": "Tailwind Explain"
+        "category": "Tailwind Explain",
+        "icon": "$(checklist)"
       }
     ],
     "views": {
@@ -51,6 +53,20 @@
           "id": "twexplain",
           "title": "Tailwind Explain",
           "icon": "media/inspector-24.svg"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "twexplain.sortClasses",
+          "when": "view == twexplain.panel",
+          "group": "navigation@1"
+        },
+        {
+          "command": "twexplain.showCurationBacklog",
+          "when": "view == twexplain.panel",
+          "group": "navigation@2"
         }
       ]
     }
@@ -82,6 +98,7 @@
     "@types/vscode": "~1.99.0",
     "@vitest/browser": "^4.1.10",
     "@vitest/browser-playwright": "^4.1.10",
+    "@vscode/codicons": "^0.0.46-24",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
