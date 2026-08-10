@@ -4,11 +4,19 @@
   --tw-accent: var(--vscode-textLink-foreground);
   --tw-border: var(--vscode-panel-border);
   --tw-mono: var(--vscode-editor-font-family);
+  --tw-size-small: max(0.85em, 11px);
+  --tw-size-label: max(0.8em, 10px);
 
   color: var(--tw-fg);
   font-family: var(--vscode-font-family);
-  font-size: 12px;
+  font-size: var(--vscode-font-size, 13px);
   padding: 8px;
+}
+
+.panel *,
+.panel *::before,
+.panel *::after {
+  box-sizing: border-box;
 }
 
 .notice {
@@ -25,7 +33,7 @@
   color: var(--tw-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-size: 10px;
+  font-size: var(--tw-size-label);
   border-bottom: 1px solid var(--tw-border);
   padding-bottom: 2px;
   margin-bottom: 4px;
@@ -36,8 +44,8 @@
   background: var(--vscode-sideBar-background, var(--vscode-editor-background));
   border-bottom: 1px solid var(--tw-border);
   display: flex;
-  flex-wrap: wrap;
   gap: 4px;
+  justify-content: flex-end;
   margin: -8px -8px 8px;
   padding: 5px 8px;
   position: sticky;
@@ -54,12 +62,12 @@
   cursor: pointer;
   display: inline-flex;
   font-family: var(--vscode-font-family);
-  font-size: 16px;
-  height: 22px;
+  font-size: 1.15em;
+  height: 1.75em;
   justify-content: center;
   line-height: 1;
   padding: 0;
-  width: 22px;
+  width: 1.75em;
 }
 
 .iconButton:hover {

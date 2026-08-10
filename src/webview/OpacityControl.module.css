@@ -10,7 +10,7 @@
   color: var(--tw-muted);
   cursor: pointer;
   font-family: var(--tw-mono);
-  font-size: 9px;
+  font-size: var(--tw-size-small);
   line-height: 1;
   padding: 1px 3px;
 }

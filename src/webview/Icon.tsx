@@ -12,5 +12,11 @@ export const ICON_NAMES = [
 export type IconName = (typeof ICON_NAMES)[number]
 
 export function Icon({ name }: { name: IconName }): ReactElement {
-  return <span className={`codicon codicon-${name}`} aria-hidden="true" />
+  return (
+    <span
+      className={`codicon codicon-${name}`}
+      aria-hidden="true"
+      style={{ fontSize: 'inherit' }}
+    />
+  )
 }

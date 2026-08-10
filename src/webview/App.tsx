@@ -102,6 +102,15 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
     <div className={styles.panel}>
       {state.status === 'ready' && (
         <header className={styles.header}>
+          {adding && (
+            <AddClass
+              value={query}
+              suggestions={suggestions}
+              onChange={search}
+              onPick={pick}
+              onClose={closeAdding}
+            />
+          )}
           <button
             type="button"
             className={styles.iconButton}
@@ -121,15 +130,6 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
           >
             <Icon name="discard" />
           </button>
-          {adding && (
-            <AddClass
-              value={query}
-              suggestions={suggestions}
-              onChange={search}
-              onPick={pick}
-              onClose={closeAdding}
-            />
-          )}
         </header>
       )}
       {state.status === 'wrong-version' && (

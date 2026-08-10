@@ -89,7 +89,7 @@ button.header {
 
 .chevron {
   color: var(--tw-muted);
-  font-size: 9px;
+  font-size: var(--tw-size-small);
 }
 
 button.header:hover .chevron {
@@ -118,7 +118,7 @@ button.header:hover .chevron {
   cursor: pointer;
   font-family: var(--tw-mono);
   display: inline-flex;
-  font-size: 10px;
+  font-size: var(--tw-size-small);
   justify-content: center;
   line-height: 1;
   min-height: 18px;
