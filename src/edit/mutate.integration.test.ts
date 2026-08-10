@@ -84,3 +84,44 @@ describe('the validation guard against real Tailwind', () => {
     expect(result).toContain('refused')
   })
 })
+
+describe('an edit intent from the panel, end to end against real Tailwind', () => {
+  async function write(candidate: string, intent: Record<string, unknown>): Promise<string | null> {
+    const { resolveIntent } = await import('../intent')
+    const source = `<div className="${candidate}" />`
+    const edit = await resolveIntent({
+      text: source,
+      offset: source.indexOf(candidate) + 1,
+      uri: 'file:///a.tsx',
+      workspaceRoot: root,
+      fsPath: join(root, 'src', 'App.tsx'),
+      languageId: 'typescriptreact',
+      intent: { index: 0, ...intent } as never,
+    })
+    return edit?.newText ?? null
+  }
+
+  it('rewrites an arbitrary value without doubling its brackets', async () => {
+    expect(await write('p-[12px]', { type: 'setValue', value: '20px' })).toBe('p-[20px]')
+  })
+
+  it('rewrites a named value', async () => {
+    expect(await write('bg-blue-600', { type: 'setValue', value: 'red-500' })).toBe('bg-red-500')
+  })
+
+  it('steps a numeric value', async () => {
+    expect(await write('p-4', { type: 'step', delta: 1 })).toBe('p-5')
+  })
+
+  it('sets an opacity modifier', async () => {
+    expect(await write('bg-blue-600', { type: 'setModifier', modifier: '50' })).toBe(
+      'bg-blue-600/50',
+    )
+  })
+
+  it('clears an opacity modifier', async () => {
+    expect(await write('bg-blue-600/50', { type: 'setModifier', modifier: null })).toBe(
+      'bg-blue-600',
+    )
+  })
+})

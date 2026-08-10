@@ -19,7 +19,7 @@ describe('ArbitraryValue', () => {
     await screen.getByRole('textbox', { name: /arbitrary value/i }).fill('20px')
     await userEvent.keyboard('{Enter}')
 
-    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 4, value: '[20px]' })
+    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 4, value: '20px' })
   })
 
   it('does not commit while the user is still typing', async () => {
@@ -72,5 +72,47 @@ describe('the draft follows the class it is editing', () => {
     await userEvent.keyboard('{Enter}')
 
     expect(onIntent).not.toHaveBeenCalledWith(expect.objectContaining({ value: '13px' }) as never)
+  })
+})
+
+describe('the value it sends is the value Tailwind expects', () => {
+  it('sends the value without brackets, since printing adds them', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(<ArbitraryValue index={0} value="12px" onIntent={onIntent} />)
+
+    await screen.getByRole('textbox').fill('20px')
+    await screen.getByRole('textbox').click()
+    const { userEvent } = await import('vitest/browser')
+    await userEvent.keyboard('{Enter}')
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 0, value: '20px' })
+  })
+
+  it('does not double the brackets when the user types them', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(<ArbitraryValue index={0} value="12px" onIntent={onIntent} />)
+
+    await screen.getByRole('textbox').fill('[20px]')
+    await screen.getByRole('textbox').click()
+    const { userEvent } = await import('vitest/browser')
+    await userEvent.keyboard('{Enter}')
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 0, value: '20px' })
+  })
+
+  it('leaves brackets that belong to the value itself alone', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(<ArbitraryValue index={0} value="a" onIntent={onIntent} />)
+
+    await screen.getByRole('textbox').fill('calc(100%-1rem)')
+    await screen.getByRole('textbox').click()
+    const { userEvent } = await import('vitest/browser')
+    await userEvent.keyboard('{Enter}')
+
+    expect(onIntent).toHaveBeenCalledWith({
+      type: 'setValue',
+      index: 0,
+      value: 'calc(100%-1rem)',
+    })
   })
 })
