@@ -4,6 +4,8 @@ import { AddClass } from './AddClass'
 import { ClassRow } from './ClassRow'
 import { Icon } from './Icon'
 
+export const SEARCH_DEBOUNCE_MS = 100
+
 const ICON_BUTTON =
   'inline-flex h-[1.75em] w-[1.75em] cursor-pointer items-center justify-center rounded-[3px] border border-transparent bg-transparent p-0 font-sans text-[1.15em] leading-none text-muted hover:bg-toolbar-hover hover:text-fg aria-expanded:border-accent aria-expanded:text-accent'
 
@@ -36,6 +38,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
   const [variants, setVariants] = useState<string[]>([])
   const [adding, setAdding] = useState(false)
   const queryRef = useRef('')
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     const onMessage = (event: MessageEvent<HostMessage>): void => {
@@ -80,7 +83,10 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
     queryRef.current = next
     setQuery(next)
     setSuggestions([])
-    vscode.postMessage({ type: 'search', query: next })
+    if (searchTimer.current !== undefined) clearTimeout(searchTimer.current)
+    searchTimer.current = setTimeout(() => {
+      if (queryRef.current === next) vscode.postMessage({ type: 'search', query: next })
+    }, SEARCH_DEBOUNCE_MS)
   }
 
   const pick = (text: string): void => {

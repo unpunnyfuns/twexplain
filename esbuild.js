@@ -1,5 +1,5 @@
 const { spawn } = require('node:child_process')
-const { copyFile, mkdir } = require('node:fs/promises')
+const { copyFile, mkdir, rm } = require('node:fs/promises')
 const { dirname, join } = require('node:path')
 
 const esbuild = require('esbuild')
@@ -36,10 +36,21 @@ function buildStyles() {
   const cli = join(dirname(require.resolve('@tailwindcss/cli/package.json')), 'dist', 'index.mjs')
   const args = [cli, '-i', 'src/webview/panel.css', '-o', 'dist/webview.css']
   if (production) args.push('--minify')
-  if (watch) args.push('--watch')
+  if (watch) args.push('--watch=always')
 
   const child = spawn(process.execPath, args, { stdio: 'inherit' })
-  if (watch) return Promise.resolve()
+
+  for (const signal of ['exit', 'SIGINT', 'SIGTERM']) {
+    process.on(signal, () => child.kill())
+  }
+
+  if (watch) {
+    child.on('exit', (code) => {
+      console.error(`tailwind watch exited with ${code}; the stylesheet is no longer rebuilding`)
+      process.exitCode = 1
+    })
+    return Promise.resolve()
+  }
 
   return new Promise((resolve, reject) => {
     child.on('exit', (code) =>
@@ -57,6 +68,7 @@ async function copyCodicons() {
 }
 
 async function main() {
+  if (!watch) await rm('dist', { recursive: true, force: true })
   await copyCodicons()
   await buildStyles()
 

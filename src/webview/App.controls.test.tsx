@@ -76,13 +76,27 @@ async function openAdd(screen: Awaited<ReturnType<typeof mount>>['screen']): Pro
 }
 
 describe('App add-class flow', () => {
-  it('asks the host to search as the user types', async () => {
+  it('asks the host to search once the typing settles', async () => {
     const { screen, vscode } = await mount()
     await openAdd(screen)
 
     await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
+    await new Promise((resolve) => setTimeout(resolve, 200))
 
     expect(vscode.postMessage).toHaveBeenCalledWith({ type: 'search', query: 'gap' })
+  })
+
+  it('does not ask once per keystroke', async () => {
+    const { screen, vscode } = await mount()
+    await openAdd(screen)
+
+    await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
+    await new Promise((resolve) => setTimeout(resolve, 200))
+
+    const searches = vscode.postMessage.mock.calls.filter(
+      ([message]) => (message as { type: string }).type === 'search',
+    )
+    expect(searches).toHaveLength(1)
   })
 
   it('shows suggestions the host returns for the current query', async () => {
@@ -90,6 +104,7 @@ describe('App add-class flow', () => {
     await openAdd(screen)
 
     await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
+    await new Promise((resolve) => setTimeout(resolve, 200))
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { type: 'suggestions', query: 'gap', matches: ['gap-2', 'gap-4'] },
@@ -104,6 +119,7 @@ describe('App add-class flow', () => {
     await openAdd(screen)
 
     await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
+    await new Promise((resolve) => setTimeout(resolve, 200))
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { type: 'suggestions', query: 'px', matches: ['px-4'] },
@@ -118,6 +134,7 @@ describe('App add-class flow', () => {
     await openAdd(screen)
 
     await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
+    await new Promise((resolve) => setTimeout(resolve, 200))
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { type: 'suggestions', query: 'gap', matches: ['gap-2'] },
@@ -136,6 +153,7 @@ describe('App add-class flow', () => {
     await openAdd(screen)
 
     await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
+    await new Promise((resolve) => setTimeout(resolve, 200))
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { type: 'suggestions', query: 'gap', matches: ['gap-2'] },

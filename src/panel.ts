@@ -12,15 +12,22 @@ import type { HostMessage, PanelState, WebviewMessage } from './types'
 const DEBOUNCE_MS = 150
 const LOADING_NOTICE_MS = 250
 
-let generation = 0
+let lastReported = ''
 
 function report(what: string, error: unknown): void {
   const detail = error instanceof Error ? error.message : String(error)
-  void vscode.window.showErrorMessage(`twexplain could not ${what}: ${detail}`)
+  const message = `twexplain could not ${what}: ${detail}`
+  if (message === lastReported) return
+  lastReported = message
+  void vscode.window.showErrorMessage(message)
 }
 
 function guard(what: string, run: () => Promise<void>): void {
-  run().catch((error: unknown) => report(what, error))
+  run()
+    .then(() => {
+      lastReported = ''
+    })
+    .catch((error: unknown) => report(what, error))
 }
 
 function nonce(): string {
@@ -50,7 +57,9 @@ function html(webview: vscode.Webview, extensionUri: vscode.Uri): string {
 export function registerPanel(context: vscode.ExtensionContext): vscode.Disposable {
   const disposables: vscode.Disposable[] = []
   const backlog = createBacklog()
+  let generation = 0
   let current: vscode.Webview | null = null
+  let visible = true
   let timer: ReturnType<typeof setTimeout> | undefined
   let sentFingerprint: string | null = null
 
@@ -188,6 +197,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
   }
 
   const scheduleRefresh = (): void => {
+    if (!visible) return
     if (timer !== undefined) clearTimeout(timer)
     timer = setTimeout(() => guard('read the class string', refresh), DEBOUNCE_MS)
   }
@@ -196,6 +206,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     vscode.window.registerWebviewViewProvider('twexplain.panel', {
       resolveWebviewView(view) {
         current = view.webview
+        visible = view.visible !== false
         sentFingerprint = null
         view.webview.options = { enableScripts: true }
         view.webview.html = html(view.webview, context.extensionUri)
@@ -208,6 +219,10 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
           else if (message.type === 'search')
             guard('search for classes', () => suggest(message.query))
           else if (message.type === 'undo') guard('undo', undoLastEdit)
+        })
+        view.onDidChangeVisibility(() => {
+          visible = view.visible !== false
+          if (visible) guard('read the class string', refresh)
         })
         view.onDidDispose(() => {
           current = null

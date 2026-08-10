@@ -89,8 +89,14 @@ function makeFakeView() {
       return { dispose: vi.fn() }
     }),
   }
+  let visibilityCb: (() => void) | undefined
   const view = {
     webview,
+    visible: true,
+    onDidChangeVisibility: vi.fn((cb: () => void) => {
+      visibilityCb = cb
+      return { dispose: vi.fn() }
+    }),
     onDidDispose: vi.fn((cb: () => void) => {
       disposeCb = cb
       return { dispose: vi.fn() }
@@ -104,6 +110,10 @@ function makeFakeView() {
     fireUndo: () => readyCb?.({ type: 'undo' } as never),
     fireSearch: (query: string) => readyCb?.({ type: 'search', query } as never),
     fireDispose: () => disposeCb?.(),
+    setVisible: (next: boolean) => {
+      view.visible = next
+      visibilityCb?.()
+    },
   }
 }
 
@@ -895,5 +905,87 @@ describe('a re-created webview gets the payload again', () => {
       state: { palette: unknown[] }
     }
     expect(sent.state.palette).toHaveLength(1)
+  })
+})
+
+describe('the panel rests while it is hidden', () => {
+  it('does no work for a cursor move the user cannot see the result of', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, setVisible } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue({ status: 'no-selection' })
+
+    setVisible(false)
+    vi.mocked(stateModule.computeState).mockClear()
+    captured.listeners.get('selection')?.()
+    await new Promise((resolve) => setTimeout(resolve, 250))
+
+    expect(vi.mocked(stateModule.computeState)).not.toHaveBeenCalled()
+  })
+
+  it('catches up as soon as it is shown again', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, setVisible } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue({ status: 'no-selection' })
+
+    setVisible(false)
+    vi.mocked(stateModule.computeState).mockClear()
+    setVisible(true)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(vi.mocked(stateModule.computeState)).toHaveBeenCalled()
+  })
+})
+
+describe('repeated failures do not become a notification storm', () => {
+  it('reports the same failure once, however many refreshes hit it', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockRejectedValue(new Error('boom'))
+
+    for (let i = 0; i < 3; i++) {
+      captured.listeners.get('selection')?.()
+      await new Promise((resolve) => setTimeout(resolve, 250))
+    }
+
+    expect(vi.mocked(vscode.window.showErrorMessage).mock.calls.length).toBe(1)
+  })
+
+  it('reports a different failure even after an earlier one', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+
+    vi.mocked(stateModule.computeState).mockRejectedValue(new Error('first'))
+    captured.listeners.get('selection')?.()
+    await new Promise((resolve) => setTimeout(resolve, 250))
+
+    vi.mocked(stateModule.computeState).mockRejectedValue(new Error('second'))
+    captured.listeners.get('selection')?.()
+    await new Promise((resolve) => setTimeout(resolve, 250))
+
+    expect(vi.mocked(vscode.window.showErrorMessage).mock.calls.length).toBe(2)
   })
 })

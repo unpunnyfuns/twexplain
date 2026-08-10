@@ -91,7 +91,7 @@ export async function loadDesignSystem(
 
   const result = await buildDesignSystem(workspaceRoot, entry)
   if (result.ok) importedVersions.set(workspaceRoot, version)
-  cache.set(key, result)
+  if (result.ok || result.reason !== 'error') cache.set(key, result)
   return result
 }
 
