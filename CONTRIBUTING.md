@@ -4,9 +4,10 @@
 
 | Script | Runs |
 | --- | --- |
-| `npm run build` | `esbuild.js` — bundles `dist/extension.js` and `dist/webview.js`, builds `dist/webview.css` with Tailwind, and copies the codicon font |
-| `npm run watch` | The same bundles in watch mode |
-| `npm run package` | A minified, sourcemap-free production build |
+| `npm run build` | The distributable: an installable `.vsix` in `.artifacts/`, compiling for production first |
+| `npm run watch` | `compile` in watch mode |
+| `npm run compile` | `esbuild.js` — bundles `dist/extension.js` and `dist/webview.js`, builds `dist/webview.css` with Tailwind, and copies the codicon font |
+| `npm run compile:prod` | The same, minified and without sourcemaps |
 | `npm run check-types` | `tsc --noEmit` |
 | `npm run lint` | `oxlint src` |
 | `npm run format` | `oxfmt src`, configured by `.oxfmtrc.json` |
@@ -15,7 +16,6 @@
 | `npm run test:ds` | Integration tests that load a real Tailwind design system |
 | `npm run test:golden` | The golden-file corpus only, from `src/explain/corpus.ts` |
 | `npm run test:integration` | The extension host test, in a real VS Code instance via `vscode-test` |
-| `npm run vsix` | Builds an installable `.vsix` into `.artifacts/` |
 | `npm run test:watch` | The unit suites in watch mode |
 | `npm run publish:marketplace` | `vsce publish` |
 
@@ -69,6 +69,12 @@ Two ignored directories, easily confused:
 | `.artifacts/` | The packaged `.vsix` itself | no, it is the output of packaging |
 
 `dist/` is rebuilt from scratch on every non-watch build, so stale output cannot survive.
+
+`npm run build` produces the distributable and nothing else is needed to release. `compile` exists
+separately because `dist/extension.js` is what VS Code loads from disk: pressing F5 and
+`test:integration` need it there unminified and with sourcemaps, so a stack trace from the
+extension host is readable. `build` does not depend on it — `vscode:prepublish` runs
+`compile:prod` itself.
 
 ### Workflow hardening
 

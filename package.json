@@ -81,9 +81,10 @@
     }
   },
   "scripts": {
-    "build": "node esbuild.js",
+    "build": "node -e \"require('node:fs').mkdirSync('.artifacts',{recursive:true})\" && vsce package --out .artifacts/",
+    "compile": "node esbuild.js",
     "watch": "node esbuild.js --watch",
-    "package": "node esbuild.js --production",
+    "compile:prod": "node esbuild.js --production",
     "check-types": "tsc --noEmit",
     "lint": "oxlint src",
     "format": "oxfmt src",
@@ -93,10 +94,9 @@
     "test:ds": "vitest run --config vitest.integration.config.ts",
     "test:golden": "vitest run --config vitest.integration.config.ts src/explain/golden.integration.test.ts",
     "compile-integration": "node esbuild.integration.js",
-    "pretest:integration": "npm run compile-integration && npm run build",
+    "pretest:integration": "npm run compile-integration && npm run compile",
     "test:integration": "vscode-test",
-    "vscode:prepublish": "npm run package",
-    "vsix": "node -e \"require('node:fs').mkdirSync('.artifacts',{recursive:true})\" && vsce package --out .artifacts/",
+    "vscode:prepublish": "npm run compile:prod",
     "publish:marketplace": "vsce publish"
   },
   "devDependencies": {
