@@ -139,3 +139,58 @@ describe('clicking the class name', () => {
     expect(screen.getByRole('button', { name: /details for/i }).elements()).toHaveLength(0)
   })
 })
+
+describe('the remove icon', () => {
+  it('sits beside the class name, reachable without opening details', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    await expect.element(screen.getByRole('button', { name: 'remove px-4' })).toBeVisible()
+  })
+
+  it('asks to remove the class', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(<ClassRow explained={explained()} onIntent={onIntent} />)
+
+    await screen.getByRole('button', { name: 'remove px-4' }).click()
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'remove', index: 0 })
+  })
+
+  it('does not expand the details, since it is a separate control', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    await screen.getByRole('button', { name: 'remove px-4' }).click()
+
+    expect(screen.getByRole('button', { name: 'increase px-4' }).elements()).toHaveLength(0)
+  })
+
+  it('is absent in read-only mode', async () => {
+    const screen = await render(<ClassRow explained={explained()} />)
+
+    expect(screen.getByRole('button', { name: 'remove px-4' }).elements()).toHaveLength(0)
+  })
+
+  it('is offered for a class Tailwind rejected, so a typo can be deleted', async () => {
+    const screen = await render(
+      <ClassRow
+        explained={explained({
+          candidate: { text: 'nope-999', range: { start: 0, end: 8 }, index: 0 },
+          valid: false,
+          declarations: [],
+          prose: null,
+        })}
+        onIntent={vi.fn()}
+      />,
+    )
+
+    await expect.element(screen.getByRole('button', { name: 'remove nope-999' })).toBeVisible()
+  })
+
+  it('leaves the details toggle working on its own', async () => {
+    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+
+    await screen.getByText('px-4', { exact: true }).click()
+
+    await expect.element(screen.getByRole('button', { name: 'increase px-4' })).toBeVisible()
+  })
+})

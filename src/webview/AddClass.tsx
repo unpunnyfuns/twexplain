@@ -6,11 +6,13 @@ export function AddClass({
   suggestions,
   onChange,
   onPick,
+  onClose,
 }: {
   value: string
   suggestions: string[]
   onChange: (query: string) => void
   onPick: (text: string) => void
+  onClose?: () => void
 }): ReactElement {
   const first = suggestions[0]
 
@@ -18,14 +20,20 @@ export function AddClass({
     <div className={styles.add}>
       <input
         role="combobox"
-        aria-label="add a class"
+        aria-label="class to add"
         aria-expanded={suggestions.length > 0}
         aria-controls="twexplain-suggestions"
         className={styles.input}
         placeholder="add a class…"
         value={value}
+        autoFocus
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            onClose?.()
+            return
+          }
           if (event.key !== 'Enter' || first === undefined) return
           event.preventDefault()
           onPick(first)

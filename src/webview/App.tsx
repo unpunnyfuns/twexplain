@@ -23,6 +23,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [palette, setPalette] = useState<PaletteColor[]>([])
   const [variants, setVariants] = useState<string[]>([])
+  const [adding, setAdding] = useState(false)
   const queryRef = useRef('')
 
   useEffect(() => {
@@ -61,8 +62,52 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
     setSuggestions([])
   }
 
+  const closeAdding = (): void => {
+    setAdding(false)
+    queryRef.current = ''
+    setQuery('')
+    setSuggestions([])
+  }
+
+  const toggleAdding = (): void => {
+    if (adding) closeAdding()
+    else setAdding(true)
+  }
+
   return (
     <div className={styles.panel}>
+      {state.status === 'ready' && (
+        <header className={styles.header}>
+          <button
+            type="button"
+            className={styles.iconButton}
+            aria-label="add a class"
+            aria-expanded={adding}
+            title="Add a class"
+            onClick={toggleAdding}
+          >
+            <span aria-hidden="true">+</span>
+          </button>
+          <button
+            type="button"
+            className={styles.iconButton}
+            aria-label="undo last edit"
+            title="Runs the editor’s own undo, the same as ⌘Z"
+            onClick={() => vscode.postMessage({ type: 'undo' })}
+          >
+            <span aria-hidden="true">{'↶'}</span>
+          </button>
+          {adding && (
+            <AddClass
+              value={query}
+              suggestions={suggestions}
+              onChange={search}
+              onPick={pick}
+              onClose={closeAdding}
+            />
+          )}
+        </header>
+      )}
       {state.status === 'wrong-version' && (
         <p className={styles.notice}>
           twexplain supports Tailwind v4 only. This workspace has {state.found}.
@@ -91,19 +136,6 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
             ))}
           </section>
         ))}
-      {state.status === 'ready' && (
-        <>
-          <AddClass value={query} suggestions={suggestions} onChange={search} onPick={pick} />
-          <button
-            type="button"
-            className={styles.undo}
-            title="Runs the editor’s own undo, the same as ⌘Z"
-            onClick={() => vscode.postMessage({ type: 'undo' })}
-          >
-            undo last edit
-          </button>
-        </>
-      )}
     </div>
   )
 }

@@ -10,7 +10,7 @@ describe('AddClass', () => {
       <AddClass value="" suggestions={[]} onChange={onChange} onPick={vi.fn()} />,
     )
 
-    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
 
     expect(onChange).toHaveBeenCalledWith('gap')
   })
@@ -41,7 +41,7 @@ describe('AddClass', () => {
       <AddClass value="gap" suggestions={['gap-2', 'gap-4']} onChange={vi.fn()} onPick={onPick} />,
     )
 
-    await screen.getByRole('combobox', { name: /add a class/i }).click()
+    await screen.getByRole('combobox', { name: /class to add/i }).click()
     await userEvent.keyboard('{Enter}')
 
     expect(onPick).toHaveBeenCalledWith('gap-2')
@@ -53,7 +53,7 @@ describe('AddClass', () => {
       <AddClass value="zzz" suggestions={[]} onChange={vi.fn()} onPick={onPick} />,
     )
 
-    await screen.getByRole('combobox', { name: /add a class/i }).click()
+    await screen.getByRole('combobox', { name: /class to add/i }).click()
     await userEvent.keyboard('{Enter}')
 
     expect(onPick).not.toHaveBeenCalled()

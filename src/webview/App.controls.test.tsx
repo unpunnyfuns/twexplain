@@ -70,19 +70,25 @@ describe('App forwards edit intents to the host', () => {
   })
 })
 
+async function openAdd(screen: Awaited<ReturnType<typeof mount>>['screen']): Promise<void> {
+  await screen.getByRole('button', { name: /add a class/i }).click()
+}
+
 describe('App add-class flow', () => {
   it('asks the host to search as the user types', async () => {
     const { screen, vscode } = await mount()
+    await openAdd(screen)
 
-    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
 
     expect(vscode.postMessage).toHaveBeenCalledWith({ type: 'search', query: 'gap' })
   })
 
   it('shows suggestions the host returns for the current query', async () => {
     const { screen } = await mount()
+    await openAdd(screen)
 
-    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { type: 'suggestions', query: 'gap', matches: ['gap-2', 'gap-4'] },
@@ -94,8 +100,9 @@ describe('App add-class flow', () => {
 
   it('discards suggestions for a query the user has moved on from', async () => {
     const { screen } = await mount()
+    await openAdd(screen)
 
-    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { type: 'suggestions', query: 'px', matches: ['px-4'] },
@@ -107,8 +114,9 @@ describe('App add-class flow', () => {
 
   it('posts an add intent when a suggestion is picked', async () => {
     const { screen, vscode } = await mount()
+    await openAdd(screen)
 
-    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { type: 'suggestions', query: 'gap', matches: ['gap-2'] },
@@ -124,8 +132,9 @@ describe('App add-class flow', () => {
 
   it('clears the query after adding, so the next search starts fresh', async () => {
     const { screen } = await mount()
+    await openAdd(screen)
 
-    await screen.getByRole('combobox', { name: /add a class/i }).fill('gap')
+    await screen.getByRole('combobox', { name: /class to add/i }).fill('gap')
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { type: 'suggestions', query: 'gap', matches: ['gap-2'] },
@@ -133,7 +142,7 @@ describe('App add-class flow', () => {
     )
     await screen.getByRole('option', { name: 'gap-2' }).click()
 
-    await expect.element(screen.getByRole('combobox', { name: /add a class/i })).toHaveValue('')
+    await expect.element(screen.getByRole('combobox', { name: /class to add/i })).toHaveValue('')
   })
 })
 

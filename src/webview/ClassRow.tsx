@@ -58,29 +58,42 @@ export function ClassRow({
 
   return (
     <div className={styles.row}>
-      {hasDetails ? (
-        <button
-          type="button"
-          className={styles.header}
-          aria-expanded={open}
-          aria-label={`${open ? 'hide' : 'show'} details for ${candidate.text}`}
-          title={editable ? 'details and edit' : 'details'}
-          onClick={() => setOpen(!open)}
-        >
-          <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
-            {candidate.text}
-          </span>
-          <span className={styles.chevron} aria-hidden="true">
-            {open ? '\u25be' : '\u25b8'}
-          </span>
-        </button>
-      ) : (
-        <div className={styles.header}>
-          <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
-            {candidate.text}
-          </span>
-        </div>
-      )}
+      <div className={styles.headerRow}>
+        {hasDetails ? (
+          <button
+            type="button"
+            className={styles.header}
+            aria-expanded={open}
+            aria-label={`${open ? 'hide' : 'show'} details for ${candidate.text}`}
+            title={editable ? 'details and edit' : 'details'}
+            onClick={() => setOpen(!open)}
+          >
+            <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
+              {candidate.text}
+            </span>
+            <span className={styles.chevron} aria-hidden="true">
+              {open ? '\u25be' : '\u25b8'}
+            </span>
+          </button>
+        ) : (
+          <div className={styles.header}>
+            <span className={valid ? styles.name : `${styles.name} ${styles.invalid}`}>
+              {candidate.text}
+            </span>
+          </div>
+        )}
+        {onIntent !== undefined && (
+          <button
+            type="button"
+            className={styles.remove}
+            aria-label={`remove ${candidate.text}`}
+            title="Remove this class"
+            onClick={() => onIntent({ type: 'remove', index: candidate.index })}
+          >
+            <span aria-hidden="true">{'\u00d7'}</span>
+          </button>
+        )}
+      </div>
 
       <div
         className={prose === null ? `${styles.description} ${styles.muted}` : styles.description}
@@ -127,14 +140,6 @@ export function ClassRow({
                   onIntent={onIntent}
                 />
               )}
-              <button
-                type="button"
-                className={styles.control}
-                aria-label={`remove ${candidate.text}`}
-                onClick={() => onIntent({ type: 'remove', index: candidate.index })}
-              >
-                remove
-              </button>
             </div>
           )}
 

@@ -40,8 +40,34 @@
   outline-offset: 1px;
 }
 
+.headerRow {
+  align-items: baseline;
+  display: flex;
+  gap: 2px;
+}
+
+.remove {
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--tw-muted);
+  cursor: pointer;
+  flex: none;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.6;
+  padding: 0 4px;
+}
+
+.remove:hover {
+  opacity: 1;
+  color: var(--vscode-errorForeground);
+}
+
 .header {
   align-items: baseline;
+  flex: 1;
   background: transparent;
   border: none;
   color: inherit;
