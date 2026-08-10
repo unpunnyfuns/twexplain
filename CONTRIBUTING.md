@@ -4,7 +4,7 @@
 
 | Script | Runs |
 | --- | --- |
-| `npm run build` | `esbuild.js` — bundles `dist/extension.js` and `dist/webview.js` |
+| `npm run build` | `esbuild.js` — bundles `dist/extension.js` and `dist/webview.js`, builds `dist/webview.css` with Tailwind, and copies the codicon font |
 | `npm run watch` | The same bundles in watch mode |
 | `npm run package` | A minified, sourcemap-free production build |
 | `npm run check-types` | `tsc --noEmit` |
@@ -15,6 +15,9 @@
 | `npm run test:golden` | The golden-file corpus only, from `src/explain/corpus.ts` |
 | `npm run test:integration` | The extension host test, in a real VS Code instance via `vscode-test` |
 | `npm run vsix` | Builds an installable `.vsix` |
+| `npm run test:watch` | The unit suites in watch mode |
+| `npm run link-fixture-modules` | Links tailwindcss into the integration fixture workspace |
+| `npm run publish:marketplace` | `vsce publish` |
 
 Lint, format and test after changes.
 
@@ -73,8 +76,12 @@ to be load-bearing that way.
 | `src/design-system/` | Locates Tailwind and the CSS entry, and loads a design system from them |
 | `src/css/` | A small CSS parser producing a `CssNode` tree |
 | `src/explain/` | The pure explain pipeline |
-| `src/sort.ts` | Canonical class ordering, via Tailwind's `getClassOrder` |
 | `src/backlog.ts` | Collects classes with no prose into a curation report |
+| `src/intent.ts` | Turns a webview edit intent into a text edit |
+| `src/sort.ts` | Canonical class ordering, via Tailwind's `getClassOrder` |
+| `src/search.ts` | The add-class search over `getClassList()` |
+| `src/exclusive.ts` | Which variants cannot coexist on one class |
+| `src/edit/` | Candidate mutation and write-back |
 | `src/webview/` | The React panel, styled with Tailwind |
 | `src/webview/panel.css` | The panel's Tailwind entry, mapping VS Code theme variables into `@theme` |
 

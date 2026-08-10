@@ -18,7 +18,8 @@
     "onLanguage:vue",
     "onLanguage:svelte",
     "onLanguage:css",
-    "onLanguage:postcss"
+    "onLanguage:postcss",
+    "onLanguage:tailwindcss"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -27,13 +28,15 @@
         "command": "twexplain.sortClasses",
         "title": "Sort Classes",
         "category": "Tailwind Explain",
-        "icon": "$(sort-precedence)"
+        "icon": "$(sort-precedence)",
+        "enablement": "editorLangId =~ /^(typescriptreact|javascriptreact|html|vue|svelte|css|postcss|tailwindcss)$/"
       },
       {
         "command": "twexplain.showCurationBacklog",
         "title": "Show Curation Backlog",
         "category": "Tailwind Explain",
-        "icon": "$(checklist)"
+        "icon": "$(checklist)",
+        "enablement": "editorLangId =~ /^(typescriptreact|javascriptreact|html|vue|svelte|css|postcss|tailwindcss)$/"
       }
     ],
     "views": {
@@ -108,14 +111,12 @@
     "oxfmt": "^0.62.0",
     "oxlint": "^1.77.0",
     "playwright": "^1.62.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10",
     "vitest-browser-react": "^2.2.0"
-  },
-  "dependencies": {
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
   },
   "license": "MIT",
   "icon": "media/inspector-128.png",
@@ -124,7 +125,15 @@
     "tailwindcss",
     "css",
     "utility-first",
-    "explain"
+    "explain",
+    "typescriptreact",
+    "javascriptreact",
+    "html",
+    "vue",
+    "svelte",
+    "css",
+    "postcss",
+    "tailwindcss"
   ],
   "galleryBanner": {
     "color": "#0f172a",
@@ -138,5 +147,15 @@
   "bugs": {
     "url": "https://github.com/unpunnyfuns/twexplain/issues"
   },
-  "homepage": "https://github.com/unpunnyfuns/twexplain#readme"
+  "homepage": "https://github.com/unpunnyfuns/twexplain#readme",
+  "capabilities": {
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "Tailwind is read from the workspace\u2019s own node_modules on disk."
+    },
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Loads and runs the workspace\u2019s own Tailwind to resolve its theme."
+    }
+  }
 }

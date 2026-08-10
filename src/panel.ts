@@ -208,7 +208,10 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         current = view.webview
         visible = view.visible !== false
         sentFingerprint = null
-        view.webview.options = { enableScripts: true }
+        view.webview.options = {
+          enableScripts: true,
+          localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'dist')],
+        }
         view.webview.html = html(view.webview, context.extensionUri)
         view.webview.onDidReceiveMessage((message: WebviewMessage) => {
           if (message.type === 'ready') guard('read the class string', refresh)
