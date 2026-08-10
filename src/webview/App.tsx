@@ -17,6 +17,12 @@ export const NOTICES: Record<string, string> = {
     'Tailwind changed version since this window loaded it. Reload the window to explain classes against the new version.',
 }
 
+function isTextEntry(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  if (target.isContentEditable) return true
+  return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
+}
+
 export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): ReactElement {
   const [state, setState] = useState<PanelState>({ status: 'no-selection' })
   const [query, setQuery] = useState('')
@@ -43,6 +49,23 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
     vscode.postMessage({ type: 'ready' })
     return () => window.removeEventListener('message', onMessage)
   }, [vscode])
+
+  const isReady = state.status === 'ready'
+
+  useEffect(() => {
+    if (!isReady) return undefined
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'z' && event.key !== 'Z') return
+      if (!(event.metaKey || event.ctrlKey) || event.shiftKey || event.altKey) return
+      if (isTextEntry(event.target)) return
+      event.preventDefault()
+      vscode.postMessage({ type: 'undo' })
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [vscode, isReady])
 
   const sendIntent = (intent: EditIntent): void => {
     vscode.postMessage({ type: 'edit', intent })
