@@ -129,3 +129,7 @@ jobs:
         with:
           name: twexplain-vsix
           path: .artifacts/*.vsix
+          # .artifacts is dot-prefixed, which upload-artifact treats as hidden
+          include-hidden-files: true
+          # a green job that uploaded nothing is worse than a red one
+          if-no-files-found: error
