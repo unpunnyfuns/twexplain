@@ -5,7 +5,6 @@ import type { TextEdit } from './edit/writeback'
 import type { EditIntent } from './intent'
 import { resolveIntent } from './intent'
 import { searchClasses } from './search'
-import { resolveSort } from './sort'
 import { computeState } from './state'
 import type { HostMessage, PanelState, WebviewMessage } from './types'
 
@@ -28,6 +27,10 @@ function guard(what: string, run: () => Promise<void>): void {
       lastReported = ''
     })
     .catch((error: unknown) => report(what, error))
+}
+
+function curationEnabled(): boolean {
+  return vscode.workspace.getConfiguration('twexplain').get<boolean>('curationBacklog') === true
 }
 
 function nonce(): string {
@@ -117,7 +120,9 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         languageId: document.languageId,
       })
       if (runGeneration !== generation) return
-      if (state.status === 'ready') backlog.record(state.groups.flatMap((g) => g.classes))
+      if (state.status === 'ready' && curationEnabled()) {
+        backlog.record(state.groups.flatMap((g) => g.classes))
+      }
       post({ type: 'state', state: withoutRepeatedPayload(state) })
     } finally {
       clearTimeout(slowNotice)
@@ -139,24 +144,6 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
       fsPath: document.uri.fsPath,
       languageId: document.languageId,
       intent,
-    })
-    await write(document, edit, version)
-  }
-
-  const sortClasses = async (): Promise<void> => {
-    const editor = vscode.window.activeTextEditor
-    if (editor === undefined) return
-    const document = editor.document
-    const folder = vscode.workspace.getWorkspaceFolder(document.uri)
-    const version = document.version
-
-    const edit = await resolveSort({
-      text: document.getText(),
-      offset: document.offsetAt(editor.selection.active),
-      uri: document.uri.toString(),
-      workspaceRoot: folder?.uri.fsPath ?? null,
-      fsPath: document.uri.fsPath,
-      languageId: document.languageId,
     })
     await write(document, edit, version)
   }
@@ -240,9 +227,6 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         })
       },
     }),
-    vscode.commands.registerCommand('twexplain.sortClasses', () =>
-      guard('sort the class string', () => serialised(sortClasses)),
-    ),
     vscode.commands.registerCommand('twexplain.showCurationBacklog', () =>
       guard('open the curation backlog', showBacklog),
     ),

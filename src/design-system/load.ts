@@ -3,14 +3,13 @@ import { dirname, isAbsolute, join, resolve as resolvePath } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { EditPort, SearchPort, ThemePort, VariantPort } from '../edit/mutate'
 import type { DesignSystemPort } from '../explain/index'
-import type { OrderPort } from '../sort'
 import { clearEntryCache, discoverCssEntry } from './discover'
 import { isSupportedVersion, readTailwindVersion } from './version'
 
 export type LoadResult =
   | {
       ok: true
-      ds: DesignSystemPort & EditPort & ThemePort & SearchPort & VariantPort & OrderPort
+      ds: DesignSystemPort & EditPort & ThemePort & SearchPort & VariantPort
       entry: string
     }
   | {
@@ -57,7 +56,7 @@ async function importTailwind(workspaceRoot: string): Promise<{
       loadStylesheet: (id: string, base: string) => Promise<{ base: string; content: string }>
       loadModule: () => Promise<{ module: unknown; base: string }>
     },
-  ) => Promise<DesignSystemPort & EditPort & ThemePort & SearchPort & VariantPort & OrderPort>
+  ) => Promise<DesignSystemPort & EditPort & ThemePort & SearchPort & VariantPort>
 }> {
   const lib = join(workspaceRoot, 'node_modules', 'tailwindcss', 'dist', 'lib.mjs')
   return (await import(pathToFileURL(lib).href)) as never

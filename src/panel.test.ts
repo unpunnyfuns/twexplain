@@ -51,6 +51,7 @@ vi.mock('vscode', () => ({
     })),
     getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
     applyEdit: vi.fn(async () => true),
+    getConfiguration: vi.fn(() => ({ get: vi.fn(() => true) })),
     openTextDocument: vi.fn(async (options: unknown) => ({ options })),
   },
   WorkspaceEdit: class {
@@ -71,7 +72,6 @@ vi.mock('vscode', () => ({
 
 vi.mock('./state', () => ({ computeState: vi.fn() }))
 vi.mock('./intent', () => ({ resolveIntent: vi.fn() }))
-vi.mock('./sort', () => ({ resolveSort: vi.fn() }))
 vi.mock('./search', () => ({ searchClasses: vi.fn(async () => ['gap-2']) }))
 vi.mock('./design-system/load', () => ({ clearDesignSystemCache: vi.fn() }))
 
@@ -502,49 +502,6 @@ describe('registerPanel design-system payload', () => {
 
     const second = webview.postMessage.mock.calls[0]?.[0] as { state: PanelState }
     expect(second.state.status === 'ready' && second.state.palette).toHaveLength(1)
-  })
-})
-
-describe('registerPanel sort command', () => {
-  it('registers the sort command', async () => {
-    const { registerPanel } = await import('./panel')
-
-    registerPanel({ subscriptions: [], extensionUri: {} } as never)
-
-    expect(captured.commands.has('twexplain.sortClasses')).toBe(true)
-  })
-
-  it('writes the sorted class string back to the document', async () => {
-    const vscode = await import('vscode')
-    const sortModule = await import('./sort')
-    const { registerPanel } = await import('./panel')
-
-    registerPanel({ subscriptions: [], extensionUri: {} } as never)
-    vscode.window.activeTextEditor = makeFakeEditor(1) as never
-    vi.mocked(sortModule.resolveSort).mockResolvedValue({
-      start: 0,
-      end: 4,
-      newText: 'flex p-4',
-    })
-
-    await captured.commands.get('twexplain.sortClasses')?.()
-    await new Promise((resolve) => setTimeout(resolve, 0))
-
-    expect(vi.mocked(vscode.workspace.applyEdit)).toHaveBeenCalled()
-  })
-
-  it('leaves the document alone when the classes are already in order', async () => {
-    const vscode = await import('vscode')
-    const sortModule = await import('./sort')
-    const { registerPanel } = await import('./panel')
-
-    registerPanel({ subscriptions: [], extensionUri: {} } as never)
-    vscode.window.activeTextEditor = makeFakeEditor(1) as never
-    vi.mocked(sortModule.resolveSort).mockResolvedValue(null)
-
-    await captured.commands.get('twexplain.sortClasses')?.()
-
-    expect(vi.mocked(vscode.workspace.applyEdit)).not.toHaveBeenCalled()
   })
 })
 

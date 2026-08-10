@@ -25,13 +25,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "twexplain.sortClasses",
-        "title": "Sort Classes",
-        "category": "Tailwind Explain",
-        "icon": "$(sort-precedence)",
-        "enablement": "editorLangId =~ /^(typescriptreact|javascriptreact|html|vue|svelte|css|postcss|tailwindcss)$/"
-      },
-      {
         "command": "twexplain.showCurationBacklog",
         "title": "Show Curation Backlog",
         "category": "Tailwind Explain",
@@ -60,18 +53,29 @@
       ]
     },
     "menus": {
-      "view/title": [
-        {
-          "command": "twexplain.sortClasses",
-          "when": "view == twexplain.panel",
-          "group": "navigation@1"
-        },
+      "commandPalette": [
         {
           "command": "twexplain.showCurationBacklog",
-          "when": "view == twexplain.panel",
-          "group": "navigation@2"
+          "when": "config.twexplain.curationBacklog"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "twexplain.showCurationBacklog",
+          "when": "view == twexplain.panel && config.twexplain.curationBacklog",
+          "group": "navigation@1"
         }
       ]
+    },
+    "configuration": {
+      "title": "Tailwind Explain",
+      "properties": {
+        "twexplain.curationBacklog": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Show the **Show Curation Backlog** command, which lists the classes seen so far that have no plain-English description. Intended for people contributing descriptions to this extension."
+        }
+      }
     }
   },
   "scripts": {
@@ -86,8 +90,7 @@
     "test:ds": "vitest run --config vitest.integration.config.ts",
     "test:golden": "vitest run --config vitest.integration.config.ts src/explain/golden.integration.test.ts",
     "compile-integration": "node esbuild.integration.js",
-    "link-fixture-modules": "node scripts/link-fixture-modules.mjs",
-    "pretest:integration": "npm run link-fixture-modules && npm run compile-integration && npm run build",
+    "pretest:integration": "npm run compile-integration && npm run build",
     "test:integration": "vscode-test",
     "vscode:prepublish": "npm run package",
     "vsix": "vsce package",

@@ -16,7 +16,6 @@
 | `npm run test:integration` | The extension host test, in a real VS Code instance via `vscode-test` |
 | `npm run vsix` | Builds an installable `.vsix` |
 | `npm run test:watch` | The unit suites in watch mode |
-| `npm run link-fixture-modules` | Links tailwindcss into the integration fixture workspace |
 | `npm run publish:marketplace` | `vsce publish` |
 
 Lint, format and test after changes.
@@ -50,9 +49,12 @@ simulated DOM can pass a test the real runtime would fail. The two `projects` in
 `vitest.config.ts` exist because browser tests cannot use node built-ins like `fs`, and the
 node-side tests need them.
 
-`test:integration` is preceded by `pretest:integration`, which relinks the fixture workspace's
-`node_modules` (gitignored, so a fresh clone needs it recreated), compiles the test to `out/`, and
-builds the extension.
+`test:integration` opens the repository itself as the workspace, so the extension resolves Tailwind
+from the repo's own `node_modules` and picks `fixtures/src/app.css` as the nearest entry. That is
+why there is one fixture set rather than two, and no symlinking step. `pretest:integration`
+compiles the test to `out/` and builds the extension.
+
+`fixtures/` is also the workspace to open when trying the extension by hand — see its README.
 
 To regenerate the golden file after an intentional pipeline change:
 
@@ -78,7 +80,6 @@ to be load-bearing that way.
 | `src/explain/` | The pure explain pipeline |
 | `src/backlog.ts` | Collects classes with no prose into a curation report |
 | `src/intent.ts` | Turns a webview edit intent into a text edit |
-| `src/sort.ts` | Canonical class ordering, via Tailwind's `getClassOrder` |
 | `src/search.ts` | The add-class search over `getClassList()` |
 | `src/exclusive.ts` | Which variants cannot coexist on one class |
 | `src/edit/` | Candidate mutation and write-back |

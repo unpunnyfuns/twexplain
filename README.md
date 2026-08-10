@@ -60,8 +60,10 @@ Tailwind cannot compile is not written.
 
 | Command | Effect |
 | --- | --- |
-| Sort Classes | Reorders the class string in the order Tailwind generates the stylesheet. Unrecognised classes keep their position at the front; existing line breaks are preserved. |
-| Show Curation Backlog | Opens a report of the classes seen so far that have no plain-English description, grouped by candidate root. |
+| Show Curation Backlog | Opens a report of the classes seen so far that have no plain-English description, grouped by candidate root. Hidden unless `twexplain.curationBacklog` is turned on; it exists for contributing descriptions to this extension. |
+
+Sorting is not provided. Tailwind CSS IntelliSense contributes **Sort Selection**, and
+`prettier-plugin-tailwindcss` sorts on save.
 
 ## Languages
 

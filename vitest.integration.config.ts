@@ -9,7 +9,7 @@ export default defineConfig({
       'src/explain/honesty.integration.test.ts',
       'src/edit/mutate.integration.test.ts',
       'src/search.integration.test.ts',
-      'src/sort.integration.test.ts',
+      'src/intent.integration.test.ts',
     ],
     environment: 'node',
   },

@@ -48,7 +48,6 @@ const ds = {
   theme: { namespace: () => new Map<string, string>() },
   getClassList: () => [] as [string, unknown][],
   getVariants: () => [] as { name: string }[],
-  getClassOrder: () => [] as [string, number | null][],
 }
 
 const SOURCE = '<div className="flex gap-2 px-4">x</div>'
