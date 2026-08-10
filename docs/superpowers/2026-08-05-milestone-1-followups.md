@@ -454,8 +454,14 @@ panel already says it, with the remedy, and a second surface saying the same thi
 
 ### Still open
 
-- Detection is regex, deliberately (see above). The `looksLikeClassList` heuristic is the part
-  most worth revisiting: it rejects a value containing a bare punctuation token, which would
-  misfire on a class list that legitimately contained one. None exists in Tailwind today.
+- `looksLikeClassList` still rejects a value containing a bare punctuation token. Judged not worth
+  rewriting on 2026-08-10: the false rejections it actually caused were Svelte inline expressions
+  and `content-['<']`, and both are now fixed at source — the braces are blanked before the guard
+  sees them, and the tag rule requires `<` to be followed by a name or a slash. What remains are
+  rare shapes (a JS line continuation inside a helper call, `/* */` inside `@apply`), and a
+  positive-shape rewrite would risk false rejections, which is the worse failure. The false
+  acceptances it does not catch — `const x=1`, `,x,` — surface as classes struck through as
+  invalid, and writes are still gated by the compile and document-version checks.
+- Detection is regex, deliberately (see above).
 - First panel open on a very large tree still costs one full walk (~2.7s), off the UI thread.
 - Seven classes remain without prose, listed above, each for a stated reason.

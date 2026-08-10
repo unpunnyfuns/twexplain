@@ -8,18 +8,50 @@ function attributePattern(names: string[]): RegExp {
   return new RegExp(`(?:${guarded.join('|')})\\s*=\\s*(["'])((?:(?!\\1).)*)\\1`, 'gs')
 }
 
+export function blankBraces(value: string): string {
+  const characters = [...value]
+  let depth = 0
+
+  for (let index = 0; index < characters.length; index++) {
+    const char = characters[index] as string
+    if (char === '{') {
+      depth++
+      characters[index] = ' '
+      continue
+    }
+    if (char === '}') {
+      if (depth > 0) {
+        depth--
+        characters[index] = ' '
+      }
+      continue
+    }
+    if (depth > 0) characters[index] = ' '
+  }
+
+  return characters.join('')
+}
+
 export function detectAttribute(
   text: string,
   offset: number,
   uri: string,
   kind: ClassStringLocation['kind'],
   names: string[],
+  expressions = false,
 ): ClassStringLocation | null {
   const pattern = attributePattern(names)
   let match: RegExpExecArray | null
   while ((match = pattern.exec(text)) !== null) {
-    const value = match[2] as string
-    const valueStart = match.index + match[0].length - 1 - value.length
+    const raw = match[2] as string
+    const valueStart = match.index + match[0].length - 1 - raw.length
+    const value = expressions ? blankBraces(raw) : raw
+
+    const cursor = offset - valueStart
+    if (expressions && cursor >= 0 && cursor < raw.length && raw[cursor] !== value[cursor]) {
+      return null
+    }
+
     const found = locate(value, valueStart, offset, uri, kind)
     if (found !== null) return found
   }

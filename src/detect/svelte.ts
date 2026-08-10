@@ -15,7 +15,7 @@ export function detectSvelte(
 ): ClassStringLocation | null {
   const expression = detectExpression(text, offset, uri, 'svelte', CLASS_EXPRESSION, '{', '}')
   if (expression !== null) return expression
-  const attribute = detectAttribute(text, offset, uri, 'svelte', attributesFrom(names))
+  const attribute = detectAttribute(text, offset, uri, 'svelte', attributesFrom(names), true)
   if (attribute !== null) return attribute
 
   CLASS_DIRECTIVE.lastIndex = 0

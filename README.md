@@ -72,7 +72,7 @@ Sorting is not provided. Tailwind CSS IntelliSense contributes **Sort Selection*
 | TypeScript React, JavaScript React | `className` and `class`, `{…}` expressions, template literals |
 | HTML | `class` |
 | Vue | `class`, `:class` and `v-bind:class`, array and object syntax |
-| Svelte | `class`, `class={…}`, `class:name={cond}` directives, `@apply` in `<style>` |
+| Svelte | `class` including inline `{…}` expressions, `class={…}`, `class:name={cond}` directives, `@apply` in `<style>` |
 | CSS, PostCSS | `@apply` |
 
 Class strings inside `cva`, `cn`, `clsx`, `classnames`, `cx`, `twMerge`, `tw` and `tv` are detected

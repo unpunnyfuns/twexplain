@@ -6,7 +6,7 @@ const PUNCTUATION_ONLY = /^[^\p{L}\p{N}]+$/u
 
 export function looksLikeClassList(value: string): boolean {
   if (value.length > MAX_VALUE_LENGTH) return false
-  if (value.includes('<')) return false
+  if (/<[a-zA-Z/]/.test(value)) return false
   return !value.split(/\s+/).some((token) => token !== '' && PUNCTUATION_ONLY.test(token))
 }
 
