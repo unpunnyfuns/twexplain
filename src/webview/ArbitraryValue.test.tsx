@@ -88,7 +88,7 @@ describe('the value it sends is the value Tailwind expects', () => {
     expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 0, value: '20px' })
   })
 
-  it('does not double the brackets when the user types them', async () => {
+  it('sends exactly what was typed, without guessing at brackets', async () => {
     const onIntent = vi.fn()
     const screen = await render(<ArbitraryValue index={0} value="12px" onIntent={onIntent} />)
 
@@ -97,7 +97,7 @@ describe('the value it sends is the value Tailwind expects', () => {
     const { userEvent } = await import('vitest/browser')
     await userEvent.keyboard('{Enter}')
 
-    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 0, value: '20px' })
+    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 0, value: '[20px]' })
   })
 
   it('leaves brackets that belong to the value itself alone', async () => {
@@ -114,5 +114,39 @@ describe('the value it sends is the value Tailwind expects', () => {
       index: 0,
       value: 'calc(100%-1rem)',
     })
+  })
+})
+
+describe('a value whose own brackets are part of the CSS', () => {
+  async function commit(shown: string, typed: string) {
+    const onIntent = vi.fn()
+    const screen = await render(<ArbitraryValue index={0} value={shown} onIntent={onIntent} />)
+    await screen.getByRole('textbox').fill(typed)
+    await screen.getByRole('textbox').click()
+    const { userEvent } = await import('vitest/browser')
+    await userEvent.keyboard('{Enter}')
+    return onIntent
+  }
+
+  it('keeps grid line names intact', async () => {
+    const onIntent = await commit('1fr', '[full-start] 1fr [full-end]')
+
+    expect(onIntent).toHaveBeenCalledWith({
+      type: 'setValue',
+      index: 0,
+      value: '[full-start] 1fr [full-end]',
+    })
+  })
+
+  it('keeps a single bracketed line name intact', async () => {
+    const onIntent = await commit('1fr', '[full-start]')
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 0, value: '[full-start]' })
+  })
+
+  it('cannot tell a hand-added wrap from a grid line name, so it changes neither', async () => {
+    const onIntent = await commit('12px', '[20px]')
+
+    expect(onIntent).toHaveBeenCalledWith({ type: 'setValue', index: 0, value: '[20px]' })
   })
 })

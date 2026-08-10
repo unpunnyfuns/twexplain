@@ -1,12 +1,6 @@
 import { type ReactElement, useEffect, useState } from 'react'
 import type { EditIntent } from '../types'
 
-function unwrapped(draft: string): string {
-  const trimmed = draft.trim()
-  if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) return trimmed
-  return trimmed.slice(1, -1).trim()
-}
-
 export function ArbitraryValue({
   index,
   value,
@@ -31,7 +25,7 @@ export function ArbitraryValue({
       onKeyDown={(event) => {
         if (event.key !== 'Enter') return
         event.preventDefault()
-        const next = unwrapped(draft)
+        const next = draft.trim()
         if (next === '' || next === value) return
         onIntent({ type: 'setValue', index, value: next })
       }}
