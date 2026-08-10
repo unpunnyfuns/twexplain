@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react'
 import type { EditIntent, PaletteColor } from '../types'
-import styles from './ColorPicker.module.css'
+
+const SWATCH =
+  'h-3 w-3 cursor-pointer rounded-sm border border-edge p-0 hover:scale-125 hover:border-accent'
 
 export function ColorPicker({
   index,
@@ -14,7 +16,7 @@ export function ColorPicker({
   onIntent: (intent: EditIntent) => void
 }): ReactElement {
   return (
-    <span className={styles.palette}>
+    <span className="flex max-h-[76px] flex-wrap gap-0.5 overflow-y-auto py-0.5">
       {palette.map((color) => (
         <button
           type="button"
@@ -22,7 +24,9 @@ export function ColorPicker({
           aria-label={color.name}
           aria-pressed={color.name === current}
           title={`${color.name} — ${color.value}`}
-          className={color.name === current ? `${styles.swatch} ${styles.current}` : styles.swatch}
+          className={
+            color.name === current ? `${SWATCH} outline outline-offset-1 outline-accent` : SWATCH
+          }
           style={{ background: color.value }}
           onClick={() => onIntent({ type: 'setValue', index, value: color.name })}
         />

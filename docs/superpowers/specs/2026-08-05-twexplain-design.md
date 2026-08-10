@@ -36,7 +36,7 @@ Two processes separated by a typed `postMessage` protocol.
 └──────────────┬──────────────────────────────────┘
                │ postMessage
 ┌──────────────▼──────────────────────────────────┐
-│  webview (React + CSS Modules)                   │
+│  webview (React + Tailwind)                      │
 │    App → GroupList → ClassRow                    │
 │    SpacingStepper · ColorSwatch                  │
 │    VariantChips · AddClassCombobox               │
@@ -253,7 +253,9 @@ should phase it so each milestone is independently usable.
 ## Stack
 
 - TypeScript, esbuild, `vscode-test` — matching the `azure-refcheck-vscode` setup.
-- Webview: React + CSS Modules with custom properties mapped to VS Code theme variables.
+- Webview: React + Tailwind, with VS Code theme variables mapped into `@theme`.
+  (Amended 2026-08-10: was CSS Modules. Changed so the extension is built with the thing it
+  explains, and so its own panel stylesheet is a fixture it can inspect.)
 - Vitest, oxlint, oxfmt.
 - npm.
 

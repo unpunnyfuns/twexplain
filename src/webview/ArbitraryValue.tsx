@@ -1,6 +1,5 @@
 import { type ReactElement, useState } from 'react'
 import type { EditIntent } from '../types'
-import styles from './ArbitraryValue.module.css'
 
 export function ArbitraryValue({
   index,
@@ -16,7 +15,7 @@ export function ArbitraryValue({
   return (
     <input
       aria-label="arbitrary value"
-      className={styles.input}
+      className="w-[68px] rounded-sm border border-edge bg-field px-[3px] py-px font-mono text-sm text-fg focus:border-accent focus:outline-none"
       value={draft}
       onChange={(event) => setDraft(event.target.value)}
       onKeyDown={(event) => {

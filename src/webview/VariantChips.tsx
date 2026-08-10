@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react'
 import type { EditIntent } from '../types'
-import styles from './VariantChips.module.css'
+
+const CHIP =
+  'cursor-pointer rounded-lg border border-edge bg-transparent px-[5px] py-0.5 font-mono text-sm leading-none'
 
 export const COMMON_VARIANTS = ['hover', 'focus', 'active', 'disabled', 'dark', 'sm', 'md', 'lg']
 
@@ -19,7 +21,7 @@ export function VariantChips({
   const offered = [...COMMON_VARIANTS, ...new Set(extra)]
 
   return (
-    <span className={styles.chips}>
+    <span className="flex flex-wrap gap-0.5 py-0.5">
       {offered.map((variant) => {
         const active = variants.includes(variant)
         return (
@@ -27,7 +29,11 @@ export function VariantChips({
             type="button"
             key={variant}
             aria-pressed={active}
-            className={active ? `${styles.chip} ${styles.active}` : styles.chip}
+            className={
+              active
+                ? `${CHIP} bg-accent border-accent text-[var(--vscode-editor-background)]`
+                : `${CHIP} text-muted hover:border-accent hover:text-fg`
+            }
             onClick={() =>
               onIntent(
                 active

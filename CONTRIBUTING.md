@@ -18,6 +18,27 @@
 
 Lint, format and test after changes.
 
+## Styling
+
+The panel is styled with Tailwind, which means the extension is built with the thing it explains
+— `src/webview/panel.css` is a file you can open and inspect with the panel itself.
+
+`@theme` maps VS Code's own variables onto Tailwind tokens, so `text-fg`, `border-edge` and
+`bg-overlay` follow the user's colour theme rather than hardcoding a palette. Type scale works the
+same way: `--text-base` is `var(--vscode-font-size, 13px)` and the smaller steps are `em` with a
+px floor, so the panel follows the editor's font size without collapsing to unreadable text on a
+scaled-down window.
+
+The entry uses `source(none)` with an explicit `@source`, because automatic detection would
+otherwise scan `fixtures/` and compile every class in the test corpus into the panel stylesheet.
+Test files are excluded for the same reason.
+
+Tailwind is built by the CLI from `esbuild.js`, and by `@tailwindcss/vite` in the browser test
+project. Component tests assert computed styles, so they need the same CSS the panel ships. Note
+that Vite plugins declared at the top level of `vitest.config.ts` do **not** reach the individual
+projects — the plugin has to be declared inside the browser project or the tests silently run
+unstyled.
+
 ## Testing
 
 Component tests run in a real Chromium through **Vitest browser mode** (`@vitest/browser` with
@@ -54,7 +75,8 @@ to be load-bearing that way.
 | `src/explain/` | The pure explain pipeline |
 | `src/sort.ts` | Canonical class ordering, via Tailwind's `getClassOrder` |
 | `src/backlog.ts` | Collects classes with no prose into a curation report |
-| `src/webview/` | The React panel, styled with CSS Modules |
+| `src/webview/` | The React panel, styled with Tailwind |
+| `src/webview/panel.css` | The panel's Tailwind entry, mapping VS Code theme variables into `@theme` |
 
 Modules under `src/explain/` and `src/css/` are pure: they never import `vscode`.
 

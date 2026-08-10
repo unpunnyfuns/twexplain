@@ -1,9 +1,11 @@
 import { type ReactElement, useEffect, useRef, useState } from 'react'
 import type { EditIntent, HostMessage, PaletteColor, PanelState } from '../types'
-import styles from './App.module.css'
 import { AddClass } from './AddClass'
 import { ClassRow } from './ClassRow'
 import { Icon } from './Icon'
+
+const ICON_BUTTON =
+  'inline-flex h-[1.75em] w-[1.75em] cursor-pointer items-center justify-center rounded-[3px] border border-transparent bg-transparent p-0 font-sans text-[1.15em] leading-none text-muted hover:bg-toolbar-hover hover:text-fg aria-expanded:border-accent aria-expanded:text-accent'
 
 export const NOTICES: Record<string, string> = {
   loading: 'Reading your project\u2019s Tailwind setup\u2026',
@@ -99,9 +101,9 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
   }
 
   return (
-    <div className={styles.panel}>
+    <div className="p-2 font-sans text-base text-fg [&_*]:box-border">
       {state.status === 'ready' && (
-        <header className={styles.header}>
+        <header className="sticky top-0 z-[2] -mx-2 -mt-2 mb-2 flex items-center justify-end gap-1 border-b border-edge bg-[var(--vscode-sideBar-background,var(--vscode-editor-background))] px-2 py-[5px]">
           {adding && (
             <AddClass
               value={query}
@@ -113,7 +115,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
           )}
           <button
             type="button"
-            className={styles.iconButton}
+            className={ICON_BUTTON}
             aria-label="add a class"
             aria-expanded={adding}
             title="Add a class"
@@ -123,7 +125,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
           </button>
           <button
             type="button"
-            className={styles.iconButton}
+            className={ICON_BUTTON}
             aria-label="undo last edit"
             title="Runs the editor’s own undo, the same as ⌘Z"
             onClick={() => vscode.postMessage({ type: 'undo' })}
@@ -133,22 +135,28 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
         </header>
       )}
       {state.status === 'wrong-version' && (
-        <p className={styles.notice}>
+        <p className="px-1 py-3 leading-relaxed text-muted">
           twexplain supports Tailwind v4 only. This workspace has {state.found}.
         </p>
       )}
       {state.status === 'load-error' && (
-        <p className={styles.notice}>Could not load the design system: {state.message}</p>
+        <p className="px-1 py-3 leading-relaxed text-muted">
+          Could not load the design system: {state.message}
+        </p>
       )}
-      {state.status in NOTICES && <p className={styles.notice}>{NOTICES[state.status]}</p>}
+      {state.status in NOTICES && (
+        <p className="px-1 py-3 leading-relaxed text-muted">{NOTICES[state.status]}</p>
+      )}
       {state.status === 'ready' && state.groups.length === 0 && (
-        <p className={styles.notice}>This class string is empty.</p>
+        <p className="px-1 py-3 leading-relaxed text-muted">This class string is empty.</p>
       )}
       {state.status === 'ready' &&
         state.groups.length > 0 &&
         state.groups.map((group) => (
-          <section className={styles.group} key={group.name}>
-            <h2 className={styles.groupName}>{group.name}</h2>
+          <section className="mb-3" key={group.name}>
+            <h2 className="mb-1 border-b border-edge pb-0.5 text-xs tracking-[0.06em] text-muted uppercase">
+              {group.name}
+            </h2>
             {group.classes.map((explained) => (
               <ClassRow
                 explained={explained}

@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
@@ -13,9 +14,11 @@ export default defineConfig({
         },
       },
       {
+        plugins: [tailwindcss()],
         test: {
           name: 'browser',
           include: ['src/**/*.test.tsx'],
+          setupFiles: ['src/webview/test-setup.ts'],
           browser: {
             enabled: true,
             provider: playwright(),
