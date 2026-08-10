@@ -989,3 +989,25 @@ describe('repeated failures do not become a notification storm', () => {
     expect(vi.mocked(vscode.window.showErrorMessage).mock.calls.length).toBe(2)
   })
 })
+
+describe('undo returns focus to the editor it belongs to', () => {
+  it('reuses the group the document is already in rather than opening a copy', async () => {
+    const vscode = await import('vscode')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireUndo } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    const editor = { ...makeFakeEditor(1), viewColumn: 2 }
+    vscode.window.activeTextEditor = editor as never
+
+    fireUndo()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    const options = vi.mocked(vscode.window.showTextDocument).mock.calls[0]?.[1] as {
+      viewColumn?: number
+    }
+    expect(options?.viewColumn).toBe(2)
+  })
+})

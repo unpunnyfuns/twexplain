@@ -172,7 +172,10 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
   const undoLastEdit = async (): Promise<void> => {
     const editor = vscode.window.activeTextEditor
     if (editor === undefined) return
-    await vscode.window.showTextDocument(editor.document, { preserveFocus: false })
+    await vscode.window.showTextDocument(editor.document, {
+      viewColumn: editor.viewColumn,
+      preserveFocus: false,
+    })
     await vscode.commands.executeCommand('undo')
   }
 

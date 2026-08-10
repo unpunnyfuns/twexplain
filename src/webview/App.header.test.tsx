@@ -142,3 +142,31 @@ async function userEscape(): Promise<void> {
   const { userEvent } = await import('vitest/browser')
   await userEvent.keyboard('{Escape}')
 }
+
+describe('a slow refresh does not throw away what you were typing', () => {
+  it('keeps the combobox open while the host is working', async () => {
+    const { screen } = await mount()
+
+    await addButton(screen).click()
+    await expect.element(screen.getByRole('combobox')).toBeVisible()
+    await screen.getByRole('combobox').fill('gap')
+
+    window.dispatchEvent(
+      new MessageEvent('message', { data: { type: 'state', state: { status: 'loading' } } }),
+    )
+    await expect.element(screen.getByText(/Reading your project/i)).toBeVisible()
+
+    await expect.element(screen.getByRole('combobox')).toHaveValue('gap')
+  })
+
+  it('still hides the header when nothing is being added', async () => {
+    const { screen } = await mount()
+
+    window.dispatchEvent(
+      new MessageEvent('message', { data: { type: 'state', state: { status: 'loading' } } }),
+    )
+    await expect.element(screen.getByText(/Reading your project/i)).toBeVisible()
+
+    expect(screen.getByRole('button', { name: /undo last edit/i }).elements()).toHaveLength(0)
+  })
+})

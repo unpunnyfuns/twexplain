@@ -1,4 +1,10 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, useEffect, useState } from 'react'
+
+const LIST_ID = 'twexplain-suggestions'
+const optionId = (index: number): string => `twexplain-option-${index}`
+
+const OPTION =
+  'cursor-pointer rounded-sm px-[5px] py-0.5 font-mono text-sm text-fg hover:bg-hover aria-selected:bg-hover'
 
 export function AddClass({
   value,
@@ -13,7 +19,16 @@ export function AddClass({
   onPick: (text: string) => void
   onClose?: () => void
 }): ReactElement {
-  const first = suggestions[0]
+  const [active, setActive] = useState(0)
+
+  useEffect(() => {
+    setActive(0)
+  }, [suggestions])
+
+  const step = (delta: number): void => {
+    if (suggestions.length === 0) return
+    setActive((current) => (current + delta + suggestions.length) % suggestions.length)
+  }
 
   return (
     <div className="relative min-w-0 flex-1">
@@ -21,7 +36,9 @@ export function AddClass({
         role="combobox"
         aria-label="class to add"
         aria-expanded={suggestions.length > 0}
-        aria-controls="twexplain-suggestions"
+        aria-controls={LIST_ID}
+        aria-autocomplete="list"
+        aria-activedescendant={suggestions.length > 0 ? optionId(active) : undefined}
         className="w-full rounded-sm border border-edge bg-field px-[5px] py-[3px] font-mono text-sm text-fg focus:border-accent focus:outline-none"
         placeholder="add a class…"
         value={value}
@@ -33,28 +50,39 @@ export function AddClass({
             onClose?.()
             return
           }
-          if (event.key !== 'Enter' || first === undefined) return
+          if (event.key === 'ArrowDown') {
+            event.preventDefault()
+            step(1)
+            return
+          }
+          if (event.key === 'ArrowUp') {
+            event.preventDefault()
+            step(-1)
+            return
+          }
+          if (event.key !== 'Enter') return
+          const chosen = suggestions[active]
+          if (chosen === undefined) return
           event.preventDefault()
-          onPick(first)
+          onPick(chosen)
         }}
       />
       {suggestions.length > 0 && (
         <ul
           className="absolute top-full right-0 left-0 z-10 mt-0.5 max-h-60 list-none overflow-y-auto rounded-md border border-overlay-edge bg-overlay p-0.5 shadow-lg"
-          id="twexplain-suggestions"
+          id={LIST_ID}
           role="listbox"
         >
-          {suggestions.map((suggestion) => (
-            <li key={suggestion}>
-              <button
-                type="button"
-                role="option"
-                aria-selected={suggestion === first}
-                className="block w-full cursor-pointer border-none bg-transparent px-[5px] py-0.5 text-left font-mono text-sm text-fg hover:bg-hover aria-selected:bg-hover"
-                onClick={() => onPick(suggestion)}
-              >
-                {suggestion}
-              </button>
+          {suggestions.map((suggestion, index) => (
+            <li
+              key={suggestion}
+              id={optionId(index)}
+              role="option"
+              aria-selected={index === active}
+              className={OPTION}
+              onClick={() => onPick(suggestion)}
+            >
+              {suggestion}
             </li>
           ))}
         </ul>

@@ -110,7 +110,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
 
   return (
     <div className="p-2 font-sans text-base text-fg [&_*]:box-border">
-      {state.status === 'ready' && (
+      {(isReady || adding) && (
         <header className="sticky top-0 z-[2] -mx-2 -mt-2 mb-2 flex items-center justify-end gap-1 border-b border-edge bg-[var(--vscode-sideBar-background,var(--vscode-editor-background))] px-2 py-[5px]">
           {adding && (
             <AddClass
