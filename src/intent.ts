@@ -3,6 +3,7 @@ import { detectClassString } from './detect/index'
 import { addVariant, removeVariant, setModifier, setValue, stepValue } from './edit/mutate'
 import type { TextEdit } from './edit/writeback'
 import { addCandidate, removeCandidate, replaceCandidate } from './edit/writeback'
+import { conflictingVariants } from './exclusive'
 import type { ClassStringLocation, EditIntent } from './types'
 
 export type { EditIntent }
@@ -50,6 +51,30 @@ function assertCompiles(
   throw new Error(`Tailwind cannot compile "${candidate}", so it was not written`)
 }
 
+type VariantReader = {
+  parseCandidate(candidate: string): { variants: unknown[] }[]
+  printVariant(variant: never): string
+}
+
+function variantNamesOf(candidate: string, ds: VariantReader): string[] {
+  const parsed = ds.parseCandidate(candidate)[0]
+  if (parsed === undefined) return []
+  return parsed.variants.map((variant) => ds.printVariant(variant as never))
+}
+
+function withoutConflicts(
+  candidate: string,
+  variant: string,
+  ds: Parameters<typeof addVariant>[2] & VariantReader & Parameters<typeof conflictingVariants>[2],
+): string {
+  const present = variantNamesOf(candidate, ds)
+  let current = candidate
+  for (const clash of conflictingVariants(present, variant, ds)) {
+    current = removeVariant(current, clash, ds) ?? current
+  }
+  return current
+}
+
 export async function resolveIntent(input: IntentInput): Promise<TextEdit | null> {
   const location = detectClassString(input)
   if (location === null) return null
@@ -72,7 +97,10 @@ export async function resolveIntent(input: IntentInput): Promise<TextEdit | null
   const loaded = await loadDesignSystem(input.workspaceRoot, input.fsPath)
   if (!loaded.ok) return null
 
-  const next = mutateText(current, intent, loaded.ds)
+  const base =
+    intent.type === 'addVariant' ? withoutConflicts(current, intent.variant, loaded.ds) : current
+
+  const next = mutateText(base, intent, loaded.ds)
   if (next === null) return null
   assertCompiles(loaded.ds, next)
 
