@@ -15,7 +15,7 @@
 | `npm run test:ds` | Integration tests that load a real Tailwind design system |
 | `npm run test:golden` | The golden-file corpus only, from `src/explain/corpus.ts` |
 | `npm run test:integration` | The extension host test, in a real VS Code instance via `vscode-test` |
-| `npm run vsix` | Builds an installable `.vsix` |
+| `npm run vsix` | Builds an installable `.vsix` into `.artifacts/` |
 | `npm run test:watch` | The unit suites in watch mode |
 | `npm run publish:marketplace` | `vsce publish` |
 
@@ -58,6 +58,17 @@ failure names itself:
 Playwright's browser download is cached on the lockfile hash. There is no publishing workflow:
 releases are made by hand, so the first one cannot be automated on a misunderstanding, and no
 Marketplace token lives in repository secrets.
+
+### Build output
+
+Two ignored directories, easily confused:
+
+| Directory | Is | Ends up in the package |
+| --- | --- | --- |
+| `dist/` | The built extension — `extension.js` (the `main` entry VS Code loads), the webview bundle, the stylesheet and the codicon font | yes, this *is* the package's contents |
+| `.artifacts/` | The packaged `.vsix` itself | no, it is the output of packaging |
+
+`dist/` is rebuilt from scratch on every non-watch build, so stale output cannot survive.
 
 ### Workflow hardening
 
