@@ -1,4 +1,4 @@
-# twexplain
+# Tailwind Explain
 
 **Read and edit long Tailwind class strings without leaving the file.**
 
@@ -11,7 +11,7 @@ theme, your `@theme` blocks, your custom utilities, your colours.
 
 ## It tells you the truth or nothing
 
-A tool that guesses is worse than no tool. twexplain never invents a description.
+A tool that guesses is worse than no tool. Tailwind Explain never invents a description.
 
 - A class it cannot honestly describe shows its raw CSS and says it has no plain-English entry —
   it does not improvise one.
@@ -42,7 +42,7 @@ class behind.
 
 | Command | Does |
 | --- | --- |
-| **Sort Tailwind Classes** | Reorders the class string the way Tailwind itself generates the stylesheet. Classes it does not recognise keep their place at the front, and a string your formatter wrapped stays wrapped on the same lines. |
+| **Sort Classes** | Reorders the class string the way Tailwind itself generates the stylesheet. Classes it does not recognise keep their place at the front, and a string your formatter wrapped stays wrapped on the same lines. |
 | **Show Curation Backlog** | Lists every class you have looked at that had no plain-English description yet. |
 
 ## Works with
@@ -67,7 +67,7 @@ Class strings inside helper calls are found at any depth, in any of the above: `
 
 `@plugin` is not supported yet, and says so rather than failing quietly.
 
-twexplain complements Tailwind CSS IntelliSense — it does not replace it. Keep both.
+Tailwind Explain complements Tailwind CSS IntelliSense — it does not replace it. Keep both.
 
 ## Contributing
 

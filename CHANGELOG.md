@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to twexplain are recorded here. The format follows
+All notable changes to Tailwind Explain are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -22,7 +22,7 @@ First public release.
   HTML; Vue `class`, `:class` and `v-bind:class`; Svelte attributes and `class:` directives;
   CSS `@apply`; and helper calls — `cva`, `cn`, `clsx`, `classnames`, `cx`, `twMerge`, `tw`, `tv`
   — at any nesting depth.
-- **Sort Tailwind Classes** command, ordering a class string the way Tailwind itself generates
+- **Sort Classes** command, ordering a class string the way Tailwind itself generates
   the stylesheet, preserving unknown classes and existing line wrapping.
 - **Show Curation Backlog** command, listing every class seen that had no plain-English
   description, grouped by the root an override entry is keyed on.

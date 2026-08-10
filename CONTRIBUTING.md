@@ -1,4 +1,4 @@
-# Contributing to twexplain
+# Contributing to Tailwind Explain
 
 ## Scripts
 

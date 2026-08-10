@@ -1,6 +1,6 @@
 {
   "name": "twexplain",
-  "displayName": "twexplain",
+  "displayName": "Tailwind Explain",
   "description": "Explains and edits the Tailwind class string under your cursor, resolved against your own project.",
   "version": "0.1.0",
   "engines": {
@@ -25,13 +25,13 @@
     "commands": [
       {
         "command": "twexplain.sortClasses",
-        "title": "Sort Tailwind Classes",
-        "category": "twexplain"
+        "title": "Sort Classes",
+        "category": "Tailwind Explain"
       },
       {
         "command": "twexplain.showCurationBacklog",
         "title": "Show Curation Backlog",
-        "category": "twexplain"
+        "category": "Tailwind Explain"
       }
     ],
     "views": {
@@ -41,7 +41,7 @@
           "id": "twexplain.panel",
           "name": "Classes",
           "icon": "media/inspector-24.svg",
-          "contextualTitle": "twexplain"
+          "contextualTitle": "Tailwind Explain"
         }
       ]
     },
@@ -49,7 +49,7 @@
       "activitybar": [
         {
           "id": "twexplain",
-          "title": "twexplain",
+          "title": "Tailwind Explain",
           "icon": "media/inspector-24.svg"
         }
       ]
