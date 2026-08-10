@@ -425,31 +425,37 @@ space-y-0
 
 hover:bg-blue-700
   group: color
+  when: while hovered
   prose: background oklch(48.8% 0.243 264.376)
     background-color: oklch(48.8% 0.243 264.376)   [@media (hover: hover) &:hover]
 
 focus:outline-none
   group: border
+  when: while focused
   prose: no outline
     outline-style: none   [&:focus]
 
 md:w-1/2
   group: spacing
+  when: from 768px up
   prose: width 50%
     width: 50%   [@media (width >= 48rem)]
 
 lg:flex-row
   group: layout
+  when: from 1024px up
   prose: children laid out left to right
     flex-direction: row   [@media (width >= 64rem)]
 
 dark:bg-slate-900
   group: color
+  when: in dark mode
   prose: background oklch(20.8% 0.042 265.755)
     background-color: oklch(20.8% 0.042 265.755)   [@media (prefers-color-scheme: dark)]
 
 group-hover:opacity-100
   group: effects
+  when: while an ancestor group is hovered
   prose: 100% opaque
     opacity: 100%   [@media (hover: hover) &:is(:where(.group):hover *)]
 

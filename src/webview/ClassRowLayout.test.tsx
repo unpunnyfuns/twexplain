@@ -9,6 +9,7 @@ const explained = (overrides: Partial<ExplainedClass> = {}): ExplainedClass => (
   root: null,
   declarations: [{ prop: 'padding-inline', value: '16px' }],
   prose: 'padding of 16px on the left and right',
+  condition: null,
   group: 'spacing',
   variants: [],
   swatch: null,
@@ -178,6 +179,7 @@ describe('the remove icon', () => {
           valid: false,
           declarations: [],
           prose: null,
+          condition: null,
         })}
         onIntent={vi.fn()}
       />,

@@ -8,6 +8,7 @@ const explained = (name: string, group: ExplainedClass['group']): ExplainedClass
   root: null,
   declarations: [],
   prose: null,
+  condition: null,
   group,
   variants: [],
   swatch: null,

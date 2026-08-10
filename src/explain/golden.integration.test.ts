@@ -57,7 +57,8 @@ describe('explain pipeline golden corpus', () => {
             : `    ${d.prop}: ${d.value}   [${scope}]`
         })
         .join('\n')
-      return `${text}\n  group: ${explained.group}\n  prose: ${prose}\n${declarations}`
+      const when = explained.condition === null ? '' : `\n  when: ${explained.condition}`
+      return `${text}\n  group: ${explained.group}${when}\n  prose: ${prose}\n${declarations}`
     }).join('\n\n')
 
     await expect(report).toMatchFileSnapshot('./__golden__/corpus.txt')

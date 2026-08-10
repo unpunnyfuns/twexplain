@@ -6,6 +6,7 @@ import { groupAll, groupFor } from './group'
 import { overrideFor } from './overrides'
 import { resolveNesting, selectorContext } from './selector'
 import { strip } from './strip'
+import { describeVariants } from './variants'
 
 export type ParsedVariant = { kind: string; root?: string }
 
@@ -77,6 +78,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
         root: null,
         declarations: [],
         prose: null,
+        condition: null,
         group: 'other',
         variants: [],
         swatch: null,
@@ -116,6 +118,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
       root: parsed?.root ?? null,
       declarations,
       prose,
+      condition: describeVariants(variants, declarations),
       group: groupFor(declarations, variants),
       variants,
       swatch: swatchFrom(declarations),

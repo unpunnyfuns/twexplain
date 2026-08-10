@@ -14,6 +14,7 @@ const explained = (
   root: null,
   declarations,
   prose,
+  condition: null,
   group: 'other',
   variants: [],
   swatch: null,
@@ -262,5 +263,54 @@ describe('selector scope', () => {
     await expect
       .element(screen.getByTitle('red — only when dark, on :where(&:where(.dark, .dark *) > *)'))
       .toBeVisible()
+  })
+})
+
+describe('the condition a variant imposes', () => {
+  const withCondition = (
+    text: string,
+    prose: string,
+    condition: string | null,
+  ): ExplainedClass => ({
+    ...explained(text, prose, [{ prop: 'width', value: '50%' }]),
+    condition,
+  })
+
+  it('says when a responsive class applies, rather than stating it flatly', async () => {
+    const screen = await render(
+      <ClassRow explained={withCondition('md:w-1/2', 'width 50%', 'from 768px up')} />,
+    )
+
+    await expect.element(screen.getByText(/from 768px up/)).toBeVisible()
+    await expect.element(screen.getByText(/width 50%/)).toBeVisible()
+  })
+
+  it('leads with the condition, so the qualifier is read before the claim', async () => {
+    const screen = await render(
+      <ClassRow explained={withCondition('md:w-1/2', 'width 50%', 'from 768px up')} />,
+    )
+    const line = await screen.getByText(/width 50%/).element()
+
+    expect(line.textContent).toBe('from 768px up — width 50%')
+  })
+
+  it('adds nothing for an unconditional class', async () => {
+    const screen = await render(<ClassRow explained={withCondition('w-1/2', 'width 50%', null)} />)
+    const line = await screen.getByText(/width 50%/).element()
+
+    expect(line.textContent).toBe('width 50%')
+  })
+
+  it('still states the condition when there is no prose to qualify', async () => {
+    const screen = await render(
+      <ClassRow
+        explained={{
+          ...explained('md:grid-flow-col', null, [{ prop: 'grid-auto-flow', value: 'column' }]),
+          condition: 'from 768px up',
+        }}
+      />,
+    )
+
+    await expect.element(screen.getByText(/from 768px up/)).toBeVisible()
   })
 })

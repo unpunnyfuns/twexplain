@@ -35,6 +35,7 @@ export type ExplainedClass = {
   root: string | null
   declarations: Declaration[]
   prose: string | null
+  condition: string | null
   group: GroupName
   variants: string[]
   swatch: string | null

@@ -531,6 +531,7 @@ describe('registerPanel curation backlog', () => {
             root: text,
             declarations: [{ prop: 'border-top-width', value: '1px' }],
             prose: null,
+            condition: null,
             group: 'other' as const,
             variants: [],
             swatch: null,

@@ -56,7 +56,7 @@ export function ClassRow({
   palette?: PaletteColor[]
   availableVariants?: string[]
 }): ReactElement {
-  const { candidate, valid, prose, declarations, swatch, numericValue } = explained
+  const { candidate, valid, prose, condition, declarations, swatch, numericValue } = explained
   const scoped = swatch !== null && isScoped(explained)
   const title = swatchTitle(explained)
   const editable = onIntent !== undefined
@@ -114,6 +114,7 @@ export function ClassRow({
             title={title ?? undefined}
           />
         )}
+        {condition !== null && <span className="text-muted">{condition} — </span>}
         {description(explained)}
       </div>
 

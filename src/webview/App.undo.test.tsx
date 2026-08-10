@@ -10,6 +10,7 @@ const row = (text: string): ExplainedClass => ({
   root: null,
   declarations: [],
   prose: 'something',
+  condition: null,
   group: 'spacing',
   variants: [],
   swatch: null,

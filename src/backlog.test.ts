@@ -8,6 +8,7 @@ const explained = (text: string, overrides: Partial<ExplainedClass> = {}): Expla
   root: text,
   declarations: [{ prop: 'display', value: 'flex' }],
   prose: null,
+  condition: null,
   group: 'other',
   variants: [],
   swatch: null,
