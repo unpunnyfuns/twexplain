@@ -12,7 +12,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:twexplain.panel",
     "onLanguage:typescriptreact",
     "onLanguage:javascriptreact",
     "onLanguage:html",
@@ -40,7 +39,9 @@
         {
           "type": "webview",
           "id": "twexplain.panel",
-          "name": "Classes"
+          "name": "Classes",
+          "icon": "media/inspector-24.svg",
+          "contextualTitle": "twexplain"
         }
       ]
     },
