@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-50: oklch(97% 0.02 265);
+  --color-brand-500: oklch(62% 0.19 265);
+  --color-brand-900: oklch(28% 0.09 265);
+  --spacing-gutter: 1.75rem;
+}

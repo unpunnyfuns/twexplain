@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="./app.css" />
+  </head>
+  <body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-50">
+    <main class="mx-auto max-w-3xl px-4 py-10">
+      <h1 class="text-2xl font-bold tracking-tight">plain class attribute</h1>
+
+      <section
+        class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm
+          hover:border-slate-300 hover:shadow-md
+          dark:border-slate-700 dark:bg-slate-900
+          sm:p-8 md:p-10 lg:p-12
+          grid grid-cols-1 gap-4
+          md:grid-cols-2 lg:grid-cols-3
+          transition-colors duration-200"
+      >
+        wrapped over several lines
+      </section>
+
+      <div data-class="not-a-class-attribute" class="flex gap-2">
+        the data-class attribute must not be mistaken for class
+      </div>
+
+      <div class='flex gap-2 px-4'>single quotes</div>
+    </main>
+  </body>
+</html>

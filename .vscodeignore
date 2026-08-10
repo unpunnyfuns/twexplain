@@ -33,3 +33,4 @@ package-lock.json
 **/__golden__/**
 **/__fixtures__/**
 **/__screenshots__/**
+fixtures/**
