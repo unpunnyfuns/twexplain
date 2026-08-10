@@ -6,6 +6,7 @@ import { clearDesignSystemCache, loadDesignSystem } from '../design-system/load'
 import type { EditPort } from './mutate'
 import { addVariant, setModifier, setValue, stepValue } from './mutate'
 
+let root: string
 let port: EditPort
 let ds: {
   candidatesToCss(c: string[]): (string | null)[]
@@ -14,7 +15,7 @@ let ds: {
 }
 
 beforeAll(async () => {
-  const root = await mkdtemp(join(tmpdir(), 'twexplain-mutate-'))
+  root = await mkdtemp(join(tmpdir(), 'twexplain-mutate-'))
   await mkdir(join(root, 'src'), { recursive: true })
   await mkdir(join(root, 'node_modules'), { recursive: true })
   await symlink(
@@ -54,17 +55,32 @@ describe('mutation against the real design system', () => {
 })
 
 describe('the validation guard against real Tailwind', () => {
-  it('agrees that a sound arbitrary value compiles', () => {
-    expect(ds.candidatesToCss(['p-[20px]'])[0]).not.toBeNull()
+  async function write(candidate: string, variant: string): Promise<string | null> {
+    const { resolveIntent } = await import('../intent')
+    const source = `<div className="${candidate}" />`
+    try {
+      const edit = await resolveIntent({
+        text: source,
+        offset: source.indexOf(candidate) + 1,
+        uri: 'file:///a.tsx',
+        workspaceRoot: root,
+        fsPath: join(root, 'src', 'App.tsx'),
+        languageId: 'typescriptreact',
+        intent: { type: 'addVariant', index: 0, variant },
+      })
+      return edit?.newText ?? null
+    } catch (error) {
+      return error instanceof Error ? `refused: ${error.message}` : 'refused'
+    }
+  }
+
+  it('writes a variant Tailwind can compile', async () => {
+    expect(await write('rounded', 'hover')).toBe('hover:rounded')
   })
 
-  it('catches an empty arbitrary value, which does not compile', () => {
-    expect(ds.candidatesToCss(['p-[]'])[0]).toBeNull()
-  })
+  it('refuses a variant that cannot stand on its own, rather than writing it', async () => {
+    const result = await write('border-slate-600', '@max')
 
-  it('shows why a value guard alone is not enough: Tailwind passes nonsense through', () => {
-    const css = ds.candidatesToCss(['p-[garbage]'])[0]
-    expect(css).not.toBeNull()
-    expect(css).toContain('padding: garbage')
+    expect(result).toContain('refused')
   })
 })

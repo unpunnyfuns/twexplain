@@ -14,10 +14,10 @@ describe('hasPluginDirective', () => {
     ).toBe(false)
   })
 
-  it('ignores a directive mentioned inside a line comment', () => {
-    expect(hasPluginDirective('// @plugin "x" is not supported yet\n.a { color: red; }')).toBe(
-      false,
-    )
+  it('still sees a directive on a line holding a protocol-relative URL', () => {
+    const css = '@import "tailwindcss";\nbackground: url(//cdn.example.com/x.png);\n@plugin "y";'
+
+    expect(hasPluginDirective(css)).toBe(true)
   })
 
   it('still detects a directive that follows a comment mentioning it', () => {

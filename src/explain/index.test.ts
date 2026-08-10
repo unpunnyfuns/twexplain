@@ -266,14 +266,11 @@ describe('explainCandidates variants', () => {
     expect(variantsOf('flex')).toEqual([])
   })
 
-  it('never yields a nullish entry for any variant kind', () => {
+  it('prints every variant kind as a non-empty name', () => {
     for (const text of Object.keys(VARIANT_SHAPES)) {
-      const variants = variantsOf(text)
-      expect(variants).toBeDefined()
-      for (const variant of variants ?? []) {
-        expect(typeof variant).toBe('string')
-        expect(variant.length).toBeGreaterThan(0)
-      }
+      const printed = variantsOf(text) ?? []
+      expect(printed.length).toBeGreaterThan(0)
+      for (const name of printed) expect(name).not.toBe('')
     }
   })
 

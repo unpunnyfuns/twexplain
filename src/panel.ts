@@ -181,9 +181,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
 
   const withoutRepeatedPayload = (state: PanelState): PanelState => {
     if (state.status !== 'ready') return state
-    const fingerprint = `${state.palette.length}\u0000${state.variants.length}\u0000${
-      state.palette[0]?.name ?? ''
-    }\u0000${state.variants[0] ?? ''}`
+    const fingerprint = JSON.stringify([state.palette, state.variants])
     if (fingerprint === sentFingerprint) return { ...state, palette: [], variants: [] }
     sentFingerprint = fingerprint
     return state
@@ -198,6 +196,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     vscode.window.registerWebviewViewProvider('twexplain.panel', {
       resolveWebviewView(view) {
         current = view.webview
+        sentFingerprint = null
         view.webview.options = { enableScripts: true }
         view.webview.html = html(view.webview, context.extensionUri)
         view.webview.onDidReceiveMessage((message: WebviewMessage) => {
@@ -212,6 +211,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         })
         view.onDidDispose(() => {
           current = null
+          sentFingerprint = null
           if (timer !== undefined) {
             clearTimeout(timer)
             timer = undefined

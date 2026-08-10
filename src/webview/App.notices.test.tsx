@@ -28,7 +28,13 @@ describe('every state the host can report', () => {
       const notice = screen.getByRole('paragraph')
 
       await expect.element(notice.first()).toBeVisible()
-      expect((await notice.first().element()).textContent?.trim().length ?? 0).toBeGreaterThan(20)
+      const element = await notice.first().element()
+      const style = getComputedStyle(element)
+
+      expect(element.textContent?.trim().length ?? 0).toBeGreaterThan(20)
+      expect(Number(style.opacity)).toBeGreaterThan(0)
+      expect(element.getBoundingClientRect().height).toBeGreaterThan(0)
+      expect(style.color).not.toBe('rgba(0, 0, 0, 0)')
     },
   )
 

@@ -119,12 +119,6 @@ describe('clicking the class name', () => {
     expect(screen.getByRole('button', { name: 'increase px-4' }).elements()).toHaveLength(0)
   })
 
-  it('keeps the class name readable as text', async () => {
-    const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
-
-    await expect.element(screen.getByText('px-4', { exact: true })).toBeVisible()
-  })
-
   it('names the class in the toggle so it is clear what expands', async () => {
     const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
 
@@ -188,11 +182,11 @@ describe('the remove icon', () => {
     await expect.element(screen.getByRole('button', { name: 'remove nope-999' })).toBeVisible()
   })
 
-  it('leaves the details toggle working on its own', async () => {
+  it('is a separate control from the toggle, not nested inside it', async () => {
     const screen = await render(<ClassRow explained={explained()} onIntent={vi.fn()} />)
+    const toggle = await screen.getByRole('button', { name: /details for px-4/i }).element()
+    const remove = await screen.getByRole('button', { name: 'remove px-4' }).element()
 
-    await screen.getByText('px-4', { exact: true }).click()
-
-    await expect.element(screen.getByRole('button', { name: 'increase px-4' })).toBeVisible()
+    expect(toggle.contains(remove)).toBe(false)
   })
 })

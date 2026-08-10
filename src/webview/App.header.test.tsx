@@ -50,10 +50,14 @@ describe('the panel header', () => {
     expect(screen.getByRole('button', { name: /undo last edit/i }).elements()).toHaveLength(0)
   })
 
-  it('sits in a banner so it stays put while the classes scroll', async () => {
+  it('stays put while the classes scroll', async () => {
     const { screen } = await mount()
-
     await expect.element(screen.getByRole('banner')).toBeVisible()
+    const header = await screen.getByRole('banner').element()
+    const style = getComputedStyle(header)
+
+    expect(style.position).toBe('sticky')
+    expect(style.top).toBe('0px')
   })
 })
 

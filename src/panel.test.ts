@@ -3,8 +3,22 @@ import type { PanelState } from './types'
 
 type WebviewViewProvider = { resolveWebviewView: (view: unknown) => void }
 
-const captured: { provider?: WebviewViewProvider; commands: Map<string, () => unknown> } = {
+const captured: {
+  provider?: WebviewViewProvider
+  commands: Map<string, () => unknown>
+  listeners: Map<string, (arg?: unknown) => void>
+  watcher: Map<string, () => void>
+} = {
   commands: new Map(),
+  listeners: new Map(),
+  watcher: new Map(),
+}
+
+function remember(name: string) {
+  return vi.fn((cb: (arg?: unknown) => void) => {
+    captured.listeners.set(name, cb)
+    return { dispose: vi.fn() }
+  })
 }
 
 vi.mock('vscode', () => ({
@@ -13,8 +27,8 @@ vi.mock('vscode', () => ({
       captured.provider = provider
       return { dispose: vi.fn() }
     }),
-    onDidChangeTextEditorSelection: vi.fn(() => ({ dispose: vi.fn() })),
-    onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
+    onDidChangeTextEditorSelection: remember('selection'),
+    onDidChangeActiveTextEditor: remember('activeEditor'),
     activeTextEditor: undefined,
     showTextDocument: vi.fn(async () => undefined),
     showErrorMessage: vi.fn(async () => undefined),
@@ -28,11 +42,11 @@ vi.mock('vscode', () => ({
     }),
   },
   workspace: {
-    onDidChangeTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
+    onDidChangeTextDocument: remember('document'),
     createFileSystemWatcher: vi.fn(() => ({
-      onDidChange: vi.fn(),
-      onDidCreate: vi.fn(),
-      onDidDelete: vi.fn(),
+      onDidChange: vi.fn((cb: () => void) => captured.watcher.set('change', cb)),
+      onDidCreate: vi.fn((cb: () => void) => captured.watcher.set('create', cb)),
+      onDidDelete: vi.fn((cb: () => void) => captured.watcher.set('delete', cb)),
       dispose: vi.fn(),
     })),
     getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
@@ -58,6 +72,8 @@ vi.mock('vscode', () => ({
 vi.mock('./state', () => ({ computeState: vi.fn() }))
 vi.mock('./intent', () => ({ resolveIntent: vi.fn() }))
 vi.mock('./sort', () => ({ resolveSort: vi.fn() }))
+vi.mock('./search', () => ({ searchClasses: vi.fn(async () => ['gap-2']) }))
+vi.mock('./design-system/load', () => ({ clearDesignSystemCache: vi.fn() }))
 
 function makeFakeView() {
   let disposeCb: (() => void) | undefined
@@ -86,6 +102,7 @@ function makeFakeView() {
     fireReady: () => readyCb?.({ type: 'ready' }),
     fireEdit: (intent: unknown) => readyCb?.({ type: 'edit', intent } as never),
     fireUndo: () => readyCb?.({ type: 'undo' } as never),
+    fireSearch: (query: string) => readyCb?.({ type: 'search', query } as never),
     fireDispose: () => disposeCb?.(),
   }
 }
@@ -107,6 +124,8 @@ beforeEach(() => {
   vi.resetModules()
   vi.clearAllMocks()
   captured.provider = undefined
+  captured.listeners.clear()
+  captured.watcher.clear()
 })
 
 describe('registerPanel disposal guard', () => {
@@ -118,12 +137,13 @@ describe('registerPanel disposal guard', () => {
     const { view, webview, fireReady, fireDispose } = makeFakeView()
     captured.provider?.resolveWebviewView(view)
 
+    const stateModule = await import('./state')
     fireDispose()
     fireReady()
-    await Promise.resolve()
-    await Promise.resolve()
+    await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(webview.postMessage).not.toHaveBeenCalled()
+    expect(vi.mocked(stateModule.computeState)).not.toHaveBeenCalled()
   })
 })
 
@@ -687,5 +707,193 @@ describe('edits are refused when the document has moved underneath them', () => 
     await new Promise((resolve) => setTimeout(resolve, 40))
 
     expect(overlapped).toBe(false)
+  })
+})
+
+describe('the panel refreshes as the cursor moves', () => {
+  async function ready() {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue({ status: 'no-selection' })
+    return { webview }
+  }
+
+  it.each(['selection', 'activeEditor', 'document'])(
+    'explains the class string again after a %s change',
+    async (event) => {
+      const { webview } = await ready()
+
+      captured.listeners.get(event)?.()
+      await new Promise((resolve) => setTimeout(resolve, 250))
+
+      expect(webview.postMessage).toHaveBeenCalled()
+    },
+  )
+
+  it('waits rather than recomputing on every keystroke', async () => {
+    const stateModule = await import('./state')
+    await ready()
+
+    captured.listeners.get('selection')?.()
+    captured.listeners.get('selection')?.()
+    captured.listeners.get('selection')?.()
+    await new Promise((resolve) => setTimeout(resolve, 250))
+
+    expect(vi.mocked(stateModule.computeState).mock.calls.length).toBe(1)
+  })
+})
+
+describe('the search half of the protocol', () => {
+  it('answers a search with suggestions for that query', async () => {
+    const vscode = await import('vscode')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview, fireSearch } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+
+    fireSearch('gap')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(webview.postMessage).toHaveBeenCalledWith({
+      type: 'suggestions',
+      query: 'gap',
+      matches: ['gap-2'],
+    })
+  })
+})
+
+describe('a stylesheet change invalidates the design system', () => {
+  it.each(['change', 'create', 'delete'])('clears the cache on %s', async (event) => {
+    const load = await import('./design-system/load')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    captured.watcher.get(event)?.()
+
+    expect(vi.mocked(load.clearDesignSystemCache)).toHaveBeenCalled()
+  })
+})
+
+describe('the webview document is loadable', () => {
+  it('gives the script the very nonce the policy allows', async () => {
+    const { registerPanel } = await import('./panel')
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    const html = view.webview.html
+    const allowed = /script-src 'nonce-([A-Za-z0-9]+)'/.exec(html)?.[1]
+    const used = /<script nonce="([A-Za-z0-9]+)"/.exec(html)?.[1]
+
+    expect(allowed).toBeDefined()
+    expect(used).toBe(allowed)
+  })
+})
+
+describe('the panel resends a payload whose contents changed', () => {
+  async function post(state: unknown) {
+    const stateModule = await import('./state')
+    vi.mocked(stateModule.computeState).mockResolvedValue(state as never)
+    captured.listeners.get('selection')?.()
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+
+  const ready = (palette: { name: string; value: string }[], variants: string[]) => ({
+    status: 'ready' as const,
+    groups: [],
+    palette,
+    variants,
+  })
+
+  it('resends when the variant list changes but the palette does not', async () => {
+    const vscode = await import('vscode')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+
+    await post(ready([{ name: 'blue', value: '#00f' }], ['hover']))
+    await post(ready([{ name: 'blue', value: '#00f' }], ['focus']))
+
+    const sent = webview.postMessage.mock.calls.at(-1)?.[0] as { state: { variants: string[] } }
+    expect(sent.state.variants).toEqual(['focus'])
+  })
+
+  it('resends when a colour value changes but every name stays the same', async () => {
+    const vscode = await import('vscode')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, webview } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+
+    await post(ready([{ name: 'blue', value: '#00f' }], ['hover']))
+    await post(ready([{ name: 'blue', value: '#0ff' }], ['hover']))
+
+    const sent = webview.postMessage.mock.calls.at(-1)?.[0] as {
+      state: { palette: { value: string }[] }
+    }
+    expect(sent.state.palette[0]?.value).toBe('#0ff')
+  })
+})
+
+describe('the commands the manifest promises', () => {
+  it('registers exactly the commands package.json contributes', async () => {
+    const { registerPanel } = await import('./panel')
+    const manifest = (await import('../package.json')) as unknown as {
+      contributes: { commands: { command: string }[] }
+    }
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+
+    const promised = manifest.contributes.commands.map((c) => c.command).sort()
+    expect([...captured.commands.keys()].sort()).toEqual(promised)
+  })
+})
+
+describe('a re-created webview gets the payload again', () => {
+  it('resends the palette after the view is disposed and resolved afresh', async () => {
+    const vscode = await import('vscode')
+    const stateModule = await import('./state')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(stateModule.computeState).mockResolvedValue({
+      status: 'ready',
+      groups: [],
+      palette: [{ name: 'blue', value: '#00f' }],
+      variants: ['hover'],
+    })
+
+    const first = makeFakeView()
+    captured.provider?.resolveWebviewView(first.view)
+    first.fireReady()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    first.fireDispose()
+
+    const second = makeFakeView()
+    captured.provider?.resolveWebviewView(second.view)
+    second.fireReady()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    const sent = second.webview.postMessage.mock.calls.at(-1)?.[0] as {
+      state: { palette: unknown[] }
+    }
+    expect(sent.state.palette).toHaveLength(1)
   })
 })

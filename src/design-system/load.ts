@@ -30,7 +30,7 @@ const PLUGIN_DIRECTIVE = /@plugin\s+['"]/
 const CONFIG_DIRECTIVE = /@config\s+['"]/
 
 function stripComments(css: string): string {
-  return css.replace(/\/\*[\s\S]*?(?:\*\/|$)/g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1')
+  return css.replace(/\/\*[\s\S]*?(?:\*\/|$)/g, ' ')
 }
 
 export function hasPluginDirective(css: string): boolean {
