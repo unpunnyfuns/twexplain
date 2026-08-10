@@ -56,7 +56,37 @@ failure names itself:
 | Package | `vsce package`, uploading the `.vsix` as an artefact |
 
 Playwright's browser download is cached on the lockfile hash. There is no publishing workflow:
-releases are made by hand, so the first one cannot be automated on a misunderstanding.
+releases are made by hand, so the first one cannot be automated on a misunderstanding, and no
+Marketplace token lives in repository secrets.
+
+### Workflow hardening
+
+Every action is pinned to a commit SHA with the version in a trailing comment, because a tag can be
+repointed at new code and anything in a workflow runs with the repository's token. `zizmor` audits
+the workflows on every push and pull request, and passes at its `pedantic` persona. To run it
+locally:
+
+```
+uvx zizmor@latest --persona=pedantic .github/workflows
+```
+
+Checkouts set `persist-credentials: false`, every job declares `contents: read`, and no job has
+write permissions of any kind. When bumping an action, resolve the new SHA rather than moving the
+tag:
+
+```
+gh api repos/actions/checkout/git/ref/tags/v7.0.1 --jq '.object.sha'
+```
+
+### Dependency hygiene
+
+`.npmrc` sets `min-release-age=3`, so a newly published version cannot be installed for three days
+— the median takedown of a malicious release is around 14 hours. It also sets
+`ignore-scripts=true`, so a dependency's `postinstall` cannot run on install.
+
+That flag disables *our* lifecycle scripts too, which is why `test:integration` chains its build
+steps explicitly instead of relying on a `pretest:integration` hook. If you add a script that
+depends on a `pre`/`post` hook, it will not fire.
 
 ## Testing
 
