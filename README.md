@@ -87,8 +87,25 @@ at any nesting depth in any of the above.
 `@plugin` and `@config` are reported as unsupported rather than loaded with the directive's
 contents missing.
 
-This extension resolves and edits class strings; Tailwind CSS IntelliSense provides completion and
-hovers. They are complementary.
+## Alongside Tailwind CSS IntelliSense
+
+This extension is meant to sit beside
+[Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss),
+not replace it. IntelliSense provides completion, hovers, linting and sorting; this provides the
+panel. Install both.
+
+It contributes no settings of its own for anything IntelliSense already configures, and reads
+IntelliSense's instead, so there is one place to set them:
+
+| Setting | Used for |
+| --- | --- |
+| `tailwindCSS.rootFontSize` | Converting `rem` to `px`. A project using `html { font-size: 62.5% }` should set this to `10`, or every px figure in the panel is wrong. |
+| `tailwindCSS.showPixelEquivalents` | Turn off to see `rem` values as authored. |
+| `tailwindCSS.classAttributes` | Extra attributes to read, such as `wrapperClassName`. |
+| `tailwindCSS.classFunctions` | Extra helper calls to read, beyond the ones below. |
+
+Without IntelliSense installed these fall back to sensible values — a 16px root, pixel
+equivalents shown, and the attributes and helpers listed above.
 
 ## Contributing
 

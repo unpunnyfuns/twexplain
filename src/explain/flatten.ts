@@ -1,6 +1,6 @@
 export type ResolveTheme = (key: string) => string | null
 
-const ROOT_FONT_SIZE_PX = 16
+export const INITIAL_ROOT_FONT_SIZE_PX = 16
 const VAR_PATTERN = /var\((--[\w-]+)(?:,([^()]*))?\)/g
 const CALC_PATTERN = /calc\(([^()]*)\)/
 const DIMENSION = /^(-?[\d.]+)([a-z%]*)$/
@@ -96,17 +96,19 @@ export function flattenValue(value: string, resolve: ResolveTheme): string {
 const QUOTED_OR_URL = /("[^"]*"|'[^']*'|url\([^)]*\))/g
 const REM_LENGTH = /(-?[\d.]+)rem\b/g
 
-function convertRem(value: string): string {
+function convertRem(value: string, rootFontSize: number): string {
   return value.replace(
     REM_LENGTH,
-    (_, n: string) =>
-      `${Number.parseFloat((Number.parseFloat(n) * ROOT_FONT_SIZE_PX).toFixed(4))}px`,
+    (_, n: string) => `${Number.parseFloat((Number.parseFloat(n) * rootFontSize).toFixed(4))}px`,
   )
 }
 
-export function remToPx(value: string): string {
+export function remToPx(value: string, rootFontSize = INITIAL_ROOT_FONT_SIZE_PX): string {
+  const size =
+    Number.isFinite(rootFontSize) && rootFontSize > 0 ? rootFontSize : INITIAL_ROOT_FONT_SIZE_PX
+
   return value
     .split(QUOTED_OR_URL)
-    .map((part, index) => (index % 2 === 1 ? part : convertRem(part)))
+    .map((part, index) => (index % 2 === 1 ? part : convertRem(part, size)))
     .join('')
 }

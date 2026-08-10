@@ -10,6 +10,8 @@ export type StateInput = {
   workspaceRoot: string | null
   fsPath: string
   languageId: string
+  rootFontSize?: number
+  pixelEquivalents?: boolean
 }
 
 function paletteFrom(ds: {
@@ -58,7 +60,10 @@ export async function computeState(input: StateInput): Promise<PanelState> {
 
   return {
     status: 'ready',
-    groups: explainCandidates(location.candidates, loaded.ds),
+    groups: explainCandidates(location.candidates, loaded.ds, {
+      rootFontSize: input.rootFontSize,
+      pixelEquivalents: input.pixelEquivalents,
+    }),
     palette: paletteFrom(loaded.ds),
     variants: variantsFrom(loaded.ds),
   }

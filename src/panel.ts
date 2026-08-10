@@ -5,6 +5,7 @@ import type { TextEdit } from './edit/writeback'
 import type { EditIntent } from './intent'
 import { resolveIntent } from './intent'
 import { searchClasses } from './search'
+import { readSettings } from './settings'
 import { computeState } from './state'
 import type { HostMessage, PanelState, WebviewMessage } from './types'
 
@@ -111,7 +112,9 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     }, LOADING_NOTICE_MS)
 
     try {
+      const settings = readSettings(document.uri)
       const state = await computeState({
+        ...settings,
         text: document.getText(),
         offset: document.offsetAt(editor.selection.active),
         uri: document.uri.toString(),
@@ -137,6 +140,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     const version = document.version
 
     const edit = await resolveIntent({
+      ...readSettings(document.uri),
       text: document.getText(),
       offset: document.offsetAt(editor.selection.active),
       uri: document.uri.toString(),

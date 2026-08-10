@@ -1,6 +1,7 @@
 import type { ClassStringLocation } from '../types'
 import { detectApply } from './apply'
 import { detectAttribute, detectExpression } from './markup'
+import { attributesFrom, type ClassNames } from './names'
 import { locate } from './shared'
 
 const CLASS_EXPRESSION = /\bclass\s*=\s*\{/g
@@ -10,10 +11,11 @@ export function detectSvelte(
   text: string,
   offset: number,
   uri: string,
+  names?: ClassNames,
 ): ClassStringLocation | null {
   const expression = detectExpression(text, offset, uri, 'svelte', CLASS_EXPRESSION, '{', '}')
   if (expression !== null) return expression
-  const attribute = detectAttribute(text, offset, uri, 'svelte', ['class'])
+  const attribute = detectAttribute(text, offset, uri, 'svelte', attributesFrom(names))
   if (attribute !== null) return attribute
 
   CLASS_DIRECTIVE.lastIndex = 0

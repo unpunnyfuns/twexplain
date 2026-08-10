@@ -15,6 +15,8 @@ export type IntentInput = {
   workspaceRoot: string | null
   fsPath: string
   languageId: string
+  classAttributes?: string[]
+  classFunctions?: string[]
   intent: EditIntent
 }
 

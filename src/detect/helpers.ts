@@ -1,8 +1,11 @@
 import type { ClassStringLocation } from '../types'
 import { detectStringsIn } from './markup'
+import { type ClassNames, functionsFrom } from './names'
 
-const HELPERS = ['cva', 'cn', 'clsx', 'classnames', 'cx', 'twMerge', 'tw', 'tv']
-const HELPER_CALL = new RegExp(`\\b(?:${HELPERS.join('|')})\\s*\\(`, 'g')
+function escapeName(name: string): string {
+  return name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function findCallEnd(text: string, open: number): number {
   let depth = 1
   let quote: string | null = null
@@ -32,8 +35,12 @@ export function detectHelperCall(
   offset: number,
   uri: string,
   kind: ClassStringLocation['kind'],
+  names?: ClassNames,
 ): ClassStringLocation | null {
-  HELPER_CALL.lastIndex = 0
+  const HELPER_CALL = new RegExp(
+    `\\b(?:${functionsFrom(names).map(escapeName).join('|')})\\s*\\(`,
+    'g',
+  )
   let match: RegExpExecArray | null
   while ((match = HELPER_CALL.exec(text)) !== null) {
     const open = match.index + match[0].length - 1

@@ -65,7 +65,20 @@ function swatchFrom(declarations: Declaration[]): string | null {
   return found.value
 }
 
-export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort): ExplainGroup[] {
+export type ExplainOptions = {
+  rootFontSize?: number
+  pixelEquivalents?: boolean
+}
+
+export function explainCandidates(
+  candidates: Candidate[],
+  ds: DesignSystemPort,
+  options: ExplainOptions = {},
+): ExplainGroup[] {
+  const asPixels = options.pixelEquivalents !== false
+  const lengths = (value: string): string =>
+    asPixels ? remToPx(value, options.rootFontSize) : value
+
   const compiled = ds.candidatesToCss(candidates.map((c) => c.text))
   const resolve = (key: string): string | null => ds.resolveThemeValue(key) ?? null
 
@@ -96,7 +109,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
     })
     const declarations = raw.map((d) => ({
       prop: d.prop,
-      value: remToPx(flattenValue(d.value, resolve)),
+      value: lengths(flattenValue(d.value, resolve)),
       ...(d.context !== undefined ? { context: d.context } : {}),
       ...(d.selector !== undefined ? { selector: d.selector } : {}),
     }))

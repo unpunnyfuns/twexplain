@@ -163,3 +163,57 @@ describe('looksLikeClassList', () => {
     expect(looksLikeClassList('a '.repeat(MAX_VALUE_LENGTH))).toBe(false)
   })
 })
+
+describe('names configured for Tailwind CSS IntelliSense', () => {
+  it('reads a class attribute the project added', () => {
+    const text = '<div wrapperClassName="flex gap-2" />'
+    const found = detectClassString({
+      text,
+      offset: at(text, 'flex'),
+      uri: 'file:///a.tsx',
+      languageId: 'typescriptreact',
+      classAttributes: ['wrapperClassName'],
+    })
+
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'gap-2'])
+  })
+
+  it('ignores that attribute when it is not configured', () => {
+    const text = '<div wrapperClassName="flex gap-2" />'
+    const found = detectClassString({
+      text,
+      offset: at(text, 'flex'),
+      uri: 'file:///a.tsx',
+      languageId: 'typescriptreact',
+    })
+
+    expect(found).toBeNull()
+  })
+
+  it('reads a helper call the project added', () => {
+    const text = 'const c = cls("flex gap-2")'
+    const found = detectClassString({
+      text,
+      offset: at(text, 'flex'),
+      uri: 'file:///a.tsx',
+      languageId: 'typescriptreact',
+      classFunctions: ['cls'],
+    })
+
+    expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'gap-2'])
+  })
+
+  it('reads the Angular and Astro attributes IntelliSense defaults to', () => {
+    for (const attribute of ['ngClass', 'class:list']) {
+      const text = `<div ${attribute}="flex gap-2" />`
+      const found = detectClassString({
+        text,
+        offset: at(text, 'flex'),
+        uri: 'file:///a.html',
+        languageId: 'html',
+      })
+
+      expect(found?.candidates.map((c) => c.text)).toEqual(['flex', 'gap-2'])
+    }
+  })
+})
