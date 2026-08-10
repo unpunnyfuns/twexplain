@@ -1,73 +1,92 @@
 # Tailwind Explain
 
-**Read and edit long Tailwind class strings without leaving the file.**
+A side panel that explains and edits the Tailwind class string under the cursor.
 
-Put your cursor in a class string. The side panel lists every class in it, grouped by concern,
-each with a plain-English description and the CSS it actually compiles to — and lets you change
-any of them in place.
+Place the cursor inside a class string. The panel lists each class in it, grouped by concern, with
+a plain-English description, the condition it applies under, and the CSS it compiles to. Each class
+can be edited in place.
 
-Tailwind is loaded from your own `node_modules`, so everything you see is your project: your
-theme, your `@theme` blocks, your custom utilities, your colours.
+Tailwind is loaded from the workspace's own `node_modules`, so the panel resolves against the
+project's theme, `@theme` blocks, custom utilities and colours rather than a bundled copy.
 
-## It tells you the truth or nothing
+## Descriptions
 
-A tool that guesses is worse than no tool. Tailwind Explain never invents a description.
+A description is derived from the compiled CSS where the declarations read as meaning, and comes
+from a curated table where they do not — `shadow-lg` compiles to `--tw-*` machinery, so its
+description is written rather than derived.
 
-- A class it cannot honestly describe shows its raw CSS and says it has no plain-English entry —
-  it does not improvise one.
-- A declaration that only applies inside a media query or under a selector says so. `divide-red-500`
-  is described as a colour on the children, not on the element, because that is where it lands.
-- `shadow-none` reads as *no drop shadow*, never as *drop shadow*.
-- A colour swatch that only applies in dark mode, or only to children, is marked and says why.
+Where a description cannot be given, the panel says so and shows the raw CSS instead. This happens
+in three cases:
 
-## Edit in place
-
-Every control rewrites only the one class you touched. The rest of the string, its formatting and
-its line wrapping are untouched, and every change goes through the editor's own undo.
-
-| Control | Does |
+| Case | Shown |
 | --- | --- |
-| **Steppers** | Nudge a numeric value — `p-4` to `p-5` |
-| **Colour picker** | Swap the colour, from your project's palette |
-| **Opacity** | Set or clear the `/50` modifier |
-| **Variant chips** | Add or remove `hover:`, `md:`, `dark:` and the rest |
-| **Arbitrary value** | Edit the value inside `p-[13px]` |
-| **Add class** | Search the whole class list, including what your theme generates |
-| **Remove** | Delete the class |
+| No entry for the utility yet | The declarations, and "no plain-English entry yet" |
+| The class sets only `--tw-*` variables | "sets only Tailwind-internal variables" |
+| The class carries a variant whose condition cannot be described | The declarations, unqualified prose withheld |
 
-A class Tailwind cannot compile is never written to your file, so no control can leave a broken
-class behind.
+Conditions are stated rather than left implied:
+
+| Class | Description |
+| --- | --- |
+| `md:w-1/2` | from 768px up — width 50% |
+| `hover:bg-red-500` | while hovered — background … |
+| `divide-red-500` | the colour of the dividing lines between children |
+| `shadow-none` | no drop shadow |
+
+Breakpoint figures come from the project's own `--breakpoint` values. A colour swatch limited to a
+condition, or to the element's children, is marked and names the limit.
+
+## Editing
+
+Each control rewrites one candidate's range. The surrounding string, its formatting and its line
+breaks are left as they are, and changes go through the editor's own undo — including `Cmd+Z` with
+focus in the panel.
+
+| Control | Effect |
+| --- | --- |
+| Steppers | Raise or lower a numeric value — `p-4` to `p-5` |
+| Colour picker | Replace the colour from the project's palette |
+| Opacity | Set or clear the `/50` modifier |
+| Variant chips | Add or remove `hover:`, `md:`, `dark:` and the rest |
+| Arbitrary value | Edit the value inside `p-[13px]` |
+| Add class | Search the full class list, including classes the theme generates |
+| Remove | Delete the class |
+
+Only variants that compile on their own are offered. Breakpoints are treated as mutually
+exclusive, so a class does not accumulate `sm:md:lg:`; a `sm:max-md:` range is left intact. A class
+Tailwind cannot compile is not written.
 
 ## Commands
 
-| Command | Does |
+| Command | Effect |
 | --- | --- |
-| **Sort Classes** | Reorders the class string the way Tailwind itself generates the stylesheet. Classes it does not recognise keep their place at the front, and a string your formatter wrapped stays wrapped on the same lines. |
-| **Show Curation Backlog** | Lists every class you have looked at that had no plain-English description yet. |
+| Sort Classes | Reorders the class string in the order Tailwind generates the stylesheet. Unrecognised classes keep their position at the front; existing line breaks are preserved. |
+| Show Curation Backlog | Opens a report of the classes seen so far that have no plain-English description, grouped by candidate root. |
 
-## Works with
+## Languages
 
-| Language | Where it looks |
+| Language | Detected in |
 | --- | --- |
-| **React** (TSX, JSX) | `className` and `class`, `{…}` expressions, template literals |
-| **HTML** | `class` |
-| **Vue** | `class`, `:class` and `v-bind:class`, array and object syntax |
-| **Svelte** | `class`, `class={…}`, `class:name={cond}` directives |
-| **CSS / PostCSS** | `@apply` |
+| TypeScript React, JavaScript React | `className` and `class`, `{…}` expressions, template literals |
+| HTML | `class` |
+| Vue | `class`, `:class` and `v-bind:class`, array and object syntax |
+| Svelte | `class`, `class={…}`, `class:name={cond}` directives, `@apply` in `<style>` |
+| CSS, PostCSS | `@apply` |
 
-Class strings inside helper calls are found at any depth, in any of the above: `cva`, `cn`,
-`clsx`, `classnames`, `cx`, `twMerge`, `tw`, `tv`.
+Class strings inside `cva`, `cn`, `clsx`, `classnames`, `cx`, `twMerge`, `tw` and `tv` are detected
+at any nesting depth in any of the above.
 
 ## Requirements
 
-- **Tailwind v4.** v3 and earlier work in a completely different way, and are reported as
-  unsupported rather than guessed at.
-- **A stylesheet that imports Tailwind.** If there isn't one, the panel tells you which line to add
-  and where.
+- Tailwind v4. Earlier versions use a config-driven pipeline and are reported as unsupported.
+- A stylesheet importing Tailwind. If none is found, the panel names the import to add.
+- A local workspace on disk. Virtual and untrusted workspaces are not supported.
 
-`@plugin` is not supported yet, and says so rather than failing quietly.
+`@plugin` and `@config` are reported as unsupported rather than loaded with the directive's
+contents missing.
 
-Tailwind Explain complements Tailwind CSS IntelliSense — it does not replace it. Keep both.
+This extension resolves and edits class strings; Tailwind CSS IntelliSense provides completion and
+hovers. They are complementary.
 
 ## Contributing
 
