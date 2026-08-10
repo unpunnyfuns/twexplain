@@ -88,6 +88,21 @@ That flag disables *our* lifecycle scripts too, which is why `test:integration` 
 steps explicitly instead of relying on a `pretest:integration` hook. If you add a script that
 depends on a `pre`/`post` hook, it will not fire.
 
+**Remove `ignore-scripts` when the toolchain moves to npm 12.** npm 12 blocks dependency install
+scripts by default through a different mechanism — an empty `allow-scripts` allowlist, with
+`dangerously-allow-all-scripts` as the escape hatch — and unlike `ignore-scripts` it leaves the
+project's own lifecycle scripts running. Verified against npm 12.0.2:
+
+| | Dependency install scripts | This project's lifecycle scripts |
+| --- | --- | --- |
+| `ignore-scripts=true` | blocked | also blocked |
+| npm 12 default | blocked | run |
+
+So on npm 12 the flag protects nothing extra and only costs us the hooks. When the repo requires
+npm 12, delete `ignore-scripts=true` from `.npmrc`, and `test:integration` can go back to a
+`pretest:integration` hook. `min-release-age` is unaffected and works on both; npm 12 adds
+`min-release-age-exclude` if a package ever needs an exception.
+
 ## Testing
 
 Component tests run in a real Chromium through **Vitest browser mode** (`@vitest/browser` with
