@@ -4,6 +4,23 @@ All notable changes to Tailwind Explain are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] — 2026-08-10
+
+### Changed
+
+- The listing describes what the panel shows rather than how it decides. A paragraph explaining
+  that descriptions are derived from the compiled CSS "where the declarations read as meaning" was
+  both jargon and wrong — curated prose is tried first, which is why `sr-only` is described by
+  purpose despite having perfectly readable declarations.
+- Internal vocabulary removed from the listing: candidates, roots, derived and curated are
+  implementation terms and now appear only in the contributor documentation.
+
+### Added
+
+- Tests holding the documentation to the code: the commands, helper calls, settings and quoted
+  panel strings in the README must match what ships, and the changelog must carry a dated entry
+  for the version being released.
+
 ## [0.1.1] — 2026-08-10
 
 ### Fixed

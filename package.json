@@ -2,7 +2,7 @@
   "name": "twexplain",
   "displayName": "Tailwind Explain",
   "description": "Explains and edits the Tailwind class string under your cursor, resolved against your own project.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "engines": {
     "vscode": "^1.99.0",

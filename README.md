@@ -11,12 +11,8 @@ project's theme, `@theme` blocks, custom utilities and colours rather than a bun
 
 ## Descriptions
 
-A description is derived from the compiled CSS where the declarations read as meaning, and comes
-from a curated table where they do not — `shadow-lg` compiles to `--tw-*` machinery, so its
-description is written rather than derived.
-
-Where a description cannot be given, the panel says so and shows the raw CSS instead. This happens
-in three cases:
+Where no description can be given, the panel says so and shows the raw CSS instead. This happens in
+three cases:
 
 | Case | Shown |
 | --- | --- |
@@ -38,7 +34,7 @@ condition, or to the element's children, is marked and names the limit.
 
 ## Editing
 
-Each control rewrites one candidate's range. The surrounding string, its formatting and its line
+Each control rewrites one class. The surrounding string, its formatting and its line
 breaks are left as they are, and changes go through the editor's own undo — including `Cmd+Z` with
 focus in the panel.
 
@@ -60,7 +56,7 @@ Tailwind cannot compile is not written.
 
 | Command | Effect |
 | --- | --- |
-| Show Curation Backlog | Opens a report of the classes seen so far that have no plain-English description, grouped by candidate root. Hidden unless `twexplain.curationBacklog` is turned on; it exists for contributing descriptions to this extension. |
+| Show Curation Backlog | Lists the classes seen so far that have no plain-English description. Hidden unless `twexplain.curationBacklog` is turned on; it exists for contributing descriptions to this extension. |
 
 Sorting is not provided. Tailwind CSS IntelliSense contributes **Sort Selection**, and
 `prettier-plugin-tailwindcss` sorts on save.
@@ -89,13 +85,11 @@ contents missing.
 
 ## Alongside Tailwind CSS IntelliSense
 
-This extension is meant to sit beside
-[Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss),
-not replace it. IntelliSense provides completion, hovers, linting and sorting; this provides the
-panel. Install both.
+[Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
+provides completion, hovers, linting and sorting. This provides the panel. The two are intended to
+be used together.
 
-It contributes no settings of its own for anything IntelliSense already configures, and reads
-IntelliSense's instead, so there is one place to set them:
+Settings IntelliSense already defines are read from it rather than duplicated:
 
 | Setting | Used for |
 | --- | --- |
@@ -104,8 +98,8 @@ IntelliSense's instead, so there is one place to set them:
 | `tailwindCSS.classAttributes` | Extra attributes to read, such as `wrapperClassName`. |
 | `tailwindCSS.classFunctions` | Extra helper calls to read, beyond the ones below. |
 
-Without IntelliSense installed these fall back to sensible values — a 16px root, pixel
-equivalents shown, and the attributes and helpers listed above.
+Without IntelliSense installed these fall back to a 16px root, pixel equivalents shown, and the
+attributes and helpers listed above.
 
 ## Contributing
 
