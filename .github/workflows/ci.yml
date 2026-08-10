@@ -27,7 +27,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci --ignore-scripts
+      # npm 12 blocks dependency install scripts by default, and unlike
+      # ignore-scripts it leaves this project's own lifecycle scripts running.
+      - run: corepack enable npm
+      - run: npm ci
       - run: npm run check-types
       - run: npm run lint
       - run: npm run format:check
@@ -45,7 +48,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci --ignore-scripts
+      # npm 12 blocks dependency install scripts by default, and unlike
+      # ignore-scripts it leaves this project's own lifecycle scripts running.
+      - run: corepack enable npm
+      - run: npm ci
 
       # Component tests run in a real Chromium through Vitest browser mode.
       - name: Cache Playwright browsers
@@ -74,7 +80,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci --ignore-scripts
+      # npm 12 blocks dependency install scripts by default, and unlike
+      # ignore-scripts it leaves this project's own lifecycle scripts running.
+      - run: corepack enable npm
+      - run: npm ci
       - run: npm run test:ds
 
   extension-host:
@@ -90,7 +99,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci --ignore-scripts
+      # npm 12 blocks dependency install scripts by default, and unlike
+      # ignore-scripts it leaves this project's own lifecycle scripts running.
+      - run: corepack enable npm
+      - run: npm ci
       # vscode-test launches a real VS Code, which needs a display.
       - run: sudo apt-get update && sudo apt-get install -y xvfb
       - run: xvfb-run -a npm run test:integration
@@ -108,7 +120,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci --ignore-scripts
+      # npm 12 blocks dependency install scripts by default, and unlike
+      # ignore-scripts it leaves this project's own lifecycle scripts running.
+      - run: corepack enable npm
+      - run: npm ci
       - run: npx vsce package --out twexplain.vsix
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
