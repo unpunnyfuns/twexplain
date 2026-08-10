@@ -22,6 +22,40 @@ const EXACT: Record<string, Record<string, string>> = {
     auto: 'scrolls when content overflows',
   },
   animation: { none: 'no animation' },
+  'align-items': {
+    'flex-start': 'children aligned to the start of the cross axis',
+    'flex-end': 'children aligned to the end of the cross axis',
+    center: 'children centred on the cross axis',
+    baseline: 'children aligned on their text baselines',
+    stretch: 'children stretched to fill the cross axis',
+  },
+  'justify-content': {
+    'flex-start': 'children packed to the start of the main axis',
+    'flex-end': 'children packed to the end of the main axis',
+    center: 'children centred on the main axis',
+    'space-between': 'children spread apart, with the outer ones against the edges',
+    'space-around': 'children spread out, with equal space around each',
+    'space-evenly': 'children spread out, with equal space between and around each',
+    stretch: 'children stretched along the main axis',
+  },
+  'align-content': {
+    'flex-start': 'lines packed to the start of the cross axis',
+    'flex-end': 'lines packed to the end of the cross axis',
+    center: 'lines centred on the cross axis',
+    'space-between': 'lines spread apart, with the outer ones against the edges',
+    'space-around': 'lines spread out, with equal space around each',
+    'space-evenly': 'lines spread out, with equal space between and around each',
+    stretch: 'lines stretched to fill the cross axis',
+    normal: 'lines packed in their default position',
+  },
+  'align-self': {
+    'flex-start': 'this item aligned to the start of the cross axis',
+    'flex-end': 'this item aligned to the end of the cross axis',
+    center: 'this item centred on the cross axis',
+    baseline: 'this item aligned on its text baseline',
+    stretch: 'this item stretched to fill the cross axis',
+    auto: 'this item aligned as its container says',
+  },
   'text-align': {
     left: 'text aligned left',
     right: 'text aligned right',
@@ -155,8 +189,6 @@ const EXACT: Record<string, Record<string, string>> = {
 }
 
 const PHRASES: Record<string, Phrase> = {
-  'align-items': (v) => `children centered on the cross axis (${v})`,
-  'justify-content': (v) => `children distributed along the main axis (${v})`,
   gap: (v) => `${v} between children`,
   padding: (v) => `padding of ${v} on all sides`,
   'padding-inline': (v) => `padding of ${v} on the left and right`,
@@ -233,8 +265,6 @@ const PHRASES: Record<string, Phrase> = {
   'transition-duration': (v) => `transitions over ${v}`,
   'transition-delay': (v) => `transitions after a ${v} delay`,
   'transition-timing-function': (v) => `eased with ${v}`,
-  'align-self': (v) => `this item aligned ${v} on the cross axis`,
-  'align-content': (v) => `rows distributed ${v}`,
   'justify-items': (v) => `children aligned ${v} within their grid cells`,
   'place-items': (v) => `children aligned ${v} both ways`,
   'grid-template-columns': (v) => {

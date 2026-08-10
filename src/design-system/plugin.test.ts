@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasPluginDirective } from './load'
+import { hasConfigDirective, hasPluginDirective } from './load'
 
 describe('hasPluginDirective', () => {
   it('detects a real plugin directive', () => {
@@ -30,5 +30,19 @@ describe('hasPluginDirective', () => {
 
   it('reports false for css with no directive at all', () => {
     expect(hasPluginDirective('@import "tailwindcss";\n.a { color: red; }')).toBe(false)
+  })
+})
+
+describe('hasConfigDirective', () => {
+  it('spots a @config directive, which twexplain cannot honour', () => {
+    expect(hasConfigDirective('@import "tailwindcss";\n@config "./tw.config.js";')).toBe(true)
+  })
+
+  it('ignores a project with no @config', () => {
+    expect(hasConfigDirective('@import "tailwindcss";')).toBe(false)
+  })
+
+  it('ignores the word config in a comment', () => {
+    expect(hasConfigDirective('/* @config "x" */\n@import "tailwindcss";')).toBe(false)
   })
 })

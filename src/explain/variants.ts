@@ -16,11 +16,11 @@ const SELECTOR_VARIANTS: Record<string, string> = {
   required: 'when required',
   invalid: 'when its value is invalid',
   'read-only': 'when read only',
-  first: 'on the first child',
-  last: 'on the last child',
+  first: 'when it is the first child',
+  last: 'when it is the last child',
   only: 'when it is the only child',
-  odd: 'on odd-numbered children',
-  even: 'on even-numbered children',
+  odd: 'when it is an odd-numbered child',
+  even: 'when it is an even-numbered child',
   empty: 'when it has no content',
   placeholder: 'on the placeholder text',
   selection: 'on the selected text',
@@ -59,17 +59,21 @@ function fromMediaQuery(variant: string, all: string[]): string | null {
   if (source === undefined) return null
 
   const min = MIN_WIDTH.exec(source)
-  if (min !== null) {
-    const size = remToPx(min[1] as string)
-    return container ? `when its container is ${size} or wider` : `from ${size} up`
-  }
-
   const max = MAX_WIDTH.exec(source)
-  if (max !== null) {
-    const size = remToPx(max[1] as string)
-    return container ? `when its container is narrower than ${size}` : `below ${size}`
-  }
+  const lower = min === null ? null : remToPx(min[1] as string)
+  const upper = max === null ? null : remToPx(max[1] as string)
 
+  if (lower !== null && upper !== null) {
+    return container
+      ? `when its container is between ${lower} and ${upper}`
+      : `between ${lower} and ${upper}`
+  }
+  if (lower !== null) {
+    return container ? `when its container is ${lower} or wider` : `from ${lower} up`
+  }
+  if (upper !== null) {
+    return container ? `when its container is narrower than ${upper}` : `below ${upper}`
+  }
   return null
 }
 

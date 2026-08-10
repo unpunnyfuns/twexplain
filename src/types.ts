@@ -53,6 +53,7 @@ export type PanelState =
   | { status: 'wrong-version'; found: string }
   | { status: 'no-css-entry' }
   | { status: 'unsupported-plugin' }
+  | { status: 'unsupported-config' }
   | { status: 'stale-runtime' }
   | { status: 'load-error'; message: string }
   | { status: 'loading' }

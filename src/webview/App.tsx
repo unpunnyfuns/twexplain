@@ -16,6 +16,8 @@ export const NOTICES: Record<string, string> = {
     'No entry stylesheet found. Add @import "tailwindcss"; to the CSS file your app loads, so twexplain can read your theme.',
   'unsupported-plugin':
     'This project uses a Tailwind @plugin, which twexplain does not support yet.',
+  'unsupported-config':
+    'This project uses @config to load a JavaScript config, which twexplain cannot read yet. Explaining classes would miss whatever that file defines.',
   'stale-runtime':
     'Tailwind changed version since this window loaded it. Reload the window to explain classes against the new version.',
 }

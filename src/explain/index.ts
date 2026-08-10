@@ -108,9 +108,12 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
           .reverse()
           .map((v) => ds.printVariant(v))
       : []
+    const condition = describeVariants(variants, declarations)
     const unexplainedCondition = variants.length === 0 && isConditional(declarations)
+    const undescribedVariant = variants.length > 0 && condition === null
     const derived = unexplainedCondition ? null : derive(declarations)
-    const prose = (parsed ? overrideFor(parsed, declarations) : null) ?? derived
+    const stated = (parsed ? overrideFor(parsed, declarations) : null) ?? derived
+    const prose = undescribedVariant ? null : stated
 
     return {
       candidate,
@@ -118,7 +121,7 @@ export function explainCandidates(candidates: Candidate[], ds: DesignSystemPort)
       root: parsed?.root ?? null,
       declarations,
       prose,
-      condition: describeVariants(variants, declarations),
+      condition,
       group: groupFor(declarations, variants),
       variants,
       swatch: swatchFrom(declarations),

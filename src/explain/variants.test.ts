@@ -32,9 +32,9 @@ describe('variants whose condition is a selector', () => {
     ['active', 'while pressed'],
     ['disabled', 'when disabled'],
     ['checked', 'when checked'],
-    ['first', 'on the first child'],
-    ['last', 'on the last child'],
-    ['odd', 'on odd-numbered children'],
+    ['first', 'when it is the first child'],
+    ['last', 'when it is the last child'],
+    ['odd', 'when it is an odd-numbered child'],
     ['placeholder', 'on the placeholder text'],
     ['before', 'on an inserted element before the content'],
   ])('describes %s', (variant, expected) => {

@@ -70,13 +70,27 @@ describe('loadDesignSystem with an unsupported @plugin', () => {
     expect(result.reason).toBe('unsupported-plugin')
   })
 
-  it('still loads directives that do work, such as @config and @custom-variant', async () => {
-    const pluginRoot = await workspace(
-      '@import "tailwindcss";\n@config "./tw.config.js";\n@custom-variant hocus (&:hover, &:focus);\n',
-      ['tw.config.js', 'module.exports = {}\n'],
+  it('refuses @config rather than loading a design system missing whatever it defines', async () => {
+    const configRoot = await workspace('@import "tailwindcss";\n@config "./tw.config.js";\n', [
+      'tw.config.js',
+      'module.exports = { theme: { extend: { colors: { mine: "#123456" } } } }\n',
+    ])
+    const result = await loadDesignSystem(configRoot, join(configRoot, 'src', 'App.tsx'))
+
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.reason).toBe('unsupported-config')
+  })
+
+  it('still loads a project using @custom-variant, which does work', async () => {
+    const variantRoot = await workspace(
+      '@import "tailwindcss";\n@custom-variant hocus (&:hover, &:focus);\n',
     )
-    const result = await loadDesignSystem(pluginRoot, join(pluginRoot, 'src', 'App.tsx'))
+    const result = await loadDesignSystem(variantRoot, join(variantRoot, 'src', 'App.tsx'))
+
     expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.ds.candidatesToCss(['hocus:flex'])[0]).not.toBeNull()
   })
 })
 

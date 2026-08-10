@@ -20,12 +20,14 @@ export type LoadResult =
         | 'wrong-version'
         | 'no-entry'
         | 'unsupported-plugin'
+        | 'unsupported-config'
         | 'stale-runtime'
         | 'error'
       detail?: string
     }
 
 const PLUGIN_DIRECTIVE = /@plugin\s+['"]/
+const CONFIG_DIRECTIVE = /@config\s+['"]/
 
 function stripComments(css: string): string {
   return css.replace(/\/\*[\s\S]*?(?:\*\/|$)/g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1')
@@ -33,6 +35,10 @@ function stripComments(css: string): string {
 
 export function hasPluginDirective(css: string): boolean {
   return PLUGIN_DIRECTIVE.test(stripComments(css))
+}
+
+export function hasConfigDirective(css: string): boolean {
+  return CONFIG_DIRECTIVE.test(stripComments(css))
 }
 
 const cache = new Map<string, LoadResult>()
@@ -91,11 +97,13 @@ export async function loadDesignSystem(
 
 async function buildDesignSystem(workspaceRoot: string, entry: string): Promise<LoadResult> {
   let sawPlugin = false
+  let sawConfig = false
 
   try {
     const { __unstable__loadDesignSystem } = await importTailwind(workspaceRoot)
     const css = await readFile(entry, 'utf8')
     if (hasPluginDirective(css)) return { ok: false, reason: 'unsupported-plugin' }
+    if (hasConfigDirective(css)) return { ok: false, reason: 'unsupported-config' }
 
     const ds = await __unstable__loadDesignSystem(css, {
       base: dirname(entry),
@@ -110,10 +118,14 @@ async function buildDesignSystem(workspaceRoot: string, entry: string): Promise<
                 : resolvePath(base, id)
         const content = await readFile(path, 'utf8')
         if (hasPluginDirective(content)) sawPlugin = true
+        if (hasConfigDirective(content)) sawConfig = true
         return { base: dirname(path), content }
       },
       loadModule: async () => ({ module: {}, base: dirname(entry) }),
     })
+
+    if (sawPlugin) return { ok: false, reason: 'unsupported-plugin' }
+    if (sawConfig) return { ok: false, reason: 'unsupported-config' }
 
     return { ok: true, ds, entry }
   } catch (error) {

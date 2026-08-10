@@ -16,16 +16,16 @@ import { isOpaque } from './derive'
  * so the negation has to be read off the candidate value.
  */
 
-const EMERGENT: Record<string, string> = {
+const EMERGENT: Record<string, Emergent> = {
   'sr-only': 'visually hidden, but still announced by screen readers',
   'not-sr-only': 'undoes sr-only, making the element visible again',
   truncate: 'one line, cut off with an ellipsis',
   antialiased: 'smoother font rendering',
   isolate: 'creates a new stacking context',
   container: 'full width, but never wider than the current breakpoint',
-  from: 'the colour a gradient starts from',
-  via: 'the colour a gradient passes through',
-  to: 'the colour a gradient ends at',
+  from: gradientStop('the colour a gradient starts from', 'where a gradient starts'),
+  via: gradientStop('the colour a gradient passes through', 'where a gradient turns'),
+  to: gradientStop('the colour a gradient ends at', 'where a gradient finishes'),
   divide: 'the colour of the dividing lines between children',
   'ring-inset': 'draws the ring inside the edge rather than outside it',
   'space-x-reverse': 'reverses which side the horizontal gap is added to',
@@ -34,6 +34,16 @@ const EMERGENT: Record<string, string> = {
 }
 
 type Composite = string | ((declarations: Declaration[], parsed: ParsedCandidate) => string)
+type Emergent = string | ((parsed: ParsedCandidate) => string)
+
+function isPosition(parsed: ParsedCandidate): boolean {
+  const value = parsed.value?.value ?? ''
+  return value.endsWith('%') || value.startsWith('position:')
+}
+
+function gradientStop(colour: string, position: string): (parsed: ParsedCandidate) => string {
+  return (parsed) => (isPosition(parsed) ? position : colour)
+}
 
 function borderOn(where: string): (declarations: Declaration[]) => string {
   return (declarations) => {
@@ -43,7 +53,10 @@ function borderOn(where: string): (declarations: Declaration[]) => string {
 }
 
 const COMPOSITE: Record<string, Composite> = {
-  shadow: (_, parsed) => (parsed.value?.value === 'inner' ? 'inset drop shadow' : 'drop shadow'),
+  shadow: (_, parsed) => {
+    const value = parsed.value?.value ?? ''
+    return value === 'inner' || value.startsWith('inset') ? 'inset drop shadow' : 'drop shadow'
+  },
   'inset-shadow': 'inner drop shadow',
   border: borderOn('all sides'),
   'border-t': borderOn('the top'),
@@ -62,7 +75,13 @@ const COMPOSITE: Record<string, Composite> = {
   'backdrop-filter': 'applies a filter to what is behind the element',
   blur: 'blurred',
   'backdrop-blur': 'blurs what is behind the element',
-  transition: 'animates changes to most properties',
+  transition: (declarations, parsed) => {
+    if (parsed.value === undefined || parsed.value === null) {
+      return 'animates changes to most properties'
+    }
+    const property = declarations.find((d) => d.prop === 'transition-property')?.value
+    return property === undefined ? 'animates a change' : `animates changes to ${property}`
+  },
   scale: (_, parsed) => {
     const value = parsed.value?.value
     return value !== undefined && /^\d+(?:\.\d+)?$/.test(value) ? `scaled to ${value}%` : 'scaled'
@@ -111,7 +130,7 @@ function negatesEffect(value: string): boolean {
 
 export function overrideFor(parsed: ParsedCandidate, declarations: Declaration[]): string | null {
   const emergent = EMERGENT[parsed.root]
-  if (emergent !== undefined) return emergent
+  if (emergent !== undefined) return typeof emergent === 'string' ? emergent : emergent(parsed)
 
   const composite = COMPOSITE[parsed.root]
   if (composite === undefined) return null

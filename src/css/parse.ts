@@ -12,8 +12,23 @@ export function parseCss(css: string): CssNode[] {
   const readHead = (): string => {
     const start = i
     let depth = 0
+    let quote: string | null = null
     while (i < css.length) {
       const c = css[i] as string
+      if (c === '\\') {
+        i += 2
+        continue
+      }
+      if (quote !== null) {
+        if (c === quote) quote = null
+        i++
+        continue
+      }
+      if (c === '"' || c === "'") {
+        quote = c
+        i++
+        continue
+      }
       if (depth === 0 && (c === '{' || c === ';' || c === '}')) break
       if (c === '(') depth++
       else if (c === ')') depth--

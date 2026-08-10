@@ -40,12 +40,12 @@ relative
 
 items-center
   group: layout
-  prose: children centered on the cross axis (center)
+  prose: children centred on the cross axis
     align-items: center
 
 justify-between
   group: layout
-  prose: children distributed along the main axis (space-between)
+  prose: children spread apart, with the outer ones against the edges
     justify-content: space-between
 
 gap-2
@@ -688,12 +688,12 @@ basis-1/2
 
 self-center
   group: layout
-  prose: this item aligned center on the cross axis
+  prose: this item centred on the cross axis
     align-self: center
 
 justify-center
   group: layout
-  prose: children distributed along the main axis (center)
+  prose: children centred on the main axis
     justify-content: center
 
 col-span-2
@@ -864,12 +864,12 @@ place-items-center
 
 content-between
   group: layout
-  prose: rows distributed space-between
+  prose: lines spread apart, with the outer ones against the edges
     align-content: space-between
 
 items-start
   group: layout
-  prose: children centered on the cross axis (flex-start)
+  prose: children aligned to the start of the cross axis
     align-items: flex-start
 
 justify-items-center

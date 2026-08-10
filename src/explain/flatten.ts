@@ -93,10 +93,20 @@ export function flattenValue(value: string, resolve: ResolveTheme): string {
   return current
 }
 
-export function remToPx(value: string): string {
+const QUOTED_OR_URL = /("[^"]*"|'[^']*'|url\([^)]*\))/g
+const REM_LENGTH = /(-?[\d.]+)rem\b/g
+
+function convertRem(value: string): string {
   return value.replace(
-    /(-?[\d.]+)rem\b/g,
+    REM_LENGTH,
     (_, n: string) =>
       `${Number.parseFloat((Number.parseFloat(n) * ROOT_FONT_SIZE_PX).toFixed(4))}px`,
   )
+}
+
+export function remToPx(value: string): string {
+  return value
+    .split(QUOTED_OR_URL)
+    .map((part, index) => (index % 2 === 1 ? part : convertRem(part)))
+    .join('')
 }
