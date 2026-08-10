@@ -26,11 +26,20 @@ First public release.
   the stylesheet, preserving unknown classes and existing line wrapping.
 - **Show Curation Backlog** command, listing every class seen that had no plain-English
   description, grouped by the root an override entry is keyed on.
+- **Conditions are stated, not implied.** A variant-qualified class says when it applies —
+  `md:w-1/2` reads "from 768px up — width 50%" — with breakpoints read from your own
+  `--breakpoint` values rather than a fixed scale.
+- **Breakpoints are mutually exclusive** when adding a variant, so a class cannot end up as
+  `sm:md:lg:rounded`. A genuine `sm:max-md:` range is left alone.
+- Keyboard navigation in the add-class list, with arrow keys and `aria-activedescendant`.
+- `Cmd+Z` / `Ctrl+Z` works with focus in the panel, where the webview would otherwise swallow it.
 
 ### Notes
 
 - Tailwind v4 only. v3 is reported as an unsupported version rather than guessed at.
-- `@plugin` is not supported yet, and is reported as such.
+- `@plugin` and `@config` are not supported yet, and are reported rather than silently
+  producing a design system that is missing whatever they define.
 - The extension never invents a description. A class it cannot honestly describe shows its raw
   CSS declarations and says it has no plain-English entry, and a declaration limited to a
-  media query or a selector says what it is limited to.
+  media query or a selector says what it is limited to, and prose is withheld entirely when a
+  class carries a variant whose condition cannot be described.
