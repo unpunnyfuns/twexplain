@@ -4,3 +4,4 @@ out
 .vscode-test
 !src/design-system/__fixtures__/**/node_modules
 .DS_Store
+*.vsix
