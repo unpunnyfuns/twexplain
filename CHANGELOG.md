@@ -4,6 +4,14 @@ All notable changes to Tailwind Explain are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] — 2026-08-10
+
+### Fixed
+
+- The extension icon is centred on its visual weight rather than its bounding box. The cursor
+  arrow reaches further right and further down than the panel outline, so a box-centred glyph
+  read as sitting up and to the left.
+
 ## [0.1.0] — 2026-08-10
 
 First public release.
