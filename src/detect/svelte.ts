@@ -4,7 +4,7 @@ import { detectAttribute, detectExpression } from './markup'
 import { locate } from './shared'
 
 const CLASS_EXPRESSION = /\bclass\s*=\s*\{/g
-const CLASS_DIRECTIVE = /\bclass:([^\s=>]+)/g
+const CLASS_DIRECTIVE = /(?<=[\s{])class:([^\s=>/"'`{}]+)/g
 
 export function detectSvelte(
   text: string,

@@ -54,12 +54,25 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
   let timer: ReturnType<typeof setTimeout> | undefined
   let sentFingerprint: string | null = null
 
+  let edits: Promise<unknown> = Promise.resolve()
+
+  const serialised = (run: () => Promise<void>): Promise<void> => {
+    const next = edits.then(run, run)
+    edits = next.catch(() => undefined)
+    return next
+  }
+
   const post = (message: HostMessage): void => {
     void current?.postMessage(message)
   }
 
-  const write = async (document: vscode.TextDocument, edit: TextEdit | null): Promise<void> => {
+  const write = async (
+    document: vscode.TextDocument,
+    edit: TextEdit | null,
+    version: number,
+  ): Promise<void> => {
     if (edit === null) return
+    if (document.version !== version) return
     const workspaceEdit = new vscode.WorkspaceEdit()
     workspaceEdit.replace(
       document.uri,
@@ -107,6 +120,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     if (editor === undefined) return
     const document = editor.document
     const folder = vscode.workspace.getWorkspaceFolder(document.uri)
+    const version = document.version
 
     const edit = await resolveIntent({
       text: document.getText(),
@@ -117,7 +131,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
       languageId: document.languageId,
       intent,
     })
-    await write(document, edit)
+    await write(document, edit, version)
   }
 
   const sortClasses = async (): Promise<void> => {
@@ -125,6 +139,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
     if (editor === undefined) return
     const document = editor.document
     const folder = vscode.workspace.getWorkspaceFolder(document.uri)
+    const version = document.version
 
     const edit = await resolveSort({
       text: document.getText(),
@@ -134,7 +149,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
       fsPath: document.uri.fsPath,
       languageId: document.languageId,
     })
-    await write(document, edit)
+    await write(document, edit, version)
   }
 
   const showBacklog = async (): Promise<void> => {
@@ -188,7 +203,9 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
         view.webview.onDidReceiveMessage((message: WebviewMessage) => {
           if (message.type === 'ready') guard('read the class string', refresh)
           else if (message.type === 'edit')
-            guard('apply that change', () => applyIntent(message.intent as EditIntent))
+            guard('apply that change', () =>
+              serialised(() => applyIntent(message.intent as EditIntent)),
+            )
           else if (message.type === 'search')
             guard('search for classes', () => suggest(message.query))
           else if (message.type === 'undo') guard('undo', undoLastEdit)
@@ -203,7 +220,7 @@ export function registerPanel(context: vscode.ExtensionContext): vscode.Disposab
       },
     }),
     vscode.commands.registerCommand('twexplain.sortClasses', () =>
-      guard('sort the class string', sortClasses),
+      guard('sort the class string', () => serialised(sortClasses)),
     ),
     vscode.commands.registerCommand('twexplain.showCurationBacklog', () =>
       guard('open the curation backlog', showBacklog),

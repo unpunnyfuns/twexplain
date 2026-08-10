@@ -51,3 +51,26 @@ describe('ArbitraryValue', () => {
     expect(onIntent).not.toHaveBeenCalled()
   })
 })
+
+describe('the draft follows the class it is editing', () => {
+  it('shows the new value when the row is reused for a different class', async () => {
+    const screen = await render(<ArbitraryValue index={0} value="13px" onIntent={vi.fn()} />)
+    await expect.element(screen.getByRole('textbox')).toHaveValue('13px')
+
+    await screen.rerender(<ArbitraryValue index={0} value="99px" onIntent={vi.fn()} />)
+
+    await expect.element(screen.getByRole('textbox')).toHaveValue('99px')
+  })
+
+  it('never sends a value the row is no longer showing', async () => {
+    const onIntent = vi.fn()
+    const screen = await render(<ArbitraryValue index={0} value="13px" onIntent={onIntent} />)
+    await screen.rerender(<ArbitraryValue index={0} value="99px" onIntent={onIntent} />)
+
+    const { userEvent } = await import('vitest/browser')
+    await screen.getByRole('textbox').click()
+    await userEvent.keyboard('{Enter}')
+
+    expect(onIntent).not.toHaveBeenCalledWith(expect.objectContaining({ value: '13px' }) as never)
+  })
+})

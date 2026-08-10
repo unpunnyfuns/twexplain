@@ -1,4 +1,4 @@
-import { type ReactElement, useState } from 'react'
+import { type ReactElement, useEffect, useState } from 'react'
 import type { EditIntent } from '../types'
 
 export function ArbitraryValue({
@@ -11,6 +11,10 @@ export function ArbitraryValue({
   onIntent: (intent: EditIntent) => void
 }): ReactElement {
   const [draft, setDraft] = useState(value)
+
+  useEffect(() => {
+    setDraft(value)
+  }, [value])
 
   return (
     <input

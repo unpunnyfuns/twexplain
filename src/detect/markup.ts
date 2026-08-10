@@ -1,7 +1,6 @@
 import type { ClassStringLocation } from '../types'
 import { locate } from './shared'
 
-const STRING_PATTERN = /(["'`])((?:(?!\1).)*)\1/gs
 const INTERPOLATION = /\$\{[^}]*\}/g
 
 function attributePattern(names: string[]): RegExp {
@@ -64,6 +63,39 @@ function findClosing(text: string, open: number, openChar: string, closeChar: st
   return -1
 }
 
+type StringLiteral = { quote: string; valueStart: number; raw: string }
+
+function scanStrings(text: string, from: number, to: number): StringLiteral[] {
+  const found: StringLiteral[] = []
+  let index = from
+
+  while (index < to) {
+    const char = text[index] as string
+    if (char !== '"' && char !== "'" && char !== '`') {
+      index++
+      continue
+    }
+
+    const valueStart = index + 1
+    let cursor = valueStart
+    while (cursor < to) {
+      const inner = text[cursor] as string
+      if (inner === '\\') {
+        cursor += 2
+        continue
+      }
+      if (inner === char) break
+      cursor++
+    }
+    if (cursor >= to) break
+
+    found.push({ quote: char, valueStart, raw: text.slice(valueStart, cursor) })
+    index = cursor + 1
+  }
+
+  return found
+}
+
 export function detectStringsIn(
   text: string,
   offset: number,
@@ -72,15 +104,12 @@ export function detectStringsIn(
   spanStart: number,
   spanEnd: number,
 ): ClassStringLocation | null {
-  const body = text.slice(spanStart, spanEnd)
-  STRING_PATTERN.lastIndex = 0
-  let literal: RegExpExecArray | null
-  while ((literal = STRING_PATTERN.exec(body)) !== null) {
-    const raw = literal[2] as string
-    const valueStart = spanStart + literal.index + 1
-    const value = literal[1] === '`' ? blankInterpolations(raw) : raw
-    if (literal[1] === '`' && insideInterpolation(raw, offset - valueStart)) return null
-    const found = locate(value, valueStart, offset, uri, kind)
+  for (const literal of scanStrings(text, spanStart, spanEnd)) {
+    const value = literal.quote === '`' ? blankInterpolations(literal.raw) : literal.raw
+    if (literal.quote === '`' && insideInterpolation(literal.raw, offset - literal.valueStart)) {
+      return null
+    }
+    const found = locate(value, literal.valueStart, offset, uri, kind)
     if (found !== null) return found
   }
   return null

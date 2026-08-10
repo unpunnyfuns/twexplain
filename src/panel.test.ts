@@ -90,12 +90,13 @@ function makeFakeView() {
   }
 }
 
-function makeFakeEditor(offset: number) {
+function makeFakeEditor(offset: number, version = 1) {
   return {
     document: {
       getText: () => 'text',
       offsetAt: () => offset,
       positionAt: (n: number) => n,
+      version,
       uri: { toString: () => 'file:///a.tsx', fsPath: '/a.tsx' },
     },
     selection: { active: offset },
@@ -497,6 +498,7 @@ describe('registerPanel sort command', () => {
     })
 
     await captured.commands.get('twexplain.sortClasses')?.()
+    await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(vi.mocked(vscode.workspace.applyEdit)).toHaveBeenCalled()
   })
@@ -613,5 +615,77 @@ describe('registerPanel webview document', () => {
     const sheets = html.match(/rel="stylesheet"/g) ?? []
 
     expect(sheets).toHaveLength(2)
+  })
+})
+
+describe('edits are refused when the document has moved underneath them', () => {
+  it('writes the resolved text at the resolved offsets', async () => {
+    const vscode = await import('vscode')
+    const intentModule = await import('./intent')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireEdit } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+    vi.mocked(intentModule.resolveIntent).mockResolvedValue({ start: 3, end: 7, newText: 'px-5' })
+
+    fireEdit({ type: 'step', index: 0, delta: 1 })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    const edit = vi.mocked(vscode.workspace.applyEdit).mock.calls[0]?.[0] as unknown as {
+      replacements: { range: { start: unknown; end: unknown }; newText: string }[]
+    }
+    expect(edit.replacements[0]?.newText).toBe('px-5')
+    expect(edit.replacements[0]?.range).toEqual({ start: 3, end: 7 })
+  })
+
+  it('does not write when the document changed while the edit was being resolved', async () => {
+    const vscode = await import('vscode')
+    const intentModule = await import('./intent')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireEdit } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+
+    const editor = makeFakeEditor(1)
+    vscode.window.activeTextEditor = editor as never
+    vi.mocked(intentModule.resolveIntent).mockImplementation(async () => {
+      editor.document.version = 2
+      return { start: 0, end: 4, newText: 'flex' }
+    })
+
+    fireEdit({ type: 'step', index: 0, delta: 1 })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(vi.mocked(vscode.workspace.applyEdit)).not.toHaveBeenCalled()
+  })
+
+  it('runs two edits one after the other rather than from the same snapshot', async () => {
+    const vscode = await import('vscode')
+    const intentModule = await import('./intent')
+    const { registerPanel } = await import('./panel')
+
+    registerPanel({ subscriptions: [], extensionUri: {} } as never)
+    const { view, fireEdit } = makeFakeView()
+    captured.provider?.resolveWebviewView(view)
+    vscode.window.activeTextEditor = makeFakeEditor(1) as never
+
+    let running = 0
+    let overlapped = false
+    vi.mocked(intentModule.resolveIntent).mockImplementation(async () => {
+      running++
+      if (running > 1) overlapped = true
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      running--
+      return { start: 0, end: 4, newText: 'flex' }
+    })
+
+    fireEdit({ type: 'step', index: 0, delta: 1 })
+    fireEdit({ type: 'step', index: 0, delta: 1 })
+    await new Promise((resolve) => setTimeout(resolve, 40))
+
+    expect(overlapped).toBe(false)
   })
 })

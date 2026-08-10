@@ -16,6 +16,18 @@ export function replaceCandidate(
   return { start: candidate.range.start, end: candidate.range.end, newText }
 }
 
+function whitespaceBefore(text: string, from: number, floor: number): number {
+  let index = from
+  while (index > floor && /\s/.test(text[index - 1] as string)) index--
+  return index
+}
+
+function whitespaceAfter(text: string, from: number, ceiling: number): number {
+  let index = from
+  while (index < ceiling && /\s/.test(text[index] as string)) index++
+  return index
+}
+
 export function removeCandidate(
   text: string,
   location: ClassStringLocation,
@@ -24,21 +36,20 @@ export function removeCandidate(
   const candidate = candidateAt(location, index)
   if (candidate === null) return null
 
-  const position = location.candidates.indexOf(candidate)
-  const previous = location.candidates[position - 1]
-  const next = location.candidates[position + 1]
+  const { start, end } = candidate.range
+  const first = location.candidates[0] === candidate
+  const beforeStart = whitespaceBefore(text, start, location.range.start)
+  const afterEnd = whitespaceAfter(text, end, location.range.end)
+  const before = text.slice(beforeStart, start)
 
-  const before =
-    previous === undefined ? null : text.slice(previous.range.end, candidate.range.start)
-  const after = next === undefined ? null : text.slice(candidate.range.end, next.range.start)
+  if (!first && before !== '' && !before.includes('\n')) {
+    return { start: beforeStart, end, newText: '' }
+  }
+  if (afterEnd > end) return { start, end: afterEnd, newText: '' }
 
-  if (previous !== undefined && before !== null && !before.includes('\n')) {
-    return { start: previous.range.end, end: candidate.range.end, newText: '' }
-  }
-  if (next !== undefined && after !== null && !after.includes('\n')) {
-    return { start: candidate.range.start, end: next.range.start, newText: '' }
-  }
-  return { start: candidate.range.start, end: candidate.range.end, newText: '' }
+  let trimmed = start
+  while (trimmed > location.range.start && /[ \t]/.test(text[trimmed - 1] as string)) trimmed--
+  return { start: trimmed, end, newText: '' }
 }
 
 export function addCandidate(location: ClassStringLocation, text: string): TextEdit | null {

@@ -160,7 +160,7 @@ export function App({ vscode }: { vscode: { postMessage(m: unknown): void } }): 
             {group.classes.map((explained) => (
               <ClassRow
                 explained={explained}
-                key={explained.candidate.index}
+                key={`${explained.candidate.index}:${explained.candidate.text}`}
                 onIntent={sendIntent}
                 palette={palette}
                 availableVariants={variants}
