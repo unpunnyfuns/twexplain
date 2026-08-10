@@ -85,6 +85,7 @@
     "check-types": "tsc --noEmit",
     "lint": "oxlint src",
     "format": "oxfmt src",
+    "format:check": "oxfmt --check src",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ds": "vitest run --config vitest.integration.config.ts",

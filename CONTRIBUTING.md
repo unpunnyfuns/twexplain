@@ -10,6 +10,7 @@
 | `npm run check-types` | `tsc --noEmit` |
 | `npm run lint` | `oxlint src` |
 | `npm run format` | `oxfmt src`, configured by `.oxfmtrc.json` |
+| `npm run format:check` | The same, reporting rather than writing |
 | `npm test` | Both test projects: `node` (`*.test.ts`) and `browser` (`*.test.tsx`) |
 | `npm run test:ds` | Integration tests that load a real Tailwind design system |
 | `npm run test:golden` | The golden-file corpus only, from `src/explain/corpus.ts` |
@@ -40,6 +41,22 @@ project. Component tests assert computed styles, so they need the same CSS the p
 that Vite plugins declared at the top level of `vitest.config.ts` do **not** reach the individual
 projects — the plugin has to be declared inside the browser project or the tests silently run
 unstyled.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push to `main` and every pull request, as five jobs so a
+failure names itself:
+
+| Job | Runs |
+| --- | --- |
+| Types, lint, format | `check-types`, `lint`, `format:check` |
+| Unit tests | `npm test` — both projects, so it installs Chromium for the browser project |
+| Against a real Tailwind | `test:ds` |
+| In a real VS Code | `test:integration`, under `xvfb-run`, since vscode-test launches a real editor and needs a display |
+| Package | `vsce package`, uploading the `.vsix` as an artefact |
+
+Playwright's browser download is cached on the lockfile hash. There is no publishing workflow:
+releases are made by hand, so the first one cannot be automated on a misunderstanding.
 
 ## Testing
 
