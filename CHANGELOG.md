@@ -4,6 +4,16 @@ All notable changes to Tailwind Explain are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] — 2026-08-11
+
+### Fixed
+
+- Tailwind is found next to the file being looked at, not only at the workspace root. A project in
+  a subfolder — an app in a monorepo, or any repository opened one level up — reported no Tailwind
+  installed. The nearest install wins, as it would for the project's own tooling.
+- A stylesheet imported from a package no longer fails with `ENOENT`. `@import "@acme/styles"` and
+  `@import "@acme/styles/theme.css"` resolve through node, so packaged themes are read.
+
 ## [0.1.2] — 2026-08-10
 
 ### Changed

@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     include: [
       'src/design-system/load.integration.test.ts',
+      'src/design-system/resolve.integration.test.ts',
       'src/explain/golden.integration.test.ts',
       'src/explain/curation.integration.test.ts',
       'src/explain/honesty.integration.test.ts',

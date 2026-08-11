@@ -1,9 +1,10 @@
 import { readFile } from 'node:fs/promises'
-import { dirname, isAbsolute, join, resolve as resolvePath } from 'node:path'
+import { dirname, isAbsolute, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { EditPort, SearchPort, ThemePort, VariantPort } from '../edit/mutate'
 import type { DesignSystemPort } from '../explain/index'
 import { clearEntryCache, discoverCssEntry } from './discover'
+import { locateTailwind, resolveStylesheet } from './locate'
 import { isSupportedVersion, readTailwindVersion } from './version'
 
 export type LoadResult =
@@ -48,7 +49,7 @@ export function clearDesignSystemCache(): void {
   clearEntryCache()
 }
 
-async function importTailwind(workspaceRoot: string): Promise<{
+async function importTailwind(tailwind: string): Promise<{
   __unstable__loadDesignSystem: (
     css: string,
     options: {
@@ -58,7 +59,7 @@ async function importTailwind(workspaceRoot: string): Promise<{
     },
   ) => Promise<DesignSystemPort & EditPort & ThemePort & SearchPort & VariantPort>
 }> {
-  const lib = join(workspaceRoot, 'node_modules', 'tailwindcss', 'dist', 'lib.mjs')
+  const lib = join(tailwind, 'dist', 'lib.mjs')
   return (await import(pathToFileURL(lib).href)) as never
 }
 
@@ -66,13 +67,16 @@ export async function loadDesignSystem(
   workspaceRoot: string,
   activeFile: string,
 ): Promise<LoadResult> {
-  const version = await readTailwindVersion(workspaceRoot)
+  const tailwind = locateTailwind(activeFile, workspaceRoot)
+  if (tailwind === null) return { ok: false, reason: 'no-tailwind' }
+
+  const version = await readTailwindVersion(tailwind)
   if (version === null) return { ok: false, reason: 'no-tailwind' }
   if (!isSupportedVersion(version)) {
     return { ok: false, reason: 'wrong-version', detail: version }
   }
 
-  const imported = importedVersions.get(workspaceRoot)
+  const imported = importedVersions.get(tailwind)
   if (imported !== undefined && imported !== version) {
     return {
       ok: false,
@@ -84,22 +88,22 @@ export async function loadDesignSystem(
   const entry = await discoverCssEntry(workspaceRoot, activeFile)
   if (entry === null) return { ok: false, reason: 'no-entry' }
 
-  const key = `${entry}\0${version}`
+  const key = `${entry}\0${tailwind}\0${version}`
   const cached = cache.get(key)
   if (cached !== undefined) return cached
 
-  const result = await buildDesignSystem(workspaceRoot, entry)
-  if (result.ok) importedVersions.set(workspaceRoot, version)
+  const result = await buildDesignSystem(tailwind, entry)
+  if (result.ok) importedVersions.set(tailwind, version)
   if (result.ok || result.reason !== 'error') cache.set(key, result)
   return result
 }
 
-async function buildDesignSystem(workspaceRoot: string, entry: string): Promise<LoadResult> {
+async function buildDesignSystem(tailwind: string, entry: string): Promise<LoadResult> {
   let sawPlugin = false
   let sawConfig = false
 
   try {
-    const { __unstable__loadDesignSystem } = await importTailwind(workspaceRoot)
+    const { __unstable__loadDesignSystem } = await importTailwind(tailwind)
     const css = await readFile(entry, 'utf8')
     if (hasPluginDirective(css)) return { ok: false, reason: 'unsupported-plugin' }
     if (hasConfigDirective(css)) return { ok: false, reason: 'unsupported-config' }
@@ -107,14 +111,7 @@ async function buildDesignSystem(workspaceRoot: string, entry: string): Promise<
     const ds = await __unstable__loadDesignSystem(css, {
       base: dirname(entry),
       loadStylesheet: async (id, base) => {
-        const path =
-          id === 'tailwindcss'
-            ? join(workspaceRoot, 'node_modules', 'tailwindcss', 'index.css')
-            : id.startsWith('tailwindcss/')
-              ? join(workspaceRoot, 'node_modules', id.endsWith('.css') ? id : `${id}.css`)
-              : isAbsolute(id)
-                ? id
-                : resolvePath(base, id)
+        const path = isAbsolute(id) ? id : resolveStylesheet(id, base, tailwind)
         const content = await readFile(path, 'utf8')
         if (hasPluginDirective(content)) sawPlugin = true
         if (hasConfigDirective(content)) sawConfig = true

@@ -5,12 +5,14 @@ import { isSupportedVersion, readTailwindVersion } from './version'
 const fixture = (name: string): string => join(__dirname, '__fixtures__', name)
 
 describe('readTailwindVersion', () => {
-  it('reads the installed version', async () => {
-    expect(await readTailwindVersion(fixture('standard'))).toBe('4.1.7')
+  const tailwind = (name: string): string => join(fixture(name), 'node_modules', 'tailwindcss')
+
+  it('reads the version from the package it is given', async () => {
+    expect(await readTailwindVersion(tailwind('standard'))).toBe('4.1.7')
   })
 
-  it('returns null when tailwind is not installed', async () => {
-    expect(await readTailwindVersion(fixture('none'))).toBeNull()
+  it('returns null when there is no package there', async () => {
+    expect(await readTailwindVersion(tailwind('none'))).toBeNull()
   })
 })
 
